@@ -6,26 +6,33 @@ using std::endl;
 using std::string;
 using std::vector;
 
-// void	_init_servers(vector<server>& servers){
-// 	vector<server>::iterator it;
-// 	for (it = servers.begin())
-// }
-
-int main(){
+vector<server>	mini_parsing(){
 	server	StaunchOne;
 	server	StaunchTwo;
 	server	StaunchThree;
 
 	StaunchOne.set_ip("localhost");
-	StaunchOne.portSetter("8088");
+	StaunchOne.portSetter("80");
+	StaunchOne.set_isdefault(1);
 	StaunchTwo.set_ip("127.0.0.1");
 	StaunchTwo.portSetter("80");
+	StaunchTwo.set_isdefault(0);
+	StaunchTwo.set_my_default(0);
 	StaunchThree.set_ip("0.0.0.0");
-	StaunchThree.portSetter("8081");
+	StaunchThree.portSetter("80");
+	StaunchThree.set_isdefault(0);
+	StaunchThree.set_my_default(0);
 	vector<server> servers;
 	servers.push_back(StaunchOne);
 	servers.push_back(StaunchTwo);
 	servers.push_back(StaunchThree);
+	return servers;
+}
+
+int main(){
+	vector<server> servers;
+	static int image;
+	servers = mini_parsing();
 	// _init_servers(servers);
     serversInfos	_si(servers);
 
@@ -82,18 +89,21 @@ int main(){
 				"HTTP/1.1 200 OK\r\n"\
 				"Connection: close\r\n"\
 				"Content-Type: text/html\r\n\r\n"\
-				"<h1> HELLO WORLD </h1><body><img src=\"get_ready_for_work.png\"></body>";
+				"<h1> HELLO WORLD </h1><img src=\"get_ready_for_work.png\">";
 				servers[i].set_response(response);
 
 				int bytes_sent = send(servers[i].get_sconncetion(),
 					response, strlen(response), 0);//response
 
 				cout << bytes_sent << '/' << strlen(response) << " sent" << endl;
-				bytes_sent = send(connection_socket, buffer.c_str(),
-					strlen(buffer.c_str()), 0);
-				cout << bytes_sent << '/' << strlen(buffer.c_str()) << " sent**" << endl;
+				if (image){
+					bytes_sent = send(connection_socket, buffer.c_str(),
+						strlen(buffer.c_str()), 0);
+					cout << "image---> " << bytes_sent << '/' << strlen(buffer.c_str()) << " sent**" << endl;
+				}
 				
 				close(connection_socket);
+				image++;
 			}
 		}
 	}

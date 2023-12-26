@@ -30,8 +30,13 @@ using std::string;
 class server{
 	string	port, serverName, request, response, ip;
 	bool is_default;
-	int	my_default;
+	int my_default;
+	int	_s_listener, _s_connection;
 	public:
+		void	set_isdefault(bool b);
+		bool	get_isdefault();
+		void	set_my_default(int index);
+		int		get_my_default();
 		void	portSetter(string prt);
 		void	set_slistener(int s);
 		void	set_sconnection(int s);
