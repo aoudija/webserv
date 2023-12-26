@@ -1,72 +1,111 @@
-#include "server_header.hpp"
+#include "server.hpp"
 
-using std::cout;
-using std::cin;
-using std::endl;
 using std::string;
+using std::cout;
+using std::endl;
+using std::vector;
 
-int main(){
-    struct addrinfo server_addr, *cn;
-
-    server_addr.ai_family = AF_UNSPEC;
-    server_addr.ai_socktype = SOCK_STREAM;
-    server_addr.ai_flags = AI_PASSIVE;
-
-	getaddrinfo(0, "80", &server_addr, &cn);
-	int listen_socket = socket(cn->ai_family, cn->ai_socktype, cn->ai_protocol);
-	cout << "listening socket : " << listen_socket << endl;
-	if (bind(listen_socket, cn->ai_addr,cn->ai_addrlen) < 0)
-	{
-	    cout << RED << "bind() failed" << RESET_TEXT << endl;
-	    freeaddrinfo(cn);
-	    close(listen_socket);
-	    exit(EXIT_FAILURE);
-	}
-	freeaddrinfo(cn);
-	if (listen(listen_socket, 20) < 0)
-	{
-	    cout << RED << "listen() failed" << RESET_TEXT << endl;
-	    close(listen_socket);
-	    exit(EXIT_FAILURE);
-	}
-
-	struct sockaddr_storage client_addr;
-	socklen_t clientaddr_len = sizeof(client_addr);
-
-	char request[1024];
-	int connection_socket, bytes_received;
-
-	//multiplexing v0.1
-	while (true){
-		fd_set sockets, copy;
-		FD_ZERO(&sockets);
-		FD_SET(listen_socket, &sockets);
-		copy = sockets;
-		
-		select(listen_socket + 1, &copy, 0, 0, 0);
-		if (FD_ISSET(listen_socket, &copy)){
-			connection_socket = accept(listen_socket,
-					(sockaddr*)&client_addr, 
-					&clientaddr_len);
-
-			cout << CYAN << "CONNECTION SOCKET : " << connection_socket << RESET_TEXT << endl;
-			cout << GREEN << "CONNECTION ACCEPTED .." << RESET_TEXT << endl;
-			bytes_received = recv(connection_socket, request, 1024, 0);
-			cout << "Received " << bytes_received << " bytes." << endl;
-			printf("\033[1;37m%.*s\033[0m", bytes_received, request);
-
-			cout << YELLOW << "SENDING RESPONSE ..." << RESET_TEXT << endl;
-			const char *response =
-				"HTTP/1.1 200 OK\r\n"
-				"Connection: close\r\n"
-				"Content-Type: text/html\r\n\r\n"
-				"<h1> HELLO WORLD </h1>";
-			int bytes_sent = send(connection_socket, response, strlen(response), 0);
-			cout << bytes_sent << '/' << strlen(response) << " sent" << endl;
-			
-			close(connection_socket);
-		}
-	}
-
-    close(listen_socket);
+/*server_class*/
+void	server::portSetter(string prt){
+	port = prt;
 }
+
+void	server::set_slistener(int s){
+	_s_listener = s;
+}
+
+void	server::set_sconnection(int s){
+	_s_connection = s;
+}
+
+string	server::portGetter(){
+	return port;
+}
+
+int	server::get_slistener(){
+	return _s_listener;
+}
+
+int	server::get_sconncetion(){
+	return _s_connection;
+}
+
+void	server::set_ip(string ip){
+	ip  = ip;
+}
+
+string	server::get_ip(){
+	return ip;
+}
+
+
+/*serersInfos_class*/
+serversInfos::serversInfos(const vector<server>& servers){
+	this->servers = servers;
+}
+
+void	serversInfos::closeListeners(){
+	vector<server>::iterator it;
+	for (it = servers.begin(); it < servers.end();it++)
+		close(it->get_slistener());
+}
+
+vector<server> serversInfos::get_servers(){
+	return servers;
+}
+
+void	server::set_request(string rq){
+	request = rq;
+}
+
+void	server::set_response(string rs){
+	response = rs;
+}
+
+string	server::get_request(){
+	return request;
+}
+
+string	server::get_response(){
+	return response;
+}
+
+
+void serversInfos::SetListener(){
+	vector<server>::iterator it;
+	for(it = servers.begin();it < servers.end();it++){
+		struct addrinfo server_addr, *cn;
+		bzero(&server_addr, sizeof(server_addr));
+		server_addr.ai_family = AF_UNSPEC;
+		server_addr.ai_socktype = SOCK_STREAM;
+		server_addr.ai_flags = AI_PASSIVE;
+		if (getaddrinfo(it->get_ip().c_str(), (it->portGetter()).c_str(),
+			&server_addr, &cn) != 0)
+		{	cout << RED << "getaddrinfo() failed" << RESET_TEXT << endl;
+			exit(EXIT_FAILURE);
+		}
+		//mainpart
+		it->set_slistener(socket(cn->ai_family,
+			cn->ai_socktype, cn->ai_protocol));
+		
+		if (bind(it->get_slistener(), cn->ai_addr,cn->ai_addrlen) < 0)
+		{
+			cout << RED << "bind() failed" << RESET_TEXT << endl;
+			freeaddrinfo(cn);
+			closeListeners();
+			exit(EXIT_FAILURE);
+		}
+		freeaddrinfo(cn);
+		if (listen(it->get_slistener(), 20) < 0)
+		{
+			cout << RED << "listen() failed" << RESET_TEXT << endl;
+			closeListeners();
+			exit(EXIT_FAILURE);
+		}
+		cout << "port: " << it->portGetter();
+		cout << " listening on socket "
+			<< it->get_slistener() << endl;
+	}
+}
+
+
