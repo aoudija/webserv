@@ -73,7 +73,8 @@ int main(){
 				cout << GREEN << "CONNECTION ACCEPTED .." << RESET_TEXT << endl;
 				/*--------------*/
 				
-				bytes_received = recv(servers[i].get_sconncetion(), request, 1024, 0);//request
+				bytes_received = recv(servers[i].get_sconncetion(),
+					request, 1024, 0);//request
 
 				servers[i].set_request(request);
 				cout << "Received " << bytes_received << " bytes." << endl;
@@ -81,7 +82,7 @@ int main(){
 
 				cout << YELLOW << "SENDING RESPONSE ..." << RESET_TEXT << endl;
 				
-				std::ifstream imgfile("get_ready_for_work.png");
+				std::ifstream imgfile("iamge_1.jpg");
 				std::string buffer, c;
 				while (std::getline(imgfile, c))
 					buffer += c;
@@ -89,7 +90,7 @@ int main(){
 				"HTTP/1.1 200 OK\r\n"\
 				"Connection: close\r\n"\
 				"Content-Type: text/html\r\n\r\n"\
-				"<h1> HELLO WORLD </h1><img src=\"get_ready_for_work.png\">";
+				"<h1> HELLO WORLD </h1><img src=\"iamge_1.jpg\">";
 				servers[i].set_response(response);
 
 				int bytes_sent = send(servers[i].get_sconncetion(),
@@ -97,11 +98,16 @@ int main(){
 
 				cout << bytes_sent << '/' << strlen(response) << " sent" << endl;
 				if (image){
-					bytes_sent = send(connection_socket, buffer.c_str(),
+					string response2 =
+					"HTTP/1.1 200 OK\r\n"\
+					"Connection: close\r\n"\
+					"Content-Type: image\r\n\r\n" + buffer;
+					cout << "hello_image\n";
+					bytes_sent = send(connection_socket, response2.c_str(),
 						strlen(buffer.c_str()), 0);
-					cout << "image---> " << bytes_sent << '/' << strlen(buffer.c_str()) << " sent**" << endl;
+					cout << "image---> " << bytes_sent << '/' << strlen(buffer.c_str())
+						<< " sent**" << endl;
 				}
-				
 				close(connection_socket);
 				image++;
 			}
