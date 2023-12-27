@@ -38,6 +38,21 @@ string	server::get_ip(){
 	return ip;
 }
 
+void	server::set_isdefault(bool b){
+	is_default = b;
+}
+
+bool	server::get_isdefault(){
+	return is_default;
+}
+
+void	server::set_my_default(int index){
+	my_default = index;
+}
+
+int		server::get_my_default(){
+	return my_default;
+}
 
 /*serersInfos_class*/
 serversInfos::serversInfos(const vector<server>& servers){
@@ -85,22 +100,27 @@ void serversInfos::SetListener(){
 			exit(EXIT_FAILURE);
 		}
 		//mainpart
-		it->set_slistener(socket(cn->ai_family,
-			cn->ai_socktype, cn->ai_protocol));
-		
-		if (bind(it->get_slistener(), cn->ai_addr,cn->ai_addrlen) < 0)
-		{
-			cout << RED << "bind() failed" << RESET_TEXT << endl;
-			freeaddrinfo(cn);
-			closeListeners();
-			exit(EXIT_FAILURE);
+		if (!it->get_isdefault()){
+			cout << "hello" << endl;
+			it->set_slistener(servers[it->get_my_default()].get_slistener());
 		}
-		freeaddrinfo(cn);
-		if (listen(it->get_slistener(), 20) < 0)
-		{
-			cout << RED << "listen() failed" << RESET_TEXT << endl;
-			closeListeners();
-			exit(EXIT_FAILURE);
+		else {
+			it->set_slistener(socket(cn->ai_family,
+				cn->ai_socktype, cn->ai_protocol));
+			if (bind(it->get_slistener(), cn->ai_addr,cn->ai_addrlen) < 0)
+			{
+				cout << RED << "bind() failed" << RESET_TEXT << endl;
+				freeaddrinfo(cn);
+				closeListeners();
+				exit(EXIT_FAILURE);
+			}
+			freeaddrinfo(cn);
+			if (listen(it->get_slistener(), 20) < 0)
+			{
+				cout << RED << "listen() failed" << RESET_TEXT << endl;
+				closeListeners();
+				exit(EXIT_FAILURE);
+			}
 		}
 		cout << "port: " << it->portGetter();
 		cout << " listening on socket "

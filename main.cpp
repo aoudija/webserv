@@ -6,26 +6,78 @@ using std::endl;
 using std::string;
 using std::vector;
 
-// void	_init_servers(vector<server>& servers){
-// 	vector<server>::iterator it;
-// 	for (it = servers.begin())
-// }
-
-int main(){
+vector<server>	mini_parsing(){
 	server	StaunchOne;
 	server	StaunchTwo;
 	server	StaunchThree;
 
 	StaunchOne.set_ip("localhost");
-	StaunchOne.portSetter("8088");
-	StaunchTwo.set_ip("127.0.0.1");
-	StaunchTwo.portSetter("80");
-	StaunchThree.set_ip("0.0.0.0");
-	StaunchThree.portSetter("8081");
+	StaunchOne.portSetter("60");
+	StaunchOne.set_isdefault(1);
 	vector<server> servers;
 	servers.push_back(StaunchOne);
-	servers.push_back(StaunchTwo);
-	servers.push_back(StaunchThree);
+	return servers;
+}
+
+// Function to create an HTTP response with HTML content and an image
+string createHtmlImageResponse() {
+
+    static int flag;
+
+    std::ifstream htmlFile("index.html");
+    if (!htmlFile.is_open()) {
+        std::cerr << "Error opening HTML file\n";
+        // Log the error, return an error response, or handle it appropriately
+    }
+
+    string buffer,c;
+    while (std::getline(htmlFile, c)){
+        buffer += c + "\n";
+    }
+    // Load HTML content
+    std::string htmlContent(buffer);
+
+    std::ifstream imageFile("img.png");
+    if (!imageFile.is_open()) {
+        std::cerr << "Error opening image file\n";
+        // Log the error, return an error response, or handle it appropriately
+    }
+    c = "";
+    std::string imageContent;
+    while (std::getline(imageFile, c))
+        imageContent += c;
+    // Load image content
+
+
+    std::string msg;
+    if (flag == 0)
+    {
+        std::cout << "FIRST " << std::endl;
+        msg = "HTTP/1.1 200 OK\r\n"
+            "Content-Length: " + std::to_string(htmlContent.size()) + "\r\n"
+            "Content-Type: text/html\r\n"
+            "\r\n" + htmlContent;
+        flag = 1;
+    }
+    else if (flag == 1)
+    {
+        std::cout << "SECONDE " << std::endl;
+        msg = "HTTP/1.1 200 OK\r\n"
+        "Content-Length: " + std::to_string(imageContent.size()) + "\r\n"
+        "Content-Type: text/plain\r\n"
+        "\r\n";
+        // + imageContent
+        flag = 0;
+    }
+    // Create the HTTP response
+    // cout << "ktaba : " << msg << endl;
+    return msg;
+}
+
+int main(){
+	vector<server> servers;
+	static int image;
+	servers = mini_parsing();
 	// _init_servers(servers);
     serversInfos	_si(servers);
 
@@ -37,7 +89,8 @@ int main(){
 	char request[1024];
 	int connection_socket, bytes_received;
 
-	//multiplexing v3.0
+	//multiplexing vz.0
+		//multiplexing v3.0
 	while (true){
 		fd_set sockets, copy;
 		FD_ZERO(&sockets);
@@ -73,28 +126,15 @@ int main(){
 				printf("\033[1;37m%.*s\033[0m", bytes_received, request);
 
 				cout << YELLOW << "SENDING RESPONSE ..." << RESET_TEXT << endl;
-				
-				std::ifstream imgfile("get_ready_for_work.png");
-				std::string buffer, c;
-				while (std::getline(imgfile, c))
-					buffer += c;
-				const char *response =
-				"HTTP/1.1 200 OK\r\n"\
-				"Connection: close\r\n"\
-				"Content-Type: text/html\r\n\r\n"\
-				"<h1> HELLO WORLD </h1><body><img src=\"get_ready_for_work.png\"></body>";
-				servers[i].set_response(response);
 
+				servers[i].set_response(createHtmlImageResponse());
+                // cout << YELLOW << createHtmlImageResponse().c_str() << RESET_TEXT << endl;
 				int bytes_sent = send(servers[i].get_sconncetion(),
-					response, strlen(response), 0);//response
-
-				cout << bytes_sent << '/' << strlen(response) << " sent" << endl;
-				bytes_sent = send(connection_socket, buffer.c_str(),
-					strlen(buffer.c_str()), 0);
-				cout << bytes_sent << '/' << strlen(buffer.c_str()) << " sent**" << endl;
+				createHtmlImageResponse().c_str(), strlen(createHtmlImageResponse().c_str()), 0);//response
 				
-				close(connection_socket);
+				close(servers[i].get_sconncetion());
 			}
 		}
 	}
 }
+
