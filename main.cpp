@@ -15,13 +15,13 @@ vector<server>	mini_parsing(){
 	StaunchOne.portSetter("80");
 	StaunchOne.set_isdefault(1);
 	StaunchTwo.set_ip("127.0.0.1");
-	StaunchTwo.portSetter("80");
-	StaunchTwo.set_isdefault(0);
-	StaunchTwo.set_my_default(0);
+	StaunchTwo.portSetter("81");
+	StaunchTwo.set_isdefault(1);
+	// StaunchTwo.set_my_default(0);
 	StaunchThree.set_ip("0.0.0.0");
-	StaunchThree.portSetter("80");
-	StaunchThree.set_isdefault(0);
-	StaunchThree.set_my_default(0);
+	StaunchThree.portSetter("83");
+	StaunchThree.set_isdefault(1);
+	// StaunchThree.set_my_default(0);
 	vector<server> servers;
 	servers.push_back(StaunchOne);
 	servers.push_back(StaunchTwo);
@@ -31,7 +31,9 @@ vector<server>	mini_parsing(){
 
 int main(){
 	vector<server> servers;
-	static int image;
+	int bytes_sent;
+	char request[1024];
+	int bytes_received;
 	servers = mini_parsing();
 	// _init_servers(servers);
     serversInfos	_si(servers);
@@ -41,15 +43,13 @@ int main(){
 	struct sockaddr_storage client_addr;
 	socklen_t clientaddr_len = sizeof(client_addr);
 
-	char request[1024];
-	int connection_socket, bytes_received;
 
 	//multiplexing v3.0
 	while (true){
 		fd_set sockets, copy;
 		FD_ZERO(&sockets);
-		
-		for (int i = 0; i < servers.size();i++){
+
+		for (size_t i = 0; i < servers.size();i++){
 			cout << "setting socket_listener: " << servers[i].get_slistener()
 				<< endl;
 			FD_SET(servers[i].get_slistener(), &sockets);
@@ -61,9 +61,9 @@ int main(){
 			cout << RED << "select() failed" << RESET_TEXT << endl;
 	    	exit(EXIT_FAILURE);
 		}
-		for (int i = 0; i < servers.size();i++){
+		for (size_t i = 0; i < servers.size();i++){
 			if (FD_ISSET(servers[i].get_slistener(), &copy)){
-
+				cout << RED << "socket listenner: " << servers[i].get_slistener() << RESET_TEXT << endl;
 				servers[i].set_sconnection(accept(servers[i].get_slistener(),
 						(sockaddr*)&client_addr, 
 						&clientaddr_len));
@@ -72,7 +72,7 @@ int main(){
 					<< RESET_TEXT << endl;
 				cout << GREEN << "CONNECTION ACCEPTED .." << RESET_TEXT << endl;
 				/*--------------*/
-				
+
 				bytes_received = recv(servers[i].get_sconncetion(),
 					request, 1024, 0);//request
 
@@ -81,35 +81,18 @@ int main(){
 				printf("\033[1;37m%.*s\033[0m", bytes_received, request);
 
 				cout << YELLOW << "SENDING RESPONSE ..." << RESET_TEXT << endl;
-				
-				std::ifstream imgfile("iamge_1.jpg");
-				std::string buffer, c;
-				while (std::getline(imgfile, c))
-					buffer += c;
+
 				const char *response =
 				"HTTP/1.1 200 OK\r\n"\
 				"Connection: close\r\n"\
 				"Content-Type: text/html\r\n\r\n"\
-				"<h1> HELLO WORLD </h1><img src=\"iamge_1.jpg\">";
+				"<h1> HELLO WORLD </h1><img src=\"image_1.jpg\">";
 				servers[i].set_response(response);
 
-				int bytes_sent = send(servers[i].get_sconncetion(),
-					response, strlen(response), 0);//response
-
+				bytes_sent = send(servers[i].get_sconncetion(),
+					response, strlen(response), 0);//response1
 				cout << bytes_sent << '/' << strlen(response) << " sent" << endl;
-				if (image){
-					string response2 =
-					"HTTP/1.1 200 OK\r\n"\
-					"Connection: close\r\n"\
-					"Content-Type: image\r\n\r\n" + buffer;
-					cout << "hello_image\n";
-					bytes_sent = send(connection_socket, response2.c_str(),
-						strlen(buffer.c_str()), 0);
-					cout << "image---> " << bytes_sent << '/' << strlen(buffer.c_str())
-						<< " sent**" << endl;
-				}
-				close(connection_socket);
-				image++;
+				close(servers[i].get_sconncetion());
 			}
 		}
 	}

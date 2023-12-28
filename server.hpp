@@ -21,8 +21,6 @@
 #include <sstream>
 #include <fstream>
 
-#define SOCKET int
-
 using std::map;
 using std::vector;
 using std::string;
@@ -30,25 +28,24 @@ using std::string;
 class server{
 	string	port, serverName, request, response, ip;
 	bool is_default;
-	int my_default;
-	int	_s_listener, _s_connection;
+	int my_default, _s_listener, _s_connection;
 	public:
-		void	set_isdefault(bool b);
-		bool	get_isdefault();
-		void	set_my_default(int index);
-		int		get_my_default();
 		void	portSetter(string prt);
+		void	set_my_default(int index);
+		void	set_isdefault(bool b);
 		void	set_slistener(int s);
 		void	set_sconnection(int s);
 		void	set_request(string rq);
 		void	set_response(string rs);
+		void	set_ip(string ip);
 		string	get_request();
 		string	get_response();
 		string	portGetter();
+		string	get_ip();
+		bool	get_isdefault();
+		int		get_my_default();
 		int		get_slistener();
 		int		get_sconncetion();
-		void	set_ip(string ip);
-		string	get_ip();
 };
 
 class serversInfos
@@ -61,6 +58,8 @@ class serversInfos
 		void		closeListeners();
 		vector<server> get_servers();
 };
+
+string httpResponse();
 
 /*server {
     # listen on port 80
