@@ -30,9 +30,11 @@ vector<server>	mini_parsing(){
 }
 
 int main(){
+	map<struct sockaddr_storage, client> clients;
+	request requestObj;
 	vector<server> servers;
 	int bytes_sent;
-	char request[1024];
+	char request_string[1024];
 	int bytes_received;
 	servers = mini_parsing();
 	// _init_servers(servers);
@@ -65,7 +67,7 @@ int main(){
 			if (FD_ISSET(servers[i].get_slistener(), &copy)){
 				cout << RED << "socket listenner: " << servers[i].get_slistener() << RESET_TEXT << endl;
 				servers[i].set_sconnection(accept(servers[i].get_slistener(),
-						(sockaddr*)&client_addr, 
+						(sockaddr*)&client_addr,
 						&clientaddr_len));
 
 				cout << CYAN << "CONNECTION SOCKET : " << servers[i].get_sconncetion()
@@ -74,11 +76,14 @@ int main(){
 				/*--------------*/
 
 				bytes_received = recv(servers[i].get_sconncetion(),
-					request, 1024, 0);//request
-
-				servers[i].set_request(request);
+					request_string, 1024, 0);//request
+				if (clients.find(client_addr) == clients.end()){
+					client temp;
+					temp.setreq(request_string);
+					clients[client_addr] = temp;
+				}
 				cout << "Received " << bytes_received << " bytes." << endl;
-				printf("\033[1;37m%.*s\033[0m", bytes_received, request);
+				printf("\033[1;37m%.*s\033[0m", bytes_received, request_string);
 
 				cout << YELLOW << "SENDING RESPONSE ..." << RESET_TEXT << endl;
 
@@ -87,7 +92,6 @@ int main(){
 				"Connection: close\r\n"\
 				"Content-Type: text/html\r\n\r\n"\
 				"<h1> HELLO WORLD </h1><img src=\"image_1.jpg\">";
-				servers[i].set_response(response);
 
 				bytes_sent = send(servers[i].get_sconncetion(),
 					response, strlen(response), 0);//response1

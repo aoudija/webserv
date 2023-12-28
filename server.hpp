@@ -18,12 +18,14 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <pair>
 #include <sstream>
 #include <fstream>
 
 using std::map;
 using std::vector;
 using std::string;
+using std::pair;
 
 class server{
 	string	port, serverName, request, response, ip;
@@ -60,6 +62,43 @@ class serversInfos
 };
 
 string httpResponse();
+
+
+//REQUEST_CLASS
+class request
+{
+	string method;
+	string requestURI;
+	string httpVersion;
+	map<std::string, std::string> headerFields;
+	string body;
+
+public:
+	request();
+	request(std::string req);
+	request(const request &other);
+	request& operator=(const request& other);
+	std::string getMethod();
+	void checkRequestLine(std::string request);
+	void checkHeaderFields(std::string headerFiles);
+	void parseRequest(std::string request);
+	void checkBody(std::string body);
+};
+
+//RESPONSE_CLASS
+class response{
+	
+};
+
+//Client class
+class client
+{
+	request req;
+	response res;
+	public:
+		void setreq(char* r);
+};
+
 
 /*server {
     # listen on port 80
