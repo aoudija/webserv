@@ -155,8 +155,6 @@ void	Server::seter(std::string str, int line){
 	std::vector<std::string> list;
 	int	token;
 
-	if (isWhitespace(str) && str.size() > 0)
-		throw std::invalid_argument(throwmessage(line, "extra whitespaces."));
 	list = splitString(str, " \t");
 	if (list.empty())
 		return ;
@@ -164,6 +162,8 @@ void	Server::seter(std::string str, int line){
 		throw std::invalid_argument(throwmessage(line, "invalid input."));
 	if (list[list.size() - 1][list[list.size() - 1].length() - 1] != ';')
 		throw std::invalid_argument(throwmessage(line, "the line have to end with ';'."));
+	if (isWhitespace(str) && str.size() > 0)
+		throw std::invalid_argument(throwmessage(line, "extra whitespaces."));
 	int f = 0;
 	for (size_t i = str.size() - 1; i > 0; i--){
 		if (str[i] == ';')
@@ -209,8 +209,26 @@ void	Server::checklastline(std::string str, int line, int firstline){
 			throw std::invalid_argument(throwmessage(line, "Error: extra whitespaces."));
     }
 	if (str.compare("}"))
-		throw std::invalid_argument(throwmessage(line, " "));
+		throw std::invalid_argument(throwmessage(line, "Error: Invalid Input"));
 }	
+
+
+void	Server::setmylocation(std::map<int, std::string>::const_iterator &it, std::map<int, std::string> &server){
+	std::map<int, std::string> locations;
+	std::map<int, std::string>::const_iterator itf = it;
+	int itfirst = it->first;
+	for(; it != server.end() && it->second.find(")") == std::string::npos; ++it){
+		if (it != itf && it->second.find("(") != std::string::npos)
+			throw std::invalid_argument(throwmessage(itfirst, "lalalalal"));
+		locations[it->first] = it->second;
+	}
+	if (it->second.find(")") != std::string::npos)
+		locations[it->first] = it->second;
+	else if (it == server.end())
+		throw std::invalid_argument(throwmessage(itfirst, "okokoko"));
+	Location	local(locations);
+	setLocations(local);
+}
 
 void	Server::parse(std::map<int, std::string> &server){
 	std::map<int, std::string>::const_iterator it = server.begin();
@@ -221,14 +239,13 @@ void	Server::parse(std::map<int, std::string> &server){
 	it++;
 	for (; it != server.end(); it++)
     {
-		if (it->second.find("}") == std::string::npos)
-       		seter(it->second, it->first);
-
-		// if (it->second.find("listen")!= std::string::npos)
-		// 	Myhostname(it->second, it->first);
-        // if (it->second.find("root")!= std::string::npos)
-		// 	Myroot(it->second);
-
+		if (it->second.find("}") == std::string::npos){
+			if (it->second.find("(") != std::string::npos){
+				setmylocation(it, server);
+			}
+			else
+       			seter(it->second, it->first);
+		}
 	}
 }
 

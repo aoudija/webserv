@@ -4,7 +4,7 @@ CPP			= c++
 FLAGS		= -Wall -Wextra -Werror -std=c++98
 RM			= rm -rf
 
-FILES		= main  Server Config
+FILES		= main  Server Config Location
  
 SRC			= $(FILES:=.cpp)
 OBJ			= $(FILES:=.o)

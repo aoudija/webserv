@@ -7,6 +7,9 @@
 #include "Location.hpp"
 #include <sstream>
 
+
+class Location;
+
 class Server
 {
 private:
@@ -41,6 +44,7 @@ private:
 	void		Myallow_methods(std::vector<std::string> list, int line);
 	void		Myerror_page(std::vector<std::string> list, int line);
 	void		Mylocations(std::vector<Location>&);
+	void		setmylocation(std::map<int, std::string>::const_iterator &it, std::map<int, std::string> &server);
 public:
 	Server();
 	~Server();
