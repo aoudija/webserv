@@ -1,24 +1,32 @@
-NAME = webserv
-CPP = c++
-FLAGS = -Wall -Wextra -Werror -std=c++98
-SRC_FILES = main.cpp server/server.cpp response/response.cpp
-OBJ_FILES = $(SRC_FILES:.cpp=.o)
-DEP  = server.hpp
+NAME		=  Server
+	
+CPP			= c++
+FLAGS		= -Wall -Wextra -Werror -std=c++98
+RM			= rm -rf
+
+FILES		= main  Server Config
+ 
+SRC			= $(FILES:=.cpp)
+OBJ			= $(FILES:=.o)
+HEADER		=  Server.hpp Config.hpp Location.hpp
 
 all: $(NAME)
 
-$(NAME): $(OBJ_FILES)
-	$(CPP) $(FLAGS) $(OBJ_FILES) -o $(NAME)
+$(NAME): $(OBJ) $(HEADER)
+	@$(CPP) $(OBJ) -o $(NAME)
+	@echo " - Executable ready."
 
-%.o: %.cpp $(DEP)
-	$(CPP) $(FLAGS) -c $< -o $@
+%.o: %.cpp $(HEADER)
+	@$(CPP) $(FLAGS) -c $< -o $@
 
 clean:
-	rm -f $(OBJ_FILES)
+	@$(RM) $(OBJ)
+	@echo " - Object files removed."
 
 fclean: clean
-	rm -f $(NAME)
+	@$(RM) $(NAME)
+	@echo " - Executable removed."
 
 re: fclean all
 
-.PHONY: all fclean re clean
+.PHONY: all clean fclean re
