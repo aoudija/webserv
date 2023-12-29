@@ -5,12 +5,12 @@
 #include <vector>
 #include <map>
 #include <fstream>
-#include "Server.hpp"
+#include "../server.hpp"
 #include <iostream>
 #include <fstream>
 #include <sstream>
 
-class Server;
+class server;
 
 class Config {
         Config();
@@ -19,7 +19,7 @@ class Config {
         bool isWhitespace(const std::string& str);
         std::string throwmessage(int number, const std::string& str);
     public:
-        std::vector<Server> Servers;
+        std::vector<server> Servers;
         Config(std::string av);
         ~Config();
 

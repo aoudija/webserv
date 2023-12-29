@@ -1,4 +1,4 @@
-#include "server.hpp"
+#include "../server.hpp"
 
 using std::string;
 using std::cout;
@@ -31,7 +31,7 @@ int	server::get_sconncetion(){
 }
 
 void	server::set_ip(string ip){
-	ip  = ip;
+	this->ip  = ip;
 }
 
 string	server::get_ip(){
@@ -88,12 +88,15 @@ string	server::get_response(){
 
 void serversInfos::SetListener(){
 	vector<server>::iterator it;
+	
 	for(it = servers.begin();it < servers.end();it++){
+		
 		struct addrinfo server_addr, *cn;
 		bzero(&server_addr, sizeof(server_addr));
 		server_addr.ai_family = AF_UNSPEC;
 		server_addr.ai_socktype = SOCK_STREAM;
 		server_addr.ai_flags = AI_PASSIVE;
+		
 		if (getaddrinfo(it->get_ip().c_str(), (it->portGetter()).c_str(),
 			&server_addr, &cn) != 0)
 		{	cout << RED << "getaddrinfo() failed" << RESET_TEXT << endl;
@@ -127,5 +130,4 @@ void serversInfos::SetListener(){
 			<< it->get_slistener() << endl;
 	}
 }
-
 

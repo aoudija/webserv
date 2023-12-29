@@ -44,7 +44,7 @@ void     Config::parse_server(std::ifstream &ConfFile){
         // Check if the line starts a new server block
         if (line.find("{") != std::string::npos){
             if (!currentServer.empty()) {
-                Server  srv;
+                server  srv;
                 srv.parse(currentServer);
                 Servers.push_back(srv);
                 currentServer.clear();
@@ -55,7 +55,7 @@ void     Config::parse_server(std::ifstream &ConfFile){
         else if(line.find("}") != std::string::npos){
             currentServer[i] = line;
             if (!currentServer.empty()) {
-                Server  srv;
+                server  srv;
                 srv.parse(currentServer);
                 Servers.push_back(srv);
                 currentServer.clear();
@@ -74,7 +74,7 @@ void     Config::parse_server(std::ifstream &ConfFile){
     }
     // Add the last server
     if (!currentServer.empty()) {
-        Server  srv;
+        server  srv;
         srv.parse(currentServer);
         Servers.push_back(srv);
     }
