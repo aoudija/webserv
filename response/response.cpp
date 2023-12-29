@@ -15,18 +15,26 @@ void	response::setcontentType(string contenttype){
 }
 
 string ReesponseBody(string uri, string contentType) {
+    
     if (uri == "/")
-        uri = "public/index.html";
-    std::ifstream File(uri);
+        uri = "/public/index.html";
+    else if (uri == "/favicon.ico")
+        uri = "/public/get-to-work-work.png";
+
+    std::ifstream File(uri.substr(1));
     if (!File.is_open())
         cout << RED << "Error oppening " << uri << RESET_TEXT << endl;
 
-    string buffer,c;
-    while (std::getline(File, c)){
-        buffer += c + "\n";
-    }
-    std::string Content(buffer);
+    string Content,c;
+    while (std::getline(File, c))
+        Content += c;
+
     std::string msg;
+    if (uri == "/public/index.html")
+        contentType = "text/html";
+    else
+        contentType = "image/png";
+    cout << MAGENTA << " type: " << contentType << " , contnLEN: " << Content.size() << " , uri: " << uri << endl;
 	msg = "HTTP/1.1 200 OK\r\n"
 		"Content-Length: " + std::to_string(Content.size()) + "\r\n"
 		"Content-Type: "+ contentType + "\r\n\r\n" + Content;

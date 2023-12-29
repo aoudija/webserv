@@ -22,6 +22,7 @@
 #include <sstream>
 #include <fstream>
 #include "request/request.hpp"
+#include "response/response.hpp"
 
 
 using std::map;
@@ -87,18 +88,18 @@ class serversInfos
 // };
 
 //RESPONSE_CLASS
-class response{
-	// string http_version, status_code;
-	// map<string, string> header_fields;
-	// string	body;
-	string uri, contentType;
-	string res;
-	public:
-		void	set_res();
-		string	get_res();
-		void	setURI(string uri);
-		void	setcontentType(string contenttype);
-};
+// class response{
+// 	// string http_version, status_code;
+// 	// map<string, string> header_fields;
+// 	// string	body;
+// 	string uri, contentType;
+// 	string res;
+// 	public:
+// 		void	set_res();
+// 		string	get_res();
+// 		void	setURI(string uri);
+// 		void	setcontentType(string contenttype);
+// };
 
 //Client class
 class client

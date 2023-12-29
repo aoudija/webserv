@@ -1,4 +1,4 @@
-#include "../server.hpp"
+#include "request.hpp"
 
 // std::string request::requestURI;
 // std::string request::httpVersion;
