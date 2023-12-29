@@ -18,7 +18,7 @@
 #include <string>
 #include <map>
 #include <vector>
-#include <pair>
+#include <utility>
 #include <sstream>
 #include <fstream>
 
@@ -61,9 +61,6 @@ class serversInfos
 		vector<server> get_servers();
 };
 
-string httpResponse();
-
-
 //REQUEST_CLASS
 class request
 {
@@ -83,39 +80,34 @@ public:
 	void checkHeaderFields(std::string headerFiles);
 	void parseRequest(std::string request);
 	void checkBody(std::string body);
+	string getrequestURI();
+	string getContentType();
 };
 
 //RESPONSE_CLASS
 class response{
-	
+	// string http_version, status_code;
+	// map<string, string> header_fields;
+	// string	body;
+	string uri, contentType;
+	string res;
+	public:
+		void	set_res();
+		string	get_res();
+		void	setURI(string uri);
+		void	setcontentType(string contenttype);
 };
 
 //Client class
 class client
 {
-	request req;
-	response res;
+	request requestObj;
+	response responseObj;
+	string responsestring;
 	public:
-		void setreq(char* r);
+		void	setclient(char* r);
+		string getresponse();
 };
-
-
-/*server {
-    # listen on port 80
-    listen 80;
-
-    # server name
-    server_name example.com;
-
-    # default location
-    location / {
-        # root directory
-        root /var/www/html;
-
-        # index file
-        index index.html;
-    }
-}*/
 
 
 #endif

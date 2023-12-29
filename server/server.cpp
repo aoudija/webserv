@@ -131,8 +131,3 @@ void serversInfos::SetListener(){
 	}
 }
 
-//client_class
-void	client::setreq(char* r){
-	string buff(r);
-	req.parseRequest(buff);
-}

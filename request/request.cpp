@@ -4,6 +4,7 @@
 // std::string request::httpVersion;
 // std::string request::method;
 // std::map<std::string, std::string> request::headerFields;
+using std::string;
 
 request::request()
 {
@@ -53,7 +54,7 @@ void request::checkRequestLine(std::string request)
     stream2 >> this->method >> this->requestURI >> this->httpVersion;
     if (this->method != "GET" && this->method != "POST" && this->method != "DELETE")
         printError("Method Not Allowed", 405);
-    if (this->requestURI.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghiklmnopqrstuvwxyz0123456789-_~：/2#0@1$80*+=") != std::string::npos)
+    if (this->requestURI.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghiklmnopqrstuvwxyz0123456789-_~:/2#0@1$80*+=") != std::string::npos)
         printError("Bad Request", 400);
     if (this->requestURI.size() > 2048)// mazal request body larger than lbody li fl config file !!
         printError("Request-URI Too Long", 414);
@@ -157,4 +158,12 @@ void request::parseRequest(std::string request)
 
     std::cout << "\033[1;33m" << request.substr(request.find("\r\n\r\n")) << std::endl;
     checkBody(request.substr(request.find("\r\n\r\n")));
+}
+
+string request::getrequestURI(){
+    return requestURI;
+}
+
+string request::getContentType(){
+    return headerFields["Content-Type:"];
 }
