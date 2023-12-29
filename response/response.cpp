@@ -15,9 +15,11 @@ void	response::setcontentType(string contenttype){
 }
 
 string ReesponseBody(string uri, string contentType) {
+    if (uri == "/")
+        uri = "public/index.html";
     std::ifstream File(uri);
     if (!File.is_open())
-        std::cerr << "Error opening HTML file\n";
+        cout << RED << "Error oppening " << uri << RESET_TEXT << endl;
 
     string buffer,c;
     while (std::getline(File, c)){

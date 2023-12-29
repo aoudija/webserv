@@ -12,20 +12,20 @@ vector<server>	mini_parsing(){
 	server	StaunchThree;
 
 	StaunchOne.set_ip("localhost");
-	StaunchOne.portSetter("8080");
+	StaunchOne.portSetter("8086");
 	StaunchOne.set_isdefault(1);
-	StaunchTwo.set_ip("127.0.0.1");
-	StaunchTwo.portSetter("8081");
-	StaunchTwo.set_isdefault(1);
-	// StaunchTwo.set_my_default(0);
-	StaunchThree.set_ip("0.0.0.0");
-	StaunchThree.portSetter("8083");
-	StaunchThree.set_isdefault(1);
-	// StaunchThree.set_my_default(0);
+	// StaunchTwo.set_ip("127.0.0.1");
+	// StaunchTwo.portSetter("8081");
+	// StaunchTwo.set_isdefault(1);
+	// // StaunchTwo.set_my_default(0);
+	// StaunchThree.set_ip("0.0.0.0");
+	// StaunchThree.portSetter("8083");
+	// StaunchThree.set_isdefault(1);
+	// // StaunchThree.set_my_default(0);
 	vector<server> servers;
 	servers.push_back(StaunchOne);
-	servers.push_back(StaunchTwo);
-	servers.push_back(StaunchThree);
+	// servers.push_back(StaunchTwo);
+	// servers.push_back(StaunchThree);
 	return servers;
 }
 
@@ -51,12 +51,8 @@ int main(){
 		fd_set sockets, copy;
 		FD_ZERO(&sockets);
 
-		for (size_t i = 0; i < servers.size();i++){
-			cout << "setting socket_listener: " << servers[i].get_slistener()
-				<< endl;
+		for (size_t i = 0; i < servers.size();i++)
 			FD_SET(servers[i].get_slistener(), &sockets);
-			cout << servers.size() << endl;
-		}
 		copy = sockets;
 		if (select(servers[servers.size() - 1].get_slistener() + 1
 			, &copy, 0, 0, 0) < 0){

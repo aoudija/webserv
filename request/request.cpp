@@ -47,7 +47,7 @@ void request::checkRequestLine(std::string request)
 
     std::istringstream stream2(line);
 
-    std::cout << line << std::endl;
+    // std::cout << line << std::endl;
     // request req;
     // std::string method, requestURI, httpVersion;
 
@@ -73,7 +73,7 @@ void request::checkHeaderFields(std::string headerFiles)
     std::vector<std::string> lines;
     
     std::istringstream iss(headerFiles);
-    std::cout << " \\\\\\ " << std::endl;
+    // std::cout << " \\\\\\ " << std::endl;
     while (std::getline(iss, line))
     {
         lines.push_back(line);
@@ -148,16 +148,16 @@ void request::checkBody(std::string body)
 void request::parseRequest(std::string request)
 {
     checkRequestLine(request);
-    std::cout << request.substr(0, request.find("\r\n\r\n")) << std::endl;
+    // std::cout << request.substr(0, request.find("\r\n\r\n")) << std::endl;
     
     checkHeaderFields(request.substr(0, request.find("\r\n\r\n")));
 
-    for (std::map<std::string, std::string>::iterator it = request::headerFields.begin(); it != request::headerFields.end(); ++it) {
-    std::cout << it->first << ": " << it->second << std::endl;
-    }
+    // for (std::map<std::string, std::string>::iterator it = request::headerFields.begin(); it != request::headerFields.end(); ++it) {
+    // std::cout << it->first << ": " << it->second << std::endl;
+    // }
 
-    std::cout << "\033[1;33m" << request.substr(request.find("\r\n\r\n")) << std::endl;
-    checkBody(request.substr(request.find("\r\n\r\n")));
+    // std::cout << "\033[1;33m" << request.substr(request.find("\r\n\r\n")) << std::endl;
+    // checkBody(request.substr(request.find("\r\n\r\n")));
 }
 
 string request::getrequestURI(){

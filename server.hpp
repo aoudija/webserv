@@ -21,6 +21,8 @@
 #include <utility>
 #include <sstream>
 #include <fstream>
+#include "request/request.hpp"
+
 
 using std::map;
 using std::vector;
@@ -62,27 +64,27 @@ class serversInfos
 };
 
 //REQUEST_CLASS
-class request
-{
-	string method;
-	string requestURI;
-	string httpVersion;
-	map<std::string, std::string> headerFields;
-	string body;
+// class request
+// {
+// 	string method;
+// 	string requestURI;
+// 	string httpVersion;
+// 	map<std::string, std::string> headerFields;
+// 	string body;
 
-public:
-	request();
-	request(std::string req);
-	request(const request &other);
-	request& operator=(const request& other);
-	std::string getMethod();
-	void checkRequestLine(std::string request);
-	void checkHeaderFields(std::string headerFiles);
-	void parseRequest(std::string request);
-	void checkBody(std::string body);
-	string getrequestURI();
-	string getContentType();
-};
+// public:
+// 	request();
+// 	request(std::string req);
+// 	request(const request &other);
+// 	request& operator=(const request& other);
+// 	std::string getMethod();
+// 	void checkRequestLine(std::string request);
+// 	void checkHeaderFields(std::string headerFiles);
+// 	void parseRequest(std::string request);
+// 	void checkBody(std::string body);
+// 	string getrequestURI();
+// 	string getContentType();
+// };
 
 //RESPONSE_CLASS
 class response{
