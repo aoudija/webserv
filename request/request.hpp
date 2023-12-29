@@ -17,6 +17,10 @@ class request
 	string requestURI;
 	string httpVersion;
 	map<std::string, std::string> headerFields;
+
+	map<std::string, std::string> allContTypes;
+    string ContentType;
+
 	string body;
 
 public:
@@ -31,6 +35,9 @@ public:
 	void checkBody(std::string body);
 	string getrequestURI();
 	string getContentType();
+
+    void    setContentType();
+    void    addAllContentTypes();
 };
 
 // void parseRequest(std::string request);

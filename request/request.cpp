@@ -39,6 +39,20 @@ std::string request::getMethod()
     return this->method;
 }
 
+void request::setContentType()
+{
+    std::string fileExtension;
+    size_t dotPosition = requestURI.rfind(".");
+
+    if (dotPosition != std::string::npos) {
+        fileExtension = requestURI.substr(dotPosition);
+    }
+    else {
+        std::cerr << "Error: No dot found in requestURI\n";
+    }
+    this->ContentType = allContTypes[fileExtension];
+}
+
 void request::checkRequestLine(std::string request)
 {
     std::istringstream stream(request);
@@ -60,6 +74,9 @@ void request::checkRequestLine(std::string request)
         printError("Request-URI Too Long", 414);
     if (this->httpVersion != "HTTP/1.1")
         printError("HTTP Version Not Supported", 505);
+    setContentType();
+    // std::cout << this->requestURI.substr(this->requestURI.rfind(".")) << std::endl;
+    
 }
 
 void request::checkHeaderFields(std::string headerFiles)
@@ -145,8 +162,89 @@ void request::checkBody(std::string body)
     std::cout << "Actual Body: " << actualBody.str() << std::endl;
 }
 
+void    request::addAllContentTypes()
+{
+    allContTypes[".aac"] = "audio/aac";
+    allContTypes[".abw"] = "application/x-abiword";
+    allContTypes[".arc"] = "application/x-freearc";
+    allContTypes[".avif"] = "image/avif";
+    allContTypes[".avi"] = "video/x-msvideo";
+    allContTypes[".azw"] = "application/vnd.amazon.ebook";
+    allContTypes[".bin"] = "application/octet-stream";
+    allContTypes[".bmp"] = "image/bmp";
+    allContTypes[".bz"] = "application/x-bzip";
+    allContTypes[".bz2"] = "application/x-bzip2";
+    allContTypes[".cda"] = "application/x-cdf";
+    allContTypes[".csh"] = "application/x-csh";
+    allContTypes[".css"] = "text/css";
+    allContTypes[".csv"] = "text/csv";
+    allContTypes[".doc"] = "application/msword";
+    allContTypes[".docx"] = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    allContTypes[".eot"] = "application/vnd.ms-fontobject";
+    allContTypes[".epub"] = "application/epub+zip";
+    allContTypes[".gz"] = "application/gzip";
+    allContTypes[".gif"] = "image/gif";
+    allContTypes[".htm"] = "text/html";
+    allContTypes[".html"] = "text/html";
+    allContTypes[".ico"] = "image/vnd.microsoft.icon";
+    allContTypes[".ics"] = "text/calendar";
+    allContTypes[".jar"] = "application/java-archive";
+    allContTypes[".jpeg"] = "image/jpeg";
+    allContTypes[".jpg"] = "image/jpeg";
+    allContTypes[".js"] = "text/javascript";
+    allContTypes[".json"] = "application/json";
+    allContTypes[".jsonld"] = "application/ld+json";
+    allContTypes[".mid"] = "audio/midi";
+    allContTypes[".midi"] = "audio/midi";
+    allContTypes[".mjs"] = "text/javascript";
+    allContTypes[".mp3"] = "audio/mpeg";
+    allContTypes[".mp4"] = "video/mp4";
+    allContTypes[".mpeg"] = "video/mpeg";
+    allContTypes[".mpkg"] = "application/vnd.apple.installer+xml";
+    allContTypes[".odp"] = "application/vnd.oasis.opendocument.presentation";
+    allContTypes[".ods"] = "application/vnd.oasis.opendocument.spreadsheet";
+    allContTypes[".odt"] = "application/vnd.oasis.opendocument.text";
+    allContTypes[".oga"] = "audio/ogg";
+    allContTypes[".ogv"] = "video/ogg";
+    allContTypes[".ogx"] = "application/ogg";
+    allContTypes[".opus"] = "audio/opus";
+    allContTypes[".otf"] = "font/otf";
+    allContTypes[".png"] = "image/png";
+    allContTypes[".pdf"] = "application/pdf";
+    allContTypes[".php"] = "application/x-httpd-php";
+    allContTypes[".ppt"] = "application/vnd.ms-powerpoint";
+    allContTypes[".pptx"] = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+    allContTypes[".rar"] = "application/vnd.rar";
+    allContTypes[".rtf"] = "application/rtf";
+    allContTypes[".sh"] = "application/x-sh";
+    allContTypes[".svg"] = "image/svg+xml";
+    allContTypes[".tar"] = "application/x-tar";
+    allContTypes[".tif"] = "image/tiff";
+    allContTypes[".tiff"] = "image/tiff";
+    allContTypes[".ts"] = "video/mp2t";
+    allContTypes[".ttf"] = "font/ttf";
+    allContTypes[".txt"] = "text/plain";
+    allContTypes[".vsd"] = "application/vnd.visio";
+    allContTypes[".wav"] = "audio/wav";
+    allContTypes[".weba"] = "audio/webm";
+    allContTypes[".webm"] = "video/webm";
+    allContTypes[".webp"] = "image/webp";
+    allContTypes[".woff"] = "font/woff";
+    allContTypes[".woff2"] = "font/woff2";
+    allContTypes[".xhtml"] = "application/xhtml+xml";
+    allContTypes[".xls"] = "application/vnd.ms-excel";
+    allContTypes[".xlsx"] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+    allContTypes[".xml"] = "application/xml";
+    allContTypes[".xul"] = "application/vnd.mozilla.xul+xml";
+    allContTypes[".zip"] = "application/zip";
+    allContTypes[".3gp"] = "video/3gpp"; // audio/3gpp
+    allContTypes[".3g2"] = "video/3gpp2"; // audio/3gpp2
+    allContTypes[".7z"] = "application/x-7z-compressed";
+}
+
 void request::parseRequest(std::string request)
 {
+    addAllContentTypes();
     checkRequestLine(request);
     // std::cout << request.substr(0, request.find("\r\n\r\n")) << std::endl;
     
@@ -158,6 +256,7 @@ void request::parseRequest(std::string request)
 
     // std::cout << "\033[1;33m" << request.substr(request.find("\r\n\r\n")) << std::endl;
     // checkBody(request.substr(request.find("\r\n\r\n")));
+    std::cout << RED << getContentType() << RESET_TEXT << std::endl;
 }
 
 string request::getrequestURI(){
@@ -165,5 +264,5 @@ string request::getrequestURI(){
 }
 
 string request::getContentType(){
-    return headerFields["Content-Type:"];
+    return this->ContentType;
 }
