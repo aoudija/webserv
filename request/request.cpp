@@ -54,7 +54,7 @@ void request::checkRequestLine(std::string request)
     stream2 >> this->method >> this->requestURI >> this->httpVersion;
     if (this->method != "GET" && this->method != "POST" && this->method != "DELETE")
         printError("Method Not Allowed", 405);
-    if (this->requestURI.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghiklmnopqrstuvwxyz0123456789-_~:/2#0@1$80*+=") != std::string::npos)
+    if (this->requestURI.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghiklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%") != std::string::npos)
         printError("Bad Request", 400);
     if (this->requestURI.size() > 2048)// mazal request body larger than lbody li fl config file !!
         printError("Request-URI Too Long", 414);
