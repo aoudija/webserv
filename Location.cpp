@@ -202,7 +202,7 @@ void	Location::seter(std::string str, int line){
 	int	token;
 
 	list = splitString(str, " \t");
-	if (list.empty())
+	if (list.empty() || list[0][0] == '#')
 		return ;
 	if (!isInMyList(list[0], token))
 		throw std::invalid_argument(throwmessage(line, "invalid input."));
