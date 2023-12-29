@@ -12,7 +12,7 @@ vector<server>	mini_parsing(){
 	server	StaunchThree;
 
 	StaunchOne.set_ip("localhost");
-	StaunchOne.portSetter("8086");
+	StaunchOne.portSetter("8080");
 	StaunchOne.set_isdefault(1);
 	// StaunchTwo.set_ip("127.0.0.1");
 	// StaunchTwo.portSetter("8081");
