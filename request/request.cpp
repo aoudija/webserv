@@ -5,6 +5,8 @@
 // std::string request::method;
 // std::map<std::string, std::string> request::headerFields;
 using std::string;
+using std::cout;
+using std::endl;
 
 request::request()
 {
@@ -48,6 +50,7 @@ void request::setContentType()
         fileExtension = requestURI.substr(dotPosition);
     }
     else {
+        cout << RED << requestURI << RESET_TEXT << endl;
         std::cerr << "Error: No dot found in requestURI\n";
     }
     this->ContentType = allContTypes[fileExtension];
@@ -68,8 +71,8 @@ void request::checkRequestLine(std::string request)
     stream2 >> this->method >> this->requestURI >> this->httpVersion;
     if (this->method != "GET" && this->method != "POST" && this->method != "DELETE")
         printError("Method Not Allowed", 405);
-    if (this->requestURI.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghiklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%") != std::string::npos)
-        printError("Bad Request", 400);
+    // if (this->requestURI.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%"))
+    //     printError("Bad Request", 400);
     if (this->requestURI.size() > 2048)// mazal request body larger than lbody li fl config file !!
         printError("Request-URI Too Long", 414);
     if (this->httpVersion != "HTTP/1.1")

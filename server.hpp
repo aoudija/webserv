@@ -13,6 +13,8 @@
 
 #include <netdb.h>
 #include <unistd.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #include <iostream>
 #include <string>
@@ -165,7 +167,7 @@ class client
 	response responseObj;
 	string responsestring;
 	public:
-		void	setclient(char* r);
+		void	setclient(char*, int);
 		string getresponse();
 };
 

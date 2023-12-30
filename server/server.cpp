@@ -97,7 +97,7 @@ void serversInfos::SetListener(){
 		server_addr.ai_socktype = SOCK_STREAM;
 		server_addr.ai_flags = AI_PASSIVE;
 		
-		if (getaddrinfo(it->get_ip().c_str(), (it->portGetter()).c_str(),
+		if (getaddrinfo(0, (it->portGetter()).c_str(),
 			&server_addr, &cn) != 0)
 		{	cout << RED << "getaddrinfo() failed" << RESET_TEXT << endl;
 			exit(EXIT_FAILURE);

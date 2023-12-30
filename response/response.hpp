@@ -16,7 +16,7 @@ class response{
 	string uri, contentType;
 	string res;
 	public:
-		void	set_res();
+		void	set_res(int connection_socket);
 		string	get_res();
 		void	setURI(string uri);
 		void	setcontentType(string contenttype);
