@@ -23,6 +23,8 @@
 #include <fstream>
 #include "request/request.hpp"
 #include "response/response.hpp"
+#include "aubb/Location.hpp"
+#include "aubb/Config.hpp"
 
 
 using std::map;

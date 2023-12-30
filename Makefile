@@ -1,10 +1,11 @@
 NAME = webserv
 CPP = c++ -g
 FLAGS = -Wall -Wextra -Werror -std=c++98
-SRC_FILES = main.cpp server/server.cpp response/response.cpp\
-			request/request.cpp client/client.cpp
+SRC_FILES = main.cpp server/server.cpp response/response.cpp \
+			request/request.cpp client/client.cpp \
+			aubb/aubServer.cpp aubb/Location.cpp aubb/Config.cpp
 OBJ_FILES = $(SRC_FILES:.cpp=.o)
-DEP  = server.hpp request/request.hpp
+DEP  = server.hpp request/request.hpp aubb/Location.hpp aubb/Config.hpp
 
 all: $(NAME)
 
