@@ -22,13 +22,12 @@ int main(int ac, char **av){
 
 	_si.SetListener();
 	servers = _si.get_servers();
-	// servers = conf.Servers;
 	struct sockaddr_storage client_addr;
 	socklen_t clientaddr_len = sizeof(client_addr);
 	string RESPONSE;
 
 
-	//multiplexing v3.0
+	//multiplexing v4.0
 	while (true){
 		fd_set sockets, copy;
 		FD_ZERO(&sockets);
