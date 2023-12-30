@@ -19,26 +19,32 @@ string ReesponseBody(string uri, string contentType) {
     if (uri == "/")
         uri = "/public/index.html";
     else if (uri == "/favicon.ico")
-        uri = "/public/get-to-work-work.png";
+        return "";
 
-    std::ifstream File(uri.substr(1));
+    std::ifstream File(uri.substr(1), std::ios::binary);
     if (!File.is_open())
         cout << RED << "Error oppening " << uri << RESET_TEXT << endl;
 
-    string Content,c;
-    while (std::getline(File, c))
-        Content += c;
+    File.seekg(0, std::ios::end);
+    std::streampos filesize = File.tellg();
+    File.seekg(0, std::ios::beg);
+    char buffer[static_cast<size_t>(filesize)];
+    File.read(buffer, filesize);
 
     std::string msg;
     if (uri == "/public/index.html")
         contentType = "text/html";
     else
         contentType = "image/png";
-    cout << MAGENTA << " type: " << contentType << " , contnLEN: " << Content.size() << " , uri: " << uri << endl;
+    cout << MAGENTA << " type: " << contentType <<
+        " , contnLEN: " << (size_t)filesize << " , uri: " << uri << endl;
 	msg = "HTTP/1.1 200 OK\r\n"
-		"Content-Length: " + std::to_string(Content.size()) + "\r\n"
-		"Content-Type: "+ contentType + "\r\n\r\n" + Content;
+		"Content-Length: " + std::to_string((size_t)filesize) + "\r\n"
+		"Content-Type: "+ contentType + "\r\n\r\n" + buffer;
+    
     cout << RED << contentType << RESET_TEXT << endl;
+    cout << RED << "buffer ----> " << buffer << RESET_TEXT << endl;
+    cout << RED << "len buffer ----> " << (size_t)filesize << RESET_TEXT << endl;
 	return msg;
 }
 

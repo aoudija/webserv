@@ -1,4 +1,5 @@
 #include "server.hpp"
+#include "aubb/Config.hpp"
 
 using std::cout;
 using std::cin;
@@ -6,38 +7,18 @@ using std::endl;
 using std::string;
 using std::vector;
 
-vector<server>	mini_parsing(){
-	server	StaunchOne;
-	server	StaunchTwo;
-	server	StaunchThree;
-
-	StaunchOne.set_ip("localhost");
-	StaunchOne.portSetter("8080");
-	StaunchOne.set_isdefault(1);
-	// StaunchTwo.set_ip("127.0.0.1");
-	// StaunchTwo.portSetter("8081");
-	// StaunchTwo.set_isdefault(1);
-	// // StaunchTwo.set_my_default(0);
-	// StaunchThree.set_ip("0.0.0.0");
-	// StaunchThree.portSetter("8083");
-	// StaunchThree.set_isdefault(1);
-	// // StaunchThree.set_my_default(0);
-	vector<server> servers;
-	servers.push_back(StaunchOne);
-	// servers.push_back(StaunchTwo);
-	// servers.push_back(StaunchThree);
-	return servers;
-}
-
-int main(){
+int main(int ac, char **av){
+	if (ac != 2)
+		return 0;
 	vector<pair<struct sockaddr_storage, client> > clients;
 	vector<pair<struct sockaddr_storage, client> >::iterator it;
+
+	Config	conf(av[1]);
 	vector<server> servers;
 	int bytes_sent;
 	char request_string[1024];
 	int bytes_received;
-	// _init_servers(servers);
-    serversInfos	_si( mini_parsing());
+    serversInfos	_si(conf.Servers);
 
 	_si.SetListener();
 	servers = _si.get_servers();
@@ -46,7 +27,7 @@ int main(){
 	string RESPONSE;
 
 
-	//multiplexing v3.0
+	//multiplexing v4.0
 	while (true){
 		fd_set sockets, copy;
 		FD_ZERO(&sockets);
