@@ -41,6 +41,8 @@ string ReesponseBody(string uri, string contentType, int connection_socket) {
 	std::string header;
 	if (uri == "/public/index.html")
 	    contentType = "text/html";
+	else if (uri == "/public/demo_video(1080p).mp4")
+	    contentType = "video/mp4";
 	else
 	    contentType = "image/png";
 
@@ -62,7 +64,7 @@ string ReesponseBody(string uri, string contentType, int connection_socket) {
     
     cout << YELLOW << header << RESET_TEXT << endl;
 
-	return header + string(buffer);
+	return header;
 }
 
 void	response::set_res(int connection_socket){
