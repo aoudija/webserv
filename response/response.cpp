@@ -13,7 +13,7 @@ void	response::setURI(string uri){
 void	response::setcontentType(string contenttype){
 	contentType = contenttype;
 }
-    
+
 string ReesponseBody(string uri, string contentType) {
     
     if (uri == "/")
