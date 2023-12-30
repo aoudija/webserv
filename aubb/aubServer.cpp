@@ -186,6 +186,7 @@ void	server::checkfirstline(std::string str, int line){
     }
 	if (str.compare("server {"))
 		throw std::invalid_argument(throwmessage(line, "invalid input."));
+	this->line = line;
 }
 
 void	server::checklastline(std::string str, int line, int firstline){
@@ -222,11 +223,27 @@ void	server::setmylocation(std::map<int, std::string>::const_iterator &it, std::
 	setLocations(local);
 }
 
+void	server::init(){
+	setAutoindex(0);
+	setClientBodyLimit(50);
+	set_isdefault(1);
+	set_my_default(-1);
+	setRoot("public");
+	setIndex("index.html");
+	setErrorPage(404, "404.html");
+	setIp("localhost");
+	setPort("8080");
+	setServerName("wal7amaq");
+	setAllowMethods("GET");
+	setAllowMethods("POST");
+	setAllowMethods("DELETE");
+}
+
 void	server::parse(std::map<int, std::string> &server){
+	init();
 	std::map<int, std::string>::const_iterator it = server.begin();
 	std::map<int, std::string>::reverse_iterator rit = server.rbegin();
 
-	this->set_isdefault(1);
 	checkfirstline(it->second, it->first);
 	checklastline(rit->second, rit->first, it->first);
 	it++;
@@ -240,6 +257,7 @@ void	server::parse(std::map<int, std::string> &server){
        			seter(it->second, it->first);
 		}
 	}
+	
 }
 
 

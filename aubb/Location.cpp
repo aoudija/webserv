@@ -1,5 +1,10 @@
 #include "Location.hpp"
 
+std::string intToString(int value) {
+    std::stringstream ss;
+    ss << value;
+    return ss.str();
+}
 
 std::vector<std::string> Location::splitString(const std::string& input, const std::string& delm) {
     std::vector<std::string> tokens;
@@ -220,7 +225,20 @@ void	Location::seter(std::string str, int line){
 	set_value(list, token, line);
 }
 
+void	Location::init(){
+	setAutoindex(0);
+	setPathName("/");
+	setPath("/public/index.html");
+	setRoot("/Public");
+	setIndex("index.html");
+	setAutoindex(0);
+	setAllowMethods("GET");
+	setAllowMethods("POST");
+	setAllowMethods("DELETE");
+}
+
 Location::Location(std::map<int, std::string>& location){
+	init();
 	std::map<int, std::string>::const_iterator it = location.begin();
 	std::map<int, std::string>::reverse_iterator rit = location.rbegin();
 
@@ -235,21 +253,47 @@ Location::Location(std::map<int, std::string>& location){
 	}
 }
 
+
+std::string& Location::operator[](const std::string& key) {
+	if (key == "root")
+		return root;
+	else if (key == "path")
+		return path;
+	else if (key == "index")
+		return index;
+	else if (key == "cgi_path")
+		return cgi_path;
+	else if (key == "cgi_extension")
+		return cgi_extension;
+	else
+		return data[key];
+}
+
+
 //=============== seters ===================//
 
 void	Location::setPath(std::string str){
+	this->data["path"] = str;
+	this->path = str;
+}
+void	Location::setPathName(std::string str){
+	this->data["pathName"] = str;
 	this->path = str;
 }
 void	Location::setRoot(std::string str){
+	this->data["root"] = str;
 	this->root = str;
 }
 void	Location::setIndex(std::string str){
+	this->data["index"] = str;
 	this->index = str;
 }
 void	Location::setCgiPath(std::string str){
+	this->data["cgi_path"] = str;
 	this->cgi_path = str;
 }
 void	Location::setCgiExtension(std::string str){
+	this->data["cgi_extension"] = str;
 	this->cgi_extension = str;
 }
 void	Location::setAutoindex(bool b){
@@ -262,6 +306,9 @@ void	Location::setAllowMethods(std::string str){
 //=============== geters ===================//
 
 std::string	Location::getPath(void) const{
+	return this->path;
+}
+std::string	Location::getPathName(void) const{
 	return this->path;
 }
 std::string	Location::getRoot(void) const{
