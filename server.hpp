@@ -72,6 +72,7 @@ class server{
 	public:
 		vector<Location>	locations;
 		int					line;
+		Location			localroot;
 		void	portSetter(string prt);
 		void	set_my_default(int index);
 		void	set_isdefault(bool b);

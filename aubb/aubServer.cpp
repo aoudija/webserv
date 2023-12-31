@@ -212,13 +212,13 @@ void	server::setmylocation(std::map<int, std::string>::const_iterator &it, std::
 	int itfirst = it->first;
 	for(; it != server.end() && it->second.find(")") == std::string::npos; ++it){
 		if (it != itf && it->second.find("(") != std::string::npos)
-			throw std::invalid_argument(throwmessage(itfirst, "lalalalal"));
+			throw std::invalid_argument(throwmessage(itfirst, "You have to close your location with ')'."));
 		locations[it->first] = it->second;
 	}
 	if (it->second.find(")") != std::string::npos)
 		locations[it->first] = it->second;
 	else if (it == server.end())
-		throw std::invalid_argument(throwmessage(itfirst, "okokoko"));
+		throw std::invalid_argument(throwmessage(itfirst, "Error:"));
 	Location	local(locations);
 	setLocations(local);
 }
@@ -257,7 +257,25 @@ void	server::parse(std::map<int, std::string> &server){
        			seter(it->second, it->first);
 		}
 	}
-	
+	std::vector<Location> &local = this->locations;
+	size_t i = 0;
+	for (; i < local.size(); i++){
+		if(local[i].getLocationName() == "/"){
+			if (!local[i].a)
+				local[i].setAutoindex(getAutoindex());
+			if (!local[i].i)
+				local[i].setIndex(getIndex());
+			if (!local[i].r)
+				local[i].setRoot(getRoot());
+			if (!local[i].am)
+				local[i].setVecAllowMethods(getAllowMethods());
+			break;
+		}
+	}
+	if (i == local.size()){
+		Location	loc(getRoot(), getIndex(), getAutoindex(), getAllowMethods());
+		setLocations(loc);
+	}
 }
 
 
