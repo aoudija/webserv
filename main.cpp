@@ -62,7 +62,7 @@ int main(int ac, char **av){
 					int flag = 0;//to handle chucked request
 					for(it = clients.begin();it != clients.end();it++){
 						if (memcmp(&client_addr, &it->first, sizeof(client_addr)) == 0){
-							it->second.setclient(request_string, servers[i].get_sconncetion());
+							it->second.setclient(request_string, servers[i].get_sconncetion(), servers[i]);
 							// RESPONSE = it->second.getresponse();
 							flag = 1;
 							break ;
@@ -70,7 +70,7 @@ int main(int ac, char **av){
 					}
 					if (!flag){
 						client temp;
-						temp.setclient(request_string, servers[i].get_sconncetion());
+						temp.setclient(request_string, servers[i].get_sconncetion(), servers[i]);
 						cout << RED << "WHERE ARE WE" << RESET_TEXT << endl;
 						clients.push_back(std::make_pair(client_addr, temp));
 						// temp.getresponse();

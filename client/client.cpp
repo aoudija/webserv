@@ -5,9 +5,10 @@ using std::endl;
 using std::string;
 using std::vector;
 //client_class
-void	client::setclient(char* r, int connection_socket){
-	string buff(r);
-	requestObj.parseRequest(buff);
+
+void	client::setclient(char* r, int connection_socket, server& _server){
+	// string buff(r);
+	requestObj.parseRequest(r, _server);
     responseObj.setcontentType(requestObj.getContentType());
     responseObj.setURI(requestObj.getrequestURI());
     responseObj.set_res(connection_socket);
