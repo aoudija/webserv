@@ -15,6 +15,8 @@ void	response::setcontentType(string contenttype){
 }
 
 string ReesponseBody(string uri, string contentType, int connection_socket) {
+    // (void)uri;
+    // (void)contentType;
     int bytes_sent;
     if (uri == "/")
         uri = "/public/index.html";
@@ -56,7 +58,6 @@ string ReesponseBody(string uri, string contentType, int connection_socket) {
 	bytes_sent = send(connection_socket,
 	    header.c_str(), strlen(header.c_str()), 0);//response
 	cout << bytes_sent << '/' << strlen(header.c_str()) << " sent" << endl;
-	
 	cout << YELLOW << "SENDING RESPONSE 2 ..." << RESET_TEXT << endl;
 	bytes_sent = send(connection_socket,
 	    buffer, stat_source.st_size, 0);//response
@@ -64,7 +65,8 @@ string ReesponseBody(string uri, string contentType, int connection_socket) {
     
     cout << YELLOW << header << RESET_TEXT << endl;
 
-	return header;
+	return "";
+	write(connection_socket, "<h1> kkk </h1>", strlen("<h1> kkk </h1>"));
 }
 
 void	response::set_res(int connection_socket){

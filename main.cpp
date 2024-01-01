@@ -57,12 +57,15 @@ int main(int ac, char **av){
 						request_string, 1024, 0);//request
 					
 					cout << "Received " << bytes_received << " bytes." << endl;
-					printf("\033[1;37m%.*s\033[0m", bytes_received, request_string);
+                    for (int i = 0; i < bytes_received; i++)
+                        cout << WHITE << request_string[i] << RESET_TEXT;
+
+					// printf("\033[1;37m%.*s\033[0m", bytes_received, request_string);
 					
 					int flag = 0;//to handle chucked request
 					for(it = clients.begin();it != clients.end();it++){
 						if (memcmp(&client_addr, &it->first, sizeof(client_addr)) == 0){
-							it->second.setclient(request_string, servers[i].get_sconncetion());
+							it->second.setclient(request_string, servers[i].get_sconncetion(), servers[i]);
 							RESPONSE = it->second.getresponse();
 							flag = 1;
 							break ;
@@ -70,7 +73,7 @@ int main(int ac, char **av){
 					}
 					if (!flag){
 						client temp;
-						temp.setclient(request_string, servers[i].get_sconncetion());
+						temp.setclient(request_string, servers[i].get_sconncetion(), servers[i]);
 						clients.push_back(std::make_pair(client_addr, temp));
 						RESPONSE = temp.getresponse();
 					}

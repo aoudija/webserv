@@ -167,7 +167,7 @@ class client
 	response responseObj;
 	string responsestring;
 	public:
-		void	setclient(char*, int);
+		void	setclient(char*, int, server&);
 		string getresponse();
 };
 

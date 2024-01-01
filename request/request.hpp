@@ -6,11 +6,12 @@
 #include <sstream>
 #include <map>
 #include <vector>
+#include "../server.hpp"
 
 using std::string;
 using std::map;
 using std::vector;
-
+class server;
 class request
 {
     // int socket_listenner;
@@ -47,7 +48,7 @@ public:
         ChunkDataCrLf,
     };
     request();
-    request(std::string req);
+    request(std::string req, server _server);
     request(const request &other);
     request& operator=(const request& other);
     // ~request();
@@ -63,11 +64,8 @@ public:
 
     void checkRequestLine(std::string request);
     void checkHeaderFields(std::string headerFiles);
-    void parseRequest(std::string request);
-    request::ParsingStatus checkBody(std::string body);
-
-
-
+    void parseRequest(std::string request, server& _server);
+    request::ParsingStatus checkBody(std::string body, server& _server);
 
     ChunkedBodyState currentChunkedState;
     

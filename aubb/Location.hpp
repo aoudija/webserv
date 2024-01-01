@@ -9,7 +9,8 @@
 class Location
 {
 private:
-	std::string					path;
+	std::string					locationName;
+	std::string					path;// /public/upload/index.html
 	std::string					root;
 	std::string					index;
 	bool						autoindex;

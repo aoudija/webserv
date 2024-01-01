@@ -10,9 +10,9 @@ request::request()
 
 }
 
-request::request(std::string request)
+request::request(std::string request, server _server)
 {
-    parseRequest(request);
+    parseRequest(request, _server);
 }
 
 request::request(const request &other)
@@ -29,12 +29,20 @@ request& request::operator=(const request& other)
 
 void printError(std::string errorMsg, int status)
 {
-    std::cerr << errorMsg << std::endl;
+    std::cerr << RED << errorMsg << RESET_TEXT << std::endl;
     exit(status);
 }
 
 std::string request::getMethod() {
     return this->method;
+}
+
+string request::getrequestURI(){
+    return requestURI;
+}
+
+string request::getContentType(){
+    return this->ContentType;
 }
 
 // std::string request::getURI() {
@@ -54,13 +62,11 @@ void request::checkRequestLine(std::string request)
     std::istringstream stream2(line);
 
     std::cout << line << std::endl;
-    // request req;
-    // std::string method, requestURI, httpVersion;
 
     stream2 >> this->method >> this->requestURI >> this->httpVersion;
     if (this->method != "GET" && this->method != "POST" && this->method != "DELETE")
         printError("Method Not Allowed", 405);
-    if (this->requestURI.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghiklmnopqrstuvwxyz0123456789-_~：/2#0@1$80*+=") != std::string::npos)
+    if (this->requestURI.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%") != std::string::npos)
         printError("Bad Request", 400);
     if (this->requestURI.size() > 2048)// mazal request body larger than lbody li fl config file !!
         printError("Request-URI Too Long", 414);
@@ -70,16 +76,16 @@ void request::checkRequestLine(std::string request)
 
 void request::checkHeaderFields(std::string headerFiles)
 {
-    // std::cout << request::method << std::endl;
-    if (this->method == "POST" && (headerFiles.find("Transfer-Encoding:") == std::string::npos
-        || headerFiles.find("Content-Length:") == std::string::npos))// hadi sus
-        printError("Error", 21);
+    std::cout << request::method << std::endl;
+    // if (this->method == "POST" && (headerFiles.find("Transfer-Encoding") == std::string::npos
+    //     || headerFiles.find("Content-Length") == std::string::npos))// hadi sus
+    //     printError("Error", 21);
 
     std::string line;
     std::vector<std::string> lines;
     
     std::istringstream iss(headerFiles);
-    std::cout << " \\\\\\ " << std::endl;
+
     while (std::getline(iss, line))
     {
         lines.push_back(line);
@@ -92,12 +98,19 @@ void request::checkHeaderFields(std::string headerFiles)
         if (i->find(":") != std::string::npos)
         {
             // std::string key = i->substr(0, i->find(":"));
-
             // std::string value = i->substr(i->find(":") + 1);
             this->headerFields[i->substr(0, i->find(":"))] = i->substr(i->find(":") + 1);
-
         }
     }
+    if (headerFields.find("Transfer-Encoding") != headerFields.end()
+        && headerFields["Transfer-Encoding"].find("chunked") == std::string::npos)
+        printError("Not implemented", 501);
+    if (headerFields.find("Transfer-Encoding") == headerFields.end()
+        && headerFields.find("Content-Length") == headerFields.end()
+        && this->method == "POST")
+        printError("Bad Request", 400);
+
+
 }
 
 // void request::checkBody(std::string body)
@@ -330,24 +343,10 @@ request::ParsingStatus request::parseBody(const std::string& body)
     return ParsingContinue;
 }
 
-// void request::checkBody(std::string body)
-// {
-//     // Create an instance of your bodyParser class
-//     for (size_t i = 0; i < body.size(); ++i)
-//     {
-//         char currentChar = body[i];
-//         printChar(currentChar);
-//         // std::cout << currentChar << std::endl;
-//     }
-// }
-
 request::ParsingStatus request::parsChunked(char c)
 {
-    std::cout << GREEN << currentChunkedState << RESET_TEXT << std::endl;
-    printChar(c);
     switch (currentChunkedState) {
     case Initial: {
-        std::cout << WHITE << "debug >> 1" << RESET_TEXT << std::endl;
         if (c == '\r') {
             currentChunkedState = request::ChunkDataCrLf;
         }
@@ -355,21 +354,18 @@ request::ParsingStatus request::parsChunked(char c)
             currentChunkedState = request::ParsingChunkSize;
         } 
         else {
-            // error = err_invalid_chunk_body;
+            // error = "jdskjfkldjs";
             return request::ParsingFailed;
         }
     }
     case ParsingChunkSize: {
-        std::cout << WHITE << "debug >> 2" << RESET_TEXT << std::endl;
         if (isxdigit(c)) {
             chunkSize = (chunkSize * 0xF + c - '0');
-            std::cout << RED << chunkSize << RESET_TEXT << std::endl;
             break;
         }
 
     }
     case AfterChunkSizeSpace: {
-        std::cout << WHITE << "debug >> 3" << RESET_TEXT << std::endl;
         if (c == ' ' || c == '\t')
             break;
         if (c == '\r') {
@@ -377,45 +373,37 @@ request::ParsingStatus request::parsChunked(char c)
             break;
         } else if (c == ';')
         {
-            // error = err_invalid_chunk_body;
+            // parser.error = "faild chunked body";
             return request::ParsingFailed; // specific error should be returned
         }
         else
             return request::ParsingFailed;
     }
     case ChunkSizeCarriageReturn: {
-        std::cout << WHITE << "debug >> 4" << RESET_TEXT << std::endl;
         if (c == '\n') {
             currentChunkedState = request::ParsingChunkData;
             break;
         } else
         {
-            // error = err_invalid_chunk_body;
+            // parser.error = "faild chunked body";
             return request::ParsingFailed;
         }
     }
     case ParsingChunkData: {
-        std::cout << WHITE << "debug >> 5" << RESET_TEXT << std::endl;
-        std::cout << WHITE << chunkSize << RESET_TEXT << std::endl;
         if (chunkSize == 0) {
             return request::ParsingDone;
         }
         chunkSize--;
-        // chunk.push_back(c);
-        // error += c;
-        // std::cout << YELLOW << c << RESET_TEXT << std::endl;
         std::ofstream outputFile("output", std::ios::app);
 
-        if (outputFile.is_open())
+        if (outputFile.is_open() && this->method != "GET")
         {
             outputFile << c;
             outputFile.close();
         }
         else
         {
-            // Handle file opening error
-            // parser.error = "err_file_opening_failed body data";
-            std::cout << RED << "Laaaaa" << RESET_TEXT << std::endl;
+            // parser.error = "faild chunked body";
             return ParsingFailed;
         }
         if (chunkSize == 0) {
@@ -424,20 +412,18 @@ request::ParsingStatus request::parsChunked(char c)
         break;
     }
     case ChunkDataCarriageReturn: {
-        std::cout << WHITE << "debug >> 6" << RESET_TEXT << std::endl;
         if (c != '\r')
         {
-            // error = err_invalid_chunk_body;
+            // parser.error = "faild chunked body";
             return request::ParsingFailed;
         }
         currentChunkedState = request::ChunkDataCrLf;
         break;
     }
     case ChunkDataCrLf: {
-        std::cout << WHITE << "debug >> 7" << RESET_TEXT << std::endl;
         if (c != '\n')
         {
-            // error = err_invalid_chunk_body;
+            // parser.error = "faild chunked body";
             return request::ParsingFailed;
         }
         currentChunkedState = request::Initial;
@@ -445,146 +431,72 @@ request::ParsingStatus request::parsChunked(char c)
     }
 }
 return request::ParsingContinue;
-    // std::cout << currentChar << std::endl;
 }
 
-request::ParsingStatus request::checkBody(std::string body)
+request::ParsingStatus request::checkBody(std::string body, server& _server)
 {
-    // Create an instance of your bodyParser class
+    if ((int)body.size() > _server.getClientBodyLimit())
+        printError("Request Entity Too Large", 413);
+
     for (size_t i = 0; i < body.size(); ++i)
     {
         char currentChar = body[i];
-        // printChar(currentChar);
-        parsChunked(currentChar);
+        ParsingStatus status = parsChunked(currentChar);
+        switch (status)
+        {
+        case ParsingContinue:
+            break;// Continue parsing
+        case ParsingFailed:
+            return ParsingFailed;
+        case ParsingDone:
+            currentChunkedState = Initial;// Reset state to Initial for the next chunk
+            break;
+        }
     }
     return ParsingDone;
 }
 
-void request::parseRequest(std::string request)
+void request::parseRequest(std::string request, server& _server)
 {
+    setContentType();
+    std::cout << RED << request << RESET_TEXT << std::endl;
     checkRequestLine(request);
-    std::cout << request.substr(0, request.find("\r\n\r\n")) << std::endl;
+    // std::cout << request.substr(0, request.find("\r\n\r\n")) << std::endl;
     
     checkHeaderFields(request.substr(0, request.find("\r\n\r\n")));
 
-    for (std::map<std::string, std::string>::iterator it = request::headerFields.begin(); it != request::headerFields.end(); ++it) {
-        std::cout << "|" << it->first << "|" << it->second << "|" << std::endl;
-    }
-
-    std::cout << RED << request.substr(request.find("\r\n\r\n")) << RESET_TEXT << std::endl;
-    // parseBody(request.substr(request.find("\r\n\r\n")));
     chunkSize = 0;
-    checkBody(request.substr(request.find("\r\n\r\n") + 4));
-    std::cout << RED << error << RESET_TEXT << std::endl;
-    std::cout << RED << chunkSize << RESET_TEXT << std::endl;
+    checkBody(request.substr(request.find("\r\n\r\n") + 4), _server);
 }
 
-// void request::checkBody(std::string body)
-// {
-//     // std::istringstream iss(body);
-//     // std::string line;
-//     // std::ostringstream actualBody;
+bool isDirectory(const char* path)
+{
+    struct stat fileInfo;
 
-//     // while (std::getline(iss, line))
-//     // {
-//     //     // Convert the chunk size from hexadecimal to an integer
-//     //     std::size_t chunkSize;
-//     //     std::istringstream(line) >> std::hex >> chunkSize;
+    if (stat(path, &fileInfo) != 0) {
+        return false;
+    }
+    return S_ISDIR(fileInfo.st_mode);// need to check if this is allowed
+}
 
-//     //     // If the chunk size is 0, it's the last chunk, and we stop processing
-//     //     if (chunkSize == 0)
-//     //         break;
+void request::setContentType()
+{
+    if (isDirectory(requestURI.c_str())) {
+        this->ContentType = "text/html";
+    }
+    else {
+        std::string fileExtension;
+        size_t dotPosition = requestURI.rfind(".");
 
-//     //     // Read the chunk data
-//     //     std::string chunkData;
-//     //     chunkData.resize(chunkSize);
-//     //     iss.read(&chunkData[0], static_cast<std::streamsize>(chunkSize));
-
-//     //     // Ignore the CRLF following the chunk data
-//     //     iss.ignore(2);
-
-//     //     // Append the chunk data to the actual body
-//     //     actualBody << chunkData;
-//     // }
-
-//     // std::cout << "Actual Body: " << actualBody.str() << std::endl;
-// }
-
-// // Method to parse a body string
-// request::ParsingStatus request::parseBody(const std::string& body)
-// {
-//     // Iterate through each character in the body string
-//     for (size_t i = 0; i < body.size(); ++i)
-//     {
-//         // Get the current character
-//         char currentChar = body[i];
-
-//         std::cout << "|" << currentChar << "|" << std::endl;
-//         std::cout  << chunkSize << std::endl;
-//         // Call the appropriate parser function based on the current state
-//         ParserFunction parserFunction = chunkedStateHandlers[currentChunkedState];
-//         parserFunction(*this, currentChar);
-//         // ParsingStatus status = 
-//         // // Check the parsing status
-//         // std::cout  << status << std::endl;
-//         // switch (status)
-//         // {
-//         // case ParsingContinue:
-//         //     // Continue parsing
-//         //     break;
-//         // case ParsingFailed:
-//         //     // Parsing failed, handle error
-//         //     // error = "err_invalid_chunk_body";
-//         //     return ParsingFailed;
-//         // case ParsingDone:
-//         //     // Parsing is done, reset state or perform further actions
-//         //     // Example: Reset state to Initial for the next chunk
-//         //     currentChunkedState = Initial;
-//         //     break;
-//         // }
-//     }
-
-//     // If we reach here, the parsing is incomplete, and more data is needed
-//     return ParsingContinue;
-// }
-
-// // Method to parse a body string
-// request::ParsingStatus request::parseBody(const std::string& body)
-// {
-//     // Iterate through each character in the body string
-//     for (size_t i = 0; i < body.size(); ++i)
-//     {
-//         // Get the current character
-//         char currentChar = body[i];
-
-//         std::cout << "|" << currentChar << "|" << std::endl;
-//         std::cout  << chunkSize << std::endl;
-//         // Call the appropriate parser function based on the current state
-//         ParserFunction parserFunction = chunkedStateHandlers[currentChunkedState];
-//         parserFunction(*this, currentChar);
-//         // ParsingStatus status = 
-//         // // Check the parsing status
-//         // std::cout  << status << std::endl;
-//         // switch (status)
-//         // {
-//         // case ParsingContinue:
-//         //     // Continue parsing
-//         //     break;
-//         // case ParsingFailed:
-//         //     // Parsing failed, handle error
-//         //     // error = "err_invalid_chunk_body";
-//         //     return ParsingFailed;
-//         // case ParsingDone:
-//         //     // Parsing is done, reset state or perform further actions
-//         //     // Example: Reset state to Initial for the next chunk
-//         //     currentChunkedState = Initial;
-//         //     break;
-//         // }
-//     }
-
-//     // If we reach here, the parsing is incomplete, and more data is needed
-//     return ParsingContinue;
-// }
+        if (dotPosition != std::string::npos) {
+            fileExtension = requestURI.substr(dotPosition);
+        }
+        else {
+            std::cerr << "Error: No dot found in requestURI\n";
+        }
+        this->ContentType = allContTypes[fileExtension];
+    }
+}
 
 void    request::addAllContentTypes()
 {
@@ -666,10 +578,3 @@ void    request::addAllContentTypes()
     allContTypes[".7z"] = "application/x-7z-compressed";
 }
 
-string request::getrequestURI(){
-    return requestURI;
-}
-
-string request::getContentType(){
-    return this->ContentType;
-}
