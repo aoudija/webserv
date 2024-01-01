@@ -123,6 +123,8 @@ class serversInfos
 		vector<server> get_servers();
 };
 
+void	main_loop(vector<server>);
+
 //REQUEST_CLASS
 // class request
 // {

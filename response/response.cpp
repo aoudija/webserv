@@ -19,8 +19,8 @@ string ReesponseBody(string uri, string contentType, int connection_socket) {
 	int bytes_sent;
 	if (uri == "/")
 	    uri = "/public/index.html";
-	else if (uri == "/favicon.ico")
-	    return "";
+	// else if (uri == "/favicon.ico")
+	//     return "";
 	std::ifstream File(uri.substr(1));
 
 	if (!File.is_open()){
@@ -37,14 +37,14 @@ string ReesponseBody(string uri, string contentType, int connection_socket) {
 	File.read(buffer, filesize);
 
 	std::string header;
-	if (uri == "/public/index.html")
-	    contentType = "text/html";
-	else if (uri == "/public/demo_video(1080p).mp4")
-	    contentType = "video/mp4";
-	else{
-	    contentType = "image/png";
-		cout << "uri in that case = " << uri << endl;
-	}
+	// if (uri == "/public/index.html")
+	//     contentType = "text/html";
+	// else if (uri == "/public/demo_video(1080p).mp4")
+	//     contentType = "video/mp4";
+	// else{
+	//     contentType = "image/png";
+	// 	cout << "uri in that case = " << uri << endl;
+	// }
 
 	cout << MAGENTA << " type: " << contentType <<
 	    " , contnLEN: " << filesize << " , uri: " << uri << endl;
