@@ -15,6 +15,7 @@ void	response::setcontentType(string contenttype){
 }
 
 string ReesponseHeaderNBody(string uri, string contentType, int connection_socket) {
+	//this is get
 	int bytes_sent;
 	if (uri == "/")//till we get the LOCATIONS 
 	    uri = "/public/index.html";
