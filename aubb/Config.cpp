@@ -20,8 +20,53 @@ bool Config::check_ext(){
     return false;
 }
 
+void	Config::dublesrvcheck(){
+	std::vector<server> srv = this->Servers;
+	std::string _port, _ip, _serverName;
+	for (size_t i = 0; i < srv.size(); i++){
+		_port = srv[i].getPort();
+		_ip = srv[i].getIp();
+		_serverName = srv[i].getServerName();
+		std::vector<server> srvcheck = this->Servers;
+		for (size_t j = 0; j < srvcheck.size(); j++){
+			if (i == j)
+				break ;
+			if (!_serverName.compare(srvcheck[j].getServerName()) && !_port.compare(srvcheck[j].getPort())
+				&& !_ip.compare(srvcheck[i].get_ip()))
+				throw std::invalid_argument(throwmessage(srv[i].line, "Error: This Server already exist in the line " + intToString(srvcheck[j].line) +"."));
+		}
+		srvcheck.clear();
+	}
+}
+
+
+void	Config::defaultCheck(){
+
+	std::vector<server> &srv = this->Servers;
+	std::string _port, _ip, _serverName;
+	for (size_t i = 0; i < srv.size(); i++){
+		_port = srv[i].getPort();
+		_ip = srv[i].getIp();
+		_serverName = srv[i].getServerName();
+		std::vector<server> srvcheck = this->Servers;
+		for (size_t j = 0; j < srvcheck.size(); j++){
+			if (i == j)
+				break ;
+			if (_serverName.compare(srvcheck[j].getServerName()) && !_port.compare(srvcheck[j].getPort())
+				&& !_ip.compare(srvcheck[i].get_ip())){
+				srv[i].set_isdefault(0);
+				srv[i].set_my_default(j);
+				break ;
+			}
+		}
+		srvcheck.clear();
+	}
+}
+
 Config::Config(std::string av): path_name(av){
     parse();
+	dublesrvcheck();
+	defaultCheck();
 } 
 
 bool Config::isWhitespace(const std::string& str) {

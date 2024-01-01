@@ -18,14 +18,16 @@ class Config {
 
         bool isWhitespace(const std::string& str);
         std::string throwmessage(int number, const std::string& str);
+        void    parse();
+        void    parse_server(std::ifstream &ConfFile);
+        bool    check_ext();
+        void    defaultCheck();
+        void    dublesrvcheck();
     public:
         std::vector<server> Servers;
         Config(std::string av);
         ~Config();
 
-        void    parse();
-        void    parse_server(std::ifstream &ConfFile);
-        bool    check_ext();
 };
 
 #endif // CONFIG_HPP

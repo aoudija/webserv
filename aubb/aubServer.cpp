@@ -186,6 +186,7 @@ void	server::checkfirstline(std::string str, int line){
     }
 	if (str.compare("server {"))
 		throw std::invalid_argument(throwmessage(line, "invalid input."));
+	this->line = line;
 }
 
 void	server::checklastline(std::string str, int line, int firstline){
@@ -211,22 +212,38 @@ void	server::setmylocation(std::map<int, std::string>::const_iterator &it, std::
 	int itfirst = it->first;
 	for(; it != server.end() && it->second.find(")") == std::string::npos; ++it){
 		if (it != itf && it->second.find("(") != std::string::npos)
-			throw std::invalid_argument(throwmessage(itfirst, "lalalalal"));
+			throw std::invalid_argument(throwmessage(itfirst, "You have to close your location with ')'."));
 		locations[it->first] = it->second;
 	}
 	if (it->second.find(")") != std::string::npos)
 		locations[it->first] = it->second;
 	else if (it == server.end())
-		throw std::invalid_argument(throwmessage(itfirst, "okokoko"));
+		throw std::invalid_argument(throwmessage(itfirst, "Error:"));
 	Location	local(locations);
 	setLocations(local);
 }
 
+void	server::init(){
+	setAutoindex(0);
+	setClientBodyLimit(50);
+	set_isdefault(1);
+	set_my_default(-1);
+	setRoot("public");
+	setIndex("index.html");
+	setErrorPage(404, "404.html");
+	setIp("localhost");
+	setPort("8080");
+	setServerName("wal7amaq");
+	setAllowMethods("GET");
+	setAllowMethods("POST");
+	setAllowMethods("DELETE");
+}
+
 void	server::parse(std::map<int, std::string> &server){
+	init();
 	std::map<int, std::string>::const_iterator it = server.begin();
 	std::map<int, std::string>::reverse_iterator rit = server.rbegin();
 
-	this->set_isdefault(1);
 	checkfirstline(it->second, it->first);
 	checklastline(rit->second, rit->first, it->first);
 	it++;
@@ -239,6 +256,25 @@ void	server::parse(std::map<int, std::string> &server){
 			else
        			seter(it->second, it->first);
 		}
+	}
+	std::vector<Location> &local = this->locations;
+	size_t i = 0;
+	for (; i < local.size(); i++){
+		if(local[i].getLocationName() == "/"){
+			if (!local[i].a)
+				local[i].setAutoindex(getAutoindex());
+			if (!local[i].i)
+				local[i].setIndex(getIndex());
+			if (!local[i].r)
+				local[i].setRoot(getRoot());
+			if (!local[i].am)
+				local[i].setVecAllowMethods(getAllowMethods());
+			break;
+		}
+	}
+	if (i == local.size()){
+		Location	loc(getRoot(), getIndex(), getAutoindex(), getAllowMethods());
+		setLocations(loc);
 	}
 }
 

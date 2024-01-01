@@ -46,7 +46,6 @@ class server{
 	bool				autoindex;
 	vector<string>		allow_methods;
 	map<int,string>		error_page;
-	vector<Location>	locations;
 
 	//===============
 	void	checkfirstline(std::string str, int line);
@@ -70,6 +69,8 @@ class server{
 	void	setmylocation(std::map<int, std::string>::const_iterator &it, std::map<int, std::string> &server);
 	//================
 	public:
+		vector<Location>	locations;
+		int					line;
 		void	portSetter(string prt);
 		void	set_my_default(int index);
 		void	set_isdefault(bool b);
@@ -110,6 +111,7 @@ class server{
 		std::map<int, std::string>		getErrorPage(void) const;
 		std::vector<Location>			getLocations(void) const;
 		void	parse(std::map<int, std::string>&);
+		void	init();
 };
 
 class serversInfos

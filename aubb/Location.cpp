@@ -1,5 +1,10 @@
 #include "Location.hpp"
 
+std::string intToString(int value) {
+    std::stringstream ss;
+    ss << value;
+    return ss.str();
+}
 
 std::vector<std::string> Location::splitString(const std::string& input, const std::string& delm) {
     std::vector<std::string> tokens;
@@ -48,7 +53,9 @@ void	Location::checkfirstline(std::string str, int line){
 		throw std::invalid_argument(throwmessage(line, "execept one TAB at the start."));
 	if (std::isspace(str[str.length() - 1]))
 		throw std::invalid_argument(throwmessage(line, "extra whitespaces at the end."));
-	setPath(list[1]);
+	setLocationName(list[1]);
+	if (this->locationName[0] != '/')
+		throw std::invalid_argument(throwmessage(line, "Error: Location name have to start with '/'."));
 }
 
 void	Location::checklastline(std::string str, int line, int firstline){
@@ -106,6 +113,7 @@ void	Location::Myroot(std::vector<std::string> list, int line){
 	if (list.size() != 2 || list.empty())
 			throw std::invalid_argument(throwmessage(line, "Error: Invalide root path."));
 	setRoot(withoutsemicolon(list[1]));
+	this->r = 1;
 }
 
 void	Location::Myindex(std::vector<std::string> list, int line){
@@ -114,6 +122,7 @@ void	Location::Myindex(std::vector<std::string> list, int line){
 	if (list.size() != 2 || list.empty())
 			throw std::invalid_argument(throwmessage(line, "Error: Invalide index path."));
 	setIndex(withoutsemicolon(list[1]));
+	this->i = 1;
 }
 
 
@@ -132,6 +141,7 @@ void	Location::Myautoindex(std::vector<std::string> list, int line){
 		this->autoindex = 0;
 	else
 		throw std::invalid_argument(throwmessage(line, "Error: Invalide Input in autoindex ON/OFF."));
+	this->a = 1;
 }
 
 
@@ -153,6 +163,7 @@ void	Location::Myallow_methods(std::vector<std::string> list, int line){
 	if (allows.empty() || allows.size() > 3)
 		throw std::invalid_argument(throwmessage(line, "Error: Invalide Input in allows methodes."));
 	this->allow_methods = allows;
+	this->am = 1;
 }
 
 void	Location::Mycgi_path(std::vector<std::string> list, int line){
@@ -220,7 +231,68 @@ void	Location::seter(std::string str, int line){
 	set_value(list, token, line);
 }
 
+void	Location::init(){
+	setAutoindex(0);
+	setLocationName("/");
+	setPath("/public/index.html");
+	setRoot("/public");
+	setIndex("index.html");
+	setAutoindex(0);
+	setAllowMethods("GET");
+	setAllowMethods("POST");
+	setAllowMethods("DELETE");
+	this->a = 0;
+	this->am = 0;
+	this->i = 0;
+	this->r = 0;
+}
+
+
+std::string rmSlash(const std::string& str) {
+
+	// Check if the input string contains only "/"
+    if (str.find_first_not_of('/') == std::string::npos) {
+        return "";  // Return an empty string
+    }
+
+    std::string modifiedString = str;
+
+    // Remove trailing slashes
+    size_t lastNonSlash = modifiedString.find_last_not_of('/');
+    if (lastNonSlash != std::string::npos && lastNonSlash < modifiedString.length() - 1) {
+        modifiedString.erase(lastNonSlash + 1);
+    }
+
+    // Remove leading slashes
+    size_t firstNonSlash = modifiedString.find_first_not_of('/');
+    if (firstNonSlash != std::string::npos && firstNonSlash > 0) {
+        modifiedString.erase(0, firstNonSlash);
+    }
+
+    return modifiedString;
+}
+
+void	Location::pathset(){
+	if (rmSlash(getLocationName()).empty())
+		this->path = rmSlash(getRoot()) +"/"+ rmSlash(getIndex());
+	else
+		setPath(rmSlash(getRoot()) +"/" + rmSlash(getLocationName()) + "/" + rmSlash(getIndex()));
+}
+
+Location::Location(string root, string index, bool autoindex, vector<string> allowMethods){
+	init();
+	if (!root.empty())
+		setRoot(root);
+	if (!index.empty())
+		setIndex(index);
+	if (!allowMethods.empty())
+		this->allow_methods = allowMethods;
+	setAutoindex(autoindex);
+	pathset();
+}
+
 Location::Location(std::map<int, std::string>& location){
+	init();
 	std::map<int, std::string>::const_iterator it = location.begin();
 	std::map<int, std::string>::reverse_iterator rit = location.rbegin();
 
@@ -233,23 +305,50 @@ Location::Location(std::map<int, std::string>& location){
        		seter(it->second, it->first);
 		}
 	}
+	pathset();
 }
+
+
+std::string& Location::operator[](const std::string& key) {
+	if (key == "root")
+		return root;
+	else if (key == "path")
+		return path;
+	else if (key == "index")
+		return index;
+	else if (key == "cgi_path")
+		return cgi_path;
+	else if (key == "cgi_extension")
+		return cgi_extension;
+	else
+		return data[key];
+}
+
 
 //=============== seters ===================//
 
 void	Location::setPath(std::string str){
+	this->data["path"] = str;
 	this->path = str;
 }
+void	Location::setLocationName(std::string str){
+	this->data["locationName"] = str;
+	this->locationName = str;
+}
 void	Location::setRoot(std::string str){
+	this->data["root"] = str;
 	this->root = str;
 }
 void	Location::setIndex(std::string str){
+	this->data["index"] = str;
 	this->index = str;
 }
 void	Location::setCgiPath(std::string str){
+	this->data["cgi_path"] = str;
 	this->cgi_path = str;
 }
 void	Location::setCgiExtension(std::string str){
+	this->data["cgi_extension"] = str;
 	this->cgi_extension = str;
 }
 void	Location::setAutoindex(bool b){
@@ -259,10 +358,17 @@ void	Location::setAllowMethods(std::string str){
 	this->allow_methods.push_back(str);
 }
 
+void	Location::setVecAllowMethods(std::vector< std::string> vec){
+	this->allow_methods = vec;
+}
+
 //=============== geters ===================//
 
 std::string	Location::getPath(void) const{
 	return this->path;
+}
+std::string	Location::getLocationName(void) const{
+	return this->locationName;
 }
 std::string	Location::getRoot(void) const{
 	return this->root;
