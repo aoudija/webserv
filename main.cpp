@@ -63,7 +63,7 @@ int main(int ac, char **av){
 					for(it = clients.begin();it != clients.end();it++){
 						if (memcmp(&client_addr, &it->first, sizeof(client_addr)) == 0){
 							it->second.setclient(request_string, servers[i].get_sconncetion());
-							RESPONSE = it->second.getresponse();
+							// RESPONSE = it->second.getresponse();
 							flag = 1;
 							break ;
 						}
@@ -71,10 +71,10 @@ int main(int ac, char **av){
 					if (!flag){
 						client temp;
 						temp.setclient(request_string, servers[i].get_sconncetion());
+						cout << RED << "WHERE ARE WE" << RESET_TEXT << endl;
 						clients.push_back(std::make_pair(client_addr, temp));
-						RESPONSE = temp.getresponse();
+						// temp.getresponse();
 					}
-
 					cout << YELLOW << "SENDING RESPONSE ..." << RESET_TEXT << endl;
 					
 					// bytes_sent = send(servers[i].get_sconncetion(),

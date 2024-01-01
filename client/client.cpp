@@ -11,7 +11,7 @@ void	client::setclient(char* r, int connection_socket){
     responseObj.setcontentType(requestObj.getContentType());
     responseObj.setURI(requestObj.getrequestURI());
     responseObj.set_res(connection_socket);
-    responsestring = responseObj.get_res();
+    // responsestring = responseObj.get_res();
 }
 
 string client::getresponse(){

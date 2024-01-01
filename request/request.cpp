@@ -259,7 +259,7 @@ void request::parseRequest(std::string request)
 
     // std::cout << "\033[1;33m" << request.substr(request.find("\r\n\r\n")) << std::endl;
     // checkBody(request.substr(request.find("\r\n\r\n")));
-    std::cout << RED << getContentType() << RESET_TEXT << std::endl;
+    // std::cout << RED << getContentType() << RESET_TEXT << std::endl;
 }
 
 string request::getrequestURI(){
