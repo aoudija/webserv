@@ -54,7 +54,6 @@ public:
     // ~request();
 
     std::string getMethod();
-    // std::string getURI();
     std::string getHttpVersion();
     string getrequestURI();
 	string getContentType();
@@ -69,39 +68,8 @@ public:
 
     ChunkedBodyState currentChunkedState;
     
-    std::string error;
+    std::string error;//unused 
 
-    // Typedef for parser function pointers
-    typedef ParsingStatus (*ParserFunction)(request&, char);
-
-    // Parser function declarations for chunked body states
-    static ParsingStatus handleChunkStart(request&, char);
-    static ParsingStatus handleChunkSize(request&, char);
-    static ParsingStatus handleAfterChunkSizeSpace(request&, char);
-    static ParsingStatus handleChunkSizeCarriageReturn(request&, char);
-    static ParsingStatus handleChunkData(request&, char);
-    static ParsingStatus handleChunkDataCarriageReturn(request&, char);
-    static ParsingStatus handleChunkDataCrLf(request&, char);
-
-    // Map of chunked body state handlers
-    static ParserFunction chunkedStateHandlers[];
-
-    // Initialize the map of chunked body state handlers
-    static std::map<ChunkedBodyState, ParserFunction> initializeChunkedStateHandlers() {
-        std::map<ChunkedBodyState, ParserFunction> handlers;
-        handlers[Initial] = &handleChunkStart;
-        handlers[ParsingChunkSize] = &handleChunkSize;
-        handlers[AfterChunkSizeSpace] = &handleAfterChunkSizeSpace;
-        handlers[ChunkSizeCarriageReturn] = &handleChunkSizeCarriageReturn;
-        handlers[ParsingChunkData] = &handleChunkData;
-        handlers[ChunkDataCarriageReturn] = &handleChunkDataCarriageReturn;
-        handlers[ChunkDataCrLf] = &handleChunkDataCrLf;
-        return handlers;
-    }
-
-    // Method to parse a body string
-    public:
-    ParsingStatus parseBody(const std::string& body);
 
     ParsingStatus parsChunked(char c);
 };
