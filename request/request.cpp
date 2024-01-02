@@ -51,7 +51,7 @@ void request::checkRequestLine(std::string request)
 
     std::istringstream stream2(line);
 
-    std::cout << line << std::endl;
+    // std::cout << line << std::endl;
 
     stream2 >> this->method >> this->requestURI >> this->httpVersion;
     if (this->method != "GET" && this->method != "POST" && this->method != "DELETE")
@@ -66,7 +66,7 @@ void request::checkRequestLine(std::string request)
 
 void request::checkHeaderFields(std::string headerFiles)
 {
-    std::cout << request::method << std::endl;
+    // std::cout << request::method << std::endl;
 
     std::string line;
     std::vector<std::string> lines;
@@ -221,16 +221,19 @@ int request::getBytesRange()
 
 void request::setBytesRange()
 {
-    std::string input = this->headerFields["Range"];
-    std::string result;
+    if (this->headerFields.find("Range") == this->headerFields.end())
+        this->bytesRange = 0;
+    else {
+        std::string input = this->headerFields["Range"];
+        std::string result;
 
-    for (std::string::iterator it = input.begin(); it != input.end(); ++it) {
-        if (std::isdigit(*it)) {
-            result += *it;
+        for (std::string::iterator it = input.begin(); it != input.end(); ++it) {
+            if (std::isdigit(*it)) {
+                result += *it;
+            }
         }
+        std::istringstream(result) >> this->bytesRange;
     }
-    std::istringstream(result) >> this->bytesRange;
-    // std::cout << "bytes tedtts  ; " << this->headerFields["Range"] << std::endl;
 }
 
 void request::parseRequest(std::string request, server& _server)
@@ -246,7 +249,7 @@ void request::parseRequest(std::string request, server& _server)
     checkBody(request.substr(request.find("\r\n\r\n") + 4), _server);
 
     setContentType();
-
+    setBytesRange();
     std::vector<Location> vec;
     vec = _server.getLocations();
     // std::string uri = this->requestURI;

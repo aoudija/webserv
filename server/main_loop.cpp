@@ -42,9 +42,9 @@ void	main_loop(vector<server> Confservers){
 				cout << GREEN << "CONNECTION ACCEPTED .." << RESET_TEXT << endl;
 				/*--------------*/
 
-				recv(servers[i].get_sconncetion(),
+				int bytesrecv = recv(servers[i].get_sconncetion(),
 					request_string, 1024, 0);//request
-				
+				printf("\033[1;37m%.*s\033[0m", bytesrecv, request_string);
 				/*--------------*/
 				int flag = 0;//to handle chucked request
 				for(it = clients.begin();it != clients.end();it++){
