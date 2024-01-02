@@ -228,7 +228,7 @@ void	server::init(){
 	setClientBodyLimit(50);
 	set_isdefault(1);
 	set_my_default(-1);
-	setRoot("public");
+	setRoot("/public");
 	setIndex("index.html");
 	setErrorPage(404, "404.html");
 	setIp("localhost");
@@ -237,6 +237,11 @@ void	server::init(){
 	setAllowMethods("GET");
 	setAllowMethods("POST");
 	setAllowMethods("DELETE");
+}
+
+bool compareLocationByName(const Location& loc1, const Location& loc2)
+{
+    return loc1.getLocationName() > loc2.getLocationName();
 }
 
 void	server::parse(std::map<int, std::string> &server){
@@ -276,6 +281,7 @@ void	server::parse(std::map<int, std::string> &server){
 		Location	loc(getRoot(), getIndex(), getAutoindex(), getAllowMethods());
 		setLocations(loc);
 	}
+	std::sort(this->locations.begin(), this->locations.end(), compareLocationByName);
 }
 
 

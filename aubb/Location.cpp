@@ -234,7 +234,7 @@ void	Location::seter(std::string str, int line){
 void	Location::init(){
 	setAutoindex(0);
 	setLocationName("/");
-	setPath("/public/index.html");
+	setPath("/public/");
 	setRoot("/public");
 	setIndex("index.html");
 	setAutoindex(0);
@@ -274,9 +274,9 @@ std::string rmSlash(const std::string& str) {
 
 void	Location::pathset(){
 	if (rmSlash(getLocationName()).empty())
-		this->path = rmSlash(getRoot()) +"/"+ rmSlash(getIndex());
+		this->path = "/" + rmSlash(getRoot()) + "/";
 	else
-		setPath(rmSlash(getRoot()) +"/" + rmSlash(getLocationName()) + "/" + rmSlash(getIndex()));
+		setPath("/" + rmSlash(getRoot()) + "/" + rmSlash(getLocationName()) + "/");
 }
 
 Location::Location(string root, string index, bool autoindex, vector<string> allowMethods){

@@ -47,7 +47,6 @@ class server{
 	vector<string>		allow_methods;
 	map<int,string>		error_page;
 
-
 	//===============
 	void	checkfirstline(std::string str, int line);
 	void	checklastline(std::string str, int line, int firstline);
@@ -72,7 +71,6 @@ class server{
 	public:
 		vector<Location>	locations;
 		int					line;
-		Location			localroot;
 		void	portSetter(string prt);
 		void	set_my_default(int index);
 		void	set_isdefault(bool b);
@@ -127,6 +125,8 @@ class serversInfos
 		vector<server> get_servers();
 };
 
+void	main_loop(vector<server>);
+
 //REQUEST_CLASS
 // class request
 // {
@@ -171,7 +171,7 @@ class client
 	response responseObj;
 	string responsestring;
 	public:
-		void	setclient(char*, int);
+		void	setclient(char*, int, server&);
 		string getresponse();
 };
 
