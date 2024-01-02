@@ -26,6 +26,7 @@ class request
 
     map<std::string, std::string> allContTypes;
     string ContentType;
+    int bytesRange;
 
     // bodyParser b;
     // int chunkSize;
@@ -53,6 +54,8 @@ public:
     request& operator=(const request& other);
     // ~request();
 
+    void setBytesRange();
+    int getBytesRange();
     std::string getMethod();
     std::string getHttpVersion();
     string getrequestURI();

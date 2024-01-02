@@ -214,6 +214,25 @@ request::ParsingStatus request::checkBody(std::string body, server& _server)
     return ParsingDone;
 }
 
+int request::getBytesRange()
+{
+    return bytesRange;
+}
+
+void request::setBytesRange()
+{
+    std::string input = this->headerFields["Range"];
+    std::string result;
+
+    for (std::string::iterator it = input.begin(); it != input.end(); ++it) {
+        if (std::isdigit(*it)) {
+            result += *it;
+        }
+    }
+    std::istringstream(result) >> this->bytesRange;
+    // std::cout << "bytes tedtts  ; " << this->headerFields["Range"] << std::endl;
+}
+
 void request::parseRequest(std::string request, server& _server)
 {
     // std::cout << WHITE << request << RESET_TEXT << std::endl;
@@ -227,16 +246,37 @@ void request::parseRequest(std::string request, server& _server)
     checkBody(request.substr(request.find("\r\n\r\n") + 4), _server);
 
     setContentType();
+
     std::vector<Location> vec;
     vec = _server.getLocations();
-    for (std::vector<Location>::iterator i = vec.begin(); i != vec.end(); i++) {
-            std::cout << MAGENTA << "URI: " << requestURI << RESET_TEXT << std::endl;
-            std::cout << MAGENTA << "location name: " << i->getLocationName() << RESET_TEXT << std::endl;
-            std::cout << MAGENTA << "path: " << i->getPath() << RESET_TEXT << std::endl;
-            std::cout << MAGENTA << "root: " << i->getRoot() << RESET_TEXT << std::endl;
+    // std::string uri = this->requestURI;
+    // vector<std::string> uris;
+
+    // while (!uri.substr(uri.rfind("/")).empty() && uri.rfind("/") == std::string::npos)
+    // {
+    //     uris.push_back(uri.substr(uri.rfind("/")));
+    // }
+    
+    
+
+    // for (size_t i = 0; i < count; i++)
+    // {
+    //     for (std::vector<Location>::iterator i = vec.begin(); i != vec.end(); i++) {
+    //         if (requestURI == i->getPath())
+    //         {
+                
+    //         }
+        
+        
+    //         std::cout << MAGENTA << "URI: " << requestURI << RESET_TEXT << std::endl;
+    //         std::cout << MAGENTA << "location name: " << i->getLocationName() << RESET_TEXT << std::endl;
+    //         std::cout << MAGENTA << "path: " << i->getPath() << RESET_TEXT << std::endl;
+    //         std::cout << MAGENTA << "root: " << i->getRoot() << RESET_TEXT << std::endl;
 
     
-        }
+    //     }
+    // }
+    
 }
 
 bool isDirectory(const char* path)
