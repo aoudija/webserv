@@ -230,11 +230,11 @@ void request::parseRequest(std::string request, server& _server)
     std::vector<Location> vec;
     vec = _server.getLocations();
     for (std::vector<Location>::iterator i = vec.begin(); i != vec.end(); i++) {
+            std::cout << MAGENTA << "URI: " << requestURI << RESET_TEXT << std::endl;
             std::cout << MAGENTA << "location name: " << i->getLocationName() << RESET_TEXT << std::endl;
-            // std::cout << MAGENTA << "root: " << i->getRoot() << RESET_TEXT << std::endl;
-            // std::cout << MAGENTA << "path: " << i->getPath() << RESET_TEXT << std::endl;
+            std::cout << MAGENTA << "path: " << i->getPath() << RESET_TEXT << std::endl;
+            std::cout << MAGENTA << "root: " << i->getRoot() << RESET_TEXT << std::endl;
 
-            // std::cout << MAGENTA << "URI: " << requestURI << RESET_TEXT << std::endl;
     
         }
 }
