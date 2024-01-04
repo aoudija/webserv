@@ -2,11 +2,16 @@
 #define REQEST_HPP
 
 #include <iostream>
+
+#include <filesystem>
+
 #include <string>
 #include <sstream>
 #include <map>
+
 #include <vector>
 #include "../server.hpp"
+#include "../aubb/Location.hpp"
 
 using std::string;
 using std::map;
@@ -31,6 +36,7 @@ class request
     // bodyParser b;
     // int chunkSize;
     size_t chunkSize;
+    std::string filePath;
 
 public:
     enum ParsingStatus {
@@ -60,6 +66,7 @@ public:
     std::string getHttpVersion();
     string getrequestURI();
 	string getContentType();
+	string getFilePath();
 
     void    setContentType();
     void    addAllContentTypes();
@@ -68,6 +75,8 @@ public:
     void checkHeaderFields(std::string headerFiles);
     void parseRequest(std::string request, server& _server);
     request::ParsingStatus checkBody(std::string body, server& _server);
+
+    int matchLocation(server& _server);
 
     ChunkedBodyState currentChunkedState;
     

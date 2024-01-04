@@ -241,7 +241,7 @@ void	server::init(){
 
 bool comparePath(const Location& loc1, const Location& loc2)
 {
-    return loc1.getPath() > loc2.getPath();
+    return loc1.getLocationName() > loc2.getLocationName();
 }
 
 void	server::parse(std::map<int, std::string> &server){

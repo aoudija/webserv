@@ -70,7 +70,5 @@ void	main_loop(vector<server> Confservers){
 			}
 			close(servers[i].get_sconncetion());
 		}
-		for (size_t i = 0; i < servers.size();i++){
-		}
 	}
 }
