@@ -72,6 +72,8 @@ class server{
 		vector<Location>	locations;
 		int					line;
 		/*AMINE'S*/
+		vector<int> connections;
+		vector<int> serverallsockets;
 		void	portSetter(string prt);
 		void	set_my_default(int index);
 		void	set_isdefault(bool b);
@@ -88,7 +90,7 @@ class server{
 		int		get_my_default();
 		int		get_slistener();
 		int		get_sconncetion();
-		/*END OF AMIN'S*/
+		/*END OF AMINE'S*/
 		//===========================
 		void	setPort(std::string);
 		void	setIp(std::string);
@@ -120,8 +122,6 @@ class serversInfos
 	private:
 		vector<server>			servers;
 	public:
-		vector<int> listeners;
-		vector<int> connections;
 		vector<int> allSockets;
 		serversInfos(const vector<server>& servers);
 		void		SetListener();

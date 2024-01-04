@@ -90,7 +90,6 @@ void serversInfos::SetListener(){
 	vector<server>::iterator it;
 	int reusePortOption = 1;
 	for(it = servers.begin();it < servers.end();it++){
-		
 		struct addrinfo server_addr, *cn;
 		bzero(&server_addr, sizeof(server_addr));
 		server_addr.ai_family = AF_UNSPEC;
@@ -108,12 +107,12 @@ void serversInfos::SetListener(){
 		else {
 			it->set_slistener(socket(cn->ai_family,
 				cn->ai_socktype, cn->ai_protocol));
-			listeners.push_back(it->get_slistener());//push to socket listeners vector
+			it->serverallsockets.push_back(it->get_slistener());//pushtoallserverfds
+			allSockets.push_back(it->get_slistener());//pushtoallsifd
 			setsockopt(it->get_slistener(), SOL_SOCKET,
 				SO_REUSEPORT, &reusePortOption, sizeof(reusePortOption));
 			fcntl(it->get_slistener(), F_SETFL, O_NONBLOCK, FD_CLOEXEC);
-			if (bind(it->get_slistener(), cn->ai_addr,cn->ai_addrlen) < 0)
-			{
+			if (bind(it->get_slistener(), cn->ai_addr,cn->ai_addrlen) < 0){
 				cout << RED << "bind() failed" << RESET_TEXT << endl;
 				freeaddrinfo(cn);
 				closeListeners();
@@ -131,6 +130,5 @@ void serversInfos::SetListener(){
 		cout << " listening on socket "
 			<< it->get_slistener() << endl;
 	}
-	allSockets.insert(allSockets.end(), listeners.begin(), listeners.end());
 }
 

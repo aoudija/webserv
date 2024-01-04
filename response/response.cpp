@@ -12,7 +12,7 @@ void	response::set_res(int connection_socket, request& request){
 	fcntl(connection_socket, F_SETFL, O_NONBLOCK, FD_CLOEXEC);
 	int bytes_sent;
 	string filePath = request.getFilePath();
-	cout << BLUE << "thisi file: " << filePath << RESET_TEXT << endl;
+	cout << BLUE << "this is file: " << filePath << RESET_TEXT << endl;
 	string contentType = request.getContentType();
 	
 	std::ifstream File(filePath);
