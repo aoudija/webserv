@@ -1,5 +1,9 @@
 #include "../server.hpp"
-
+using std::cout;
+using std::cin;
+using std::endl;
+using std::string;
+using std::vector;
 request::request() {
 
 }
@@ -49,13 +53,13 @@ void request::checkRequestLine(std::string request)
     std::string line;
     std::getline(stream, line);
 
+    // cout << "this is request" << request << endl;
     std::istringstream stream2(line);
 
-    // std::cout << line << std::endl;
-
     stream2 >> this->method >> this->requestURI >> this->httpVersion;
-    if (this->method != "GET" && this->method != "POST" && this->method != "DELETE")
+    if (this->method != "GET" && this->method != "POST" && this->method != "DELETE"){
         printError("Method Not Allowed", 405);
+    }
     if (this->requestURI.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%") != std::string::npos)
         printError("Bad Request", 400);
     if (this->requestURI.size() > 2048)// mazal request body larger than lbody li fl config file !!
