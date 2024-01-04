@@ -59,7 +59,7 @@ void request::checkRequestLine(std::string request)
 
     std::istringstream stream2(line);
 
-    std::cout << line << std::endl;
+    // std::cout << line << std::endl;
 
     stream2 >> this->method >> this->requestURI >> this->httpVersion;
     if (this->method != "GET" && this->method != "POST" && this->method != "DELETE")
@@ -74,7 +74,7 @@ void request::checkRequestLine(std::string request)
 
 void request::checkHeaderFields(std::string headerFiles)
 {
-    std::cout << request::method << std::endl;
+    // std::cout << request::method << std::endl;
 
     std::string line;
     std::vector<std::string> lines;
@@ -203,7 +203,6 @@ request::ParsingStatus request::checkBody(std::string body, server& _server)
 {
     if ((int)body.size() > _server.getClientBodyLimit())
         printError("Request Entity Too Large", 413);
-
     for (size_t i = 0; i < body.size(); ++i)
     {
         char currentChar = body[i];
@@ -281,29 +280,29 @@ int request::matchLocation(server& _server)
     vec = _server.getLocations();
     std::string paths = this->requestURI;
 
-    std::cout << MAGENTA << "***** the path *****" << paths << RESET_TEXT << std::endl;
+    // std::cout << MAGENTA << "***** the path *****" << paths << RESET_TEXT << std::endl;
 
     if (fileExists(paths.c_str()))
     {
-        std::cout << GREEN << "***** flbla *****" << RESET_TEXT << std::endl;
+        // std::cout << GREEN << "***** flbla *****" << RESET_TEXT << std::endl;
         filePath = this->requestURI;
         return 0;
     }
 
     while (!paths.empty())
     {
-        std::cout << GREEN << "***** looping *****" << RESET_TEXT << std::endl;
+        // std::cout << GREEN << "***** looping *****" << RESET_TEXT << std::endl;
         for (std::vector<Location>::iterator it = vec.begin(); it != vec.end(); it++) {
-            std::cout << RED << "is LOCATION: " << it->getLocationName() << "\t\tequal to URI: " << paths << RESET_TEXT << std::endl;
+            // std::cout << RED << "is LOCATION: " << it->getLocationName() << "\t\tequal to URI: " << paths << RESET_TEXT << std::endl;
             if (it->getLocationName() == paths) {
-                std::cout << GREEN << "*****FOUND A MATCH*****" << RESET_TEXT << std::endl;
+                // std::cout << GREEN << "*****FOUND A MATCH*****" << RESET_TEXT << std::endl;
                 filePath = it->getRoot() + this->requestURI;
                 if (isDirectory(filePath.c_str()))
                 {
-                    cout << RED << "___ it's a directory ___" << RESET_TEXT << endl;
+                    // cout << RED << "___ it's a directory ___" << RESET_TEXT << endl;
                     filePath = filePath + it->getIndex();
                 }
-                std::cout << BLUE << filePath << RESET_TEXT << std::endl;
+                // std::cout << BLUE << filePath << RESET_TEXT << std::endl;
                 return 0;
             }
         }
@@ -328,6 +327,7 @@ void request::parseRequest(std::string request, server& _server)
     checkHeaderFields(request.substr(0, request.find("\r\n\r\n")));
 
     chunkSize = 0;
+    cout << MAGENTA << request.substr(request.find("\r\n\r\n") + 4) << RESET_TEXT << endl;;
     checkBody(request.substr(request.find("\r\n\r\n") + 4), _server);
 
     setContentType();
@@ -337,7 +337,7 @@ void request::parseRequest(std::string request, server& _server)
         std::cout << MAGENTA << "NO location matched" << RESET_TEXT << std::endl;
     }
 
-    std::cout << BLUE << "---> " << this->filePath << RESET_TEXT << std::endl;
+    // std::cout << BLUE << "---> " << this->filePath << RESET_TEXT << std::endl;
     /*remove the / from the begining of the path*/
     if (filePath[0] == '/')
         filePath = filePath.substr(1);

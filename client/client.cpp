@@ -7,8 +7,9 @@ using std::vector;
 //client_class
 
 void	client::setclient(char* r, int connection_socket, server& _server){
+    cout << "before parsing req\n";
 	requestObj.parseRequest(r, _server);
-    cout << "hello maffuckers\n";
+    cout << "after parsing req\n";
     responseObj.set_res(connection_socket, requestObj);
 }
 

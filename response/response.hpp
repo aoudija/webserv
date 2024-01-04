@@ -12,19 +12,15 @@
 class request;
 
 class response{
-	// string http_version, status_code;
-	// map<string, string> header_fields;
-	// string	body;
 	int		offset;
-	string uri, contentType;
-	string res;
+	string	res;
 	public:
+	response(){
+		offset = 0;
+	}
 		void	set_res(int connection_socket, request&);
 		string	get_res();
-		void	setURI(string uri);
 		void	setcontentType(string contenttype);
-		void	setOffset(int O);
-		int		getOffset(int O);
 };
 
 #endif

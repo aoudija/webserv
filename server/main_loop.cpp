@@ -21,40 +21,42 @@ void	main_loop(vector<server> Confservers){
 	while (true){
 		fd_set sockets, copy;
 		FD_ZERO(&sockets);
-		for (size_t i = 0; i < servers.size();i++){
-			FD_SET(servers[i].get_slistener(), &sockets);
-		}
+		for (size_t i = 0; i < _si.allSockets.size();i++)
+			FD_SET(_si.allSockets[i], &sockets);
 		// memcpy(&copy, &sockets, sizeof(sockets));
 		copy = sockets;
-		if (select(servers[servers.size() - 1].get_slistener() + 1
-			, &copy, 0, 0, 0) < 0){
+		int maxfd = *(std::max_element(_si.allSockets.begin(), _si.allSockets.end()));
+		if (select(maxfd + 1, &copy, 0, 0, 0) < 0){
 			perror("select failed");
 			exit(EXIT_FAILURE);
 		}
-		for (size_t i = 0; i < servers.size();i++){
-			// cout << "hello\n";
-			if (FD_ISSET(servers[i].get_slistener(), &copy)){
-				cout<<RED<<"socket listenner: "<< servers[i].get_slistener()
-					<< RESET_TEXT << endl;
-				servers[i].set_sconnection(accept(servers[i].get_slistener(),
-						(sockaddr*)&client_addr,
-						&clientaddr_len));
-				cout << CYAN << "CONNECTION SOCKET : " << servers[i].get_sconncetion()
-					<< RESET_TEXT << endl;
-				cout << GREEN << "CONNECTION ACCEPTED .." << RESET_TEXT << endl;
-				/*--------------*/
-				int bytesrecv = read(servers[i].get_sconncetion(), request_string, 1024);
+		for (size_t i = 0; i < _si.allSockets.size();i++){
+			cout << "hello\n";
+			if (FD_ISSET(_si.allSockets[i], &copy)){
+				if (std::find(_si.listeners.begin(), _si.listeners.end(), _si.allSockets[i])
+					!= _si.listeners.end()){
+					cout << RED << "this is fd from listners: " << _si.allSockets[i] << RESET_TEXT << endl;
+					servers[i].set_sconnection(accept(_si.allSockets[i],
+							(sockaddr*)&client_addr, &clientaddr_len));
+					_si.connections.push_back(servers[i].get_sconncetion());
+					_si.allSockets.push_back(servers[i].get_sconncetion());
+				}
+				else{
+				int bytesrecv = read(_si.allSockets[i], request_string, 1024);
 				if (!bytesrecv || bytesrecv < 0){
-					close(servers[i].get_sconncetion());
+					cout << "read error " << endl;
+					close(_si.allSockets[i]);
+					_si.allSockets.erase(std::find(_si.allSockets.begin(),
+						_si.allSockets.end(), _si.allSockets[i]));
 					break ;
 				}
-				cout << WHITE << "received: " << bytesrecv << RESET_TEXT << endl; 
-				printf("\033[1;37m%.*s\033[0m", bytesrecv, request_string);
-				/*--------------*/
+				cout << WHITE << "received: " << bytesrecv << RESET_TEXT << endl;
+				printf("\033[1;37m'%.*s'\033[0m", bytesrecv, request_string);
 				int flag = 0;//to handle chucked request
 				for(it = clients.begin();it != clients.end();it++){
 					if (memcmp(&client_addr, &it->first, sizeof(client_addr)) == 0){
-						it->second.setclient(request_string, servers[i].get_sconncetion(),
+						cout << "already in" << endl;
+						it->second.setclient(request_string, _si.allSockets[i],
 							servers[i]);
 						flag = 1;
 						break ;
@@ -62,13 +64,14 @@ void	main_loop(vector<server> Confservers){
 				}
 				if (!flag){
 					client temp;
-					temp.setclient(request_string, servers[i].get_sconncetion(), servers[i]);
+					temp.setclient(request_string, _si.allSockets[i], servers[i]);
 					clients.push_back(std::make_pair(client_addr, temp));
 				}
 				/*--------------*/
 				cout << GREEN << "RESPONSE SENT " << RESET_TEXT << endl;
+				}
 			}
-			close(servers[i].get_sconncetion());
+				// close(servers[i].get_sconncetion());
 		}
 	}
 }
