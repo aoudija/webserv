@@ -88,7 +88,7 @@ string	server::get_response(){
 
 void serversInfos::SetListener(){
 	vector<server>::iterator it;
-	
+	int reusePortOption = 1;
 	for(it = servers.begin();it < servers.end();it++){
 		
 		struct addrinfo server_addr, *cn;
@@ -106,10 +106,13 @@ void serversInfos::SetListener(){
 		if (!it->get_isdefault()){
 			cout << "hello" << endl;
 			it->set_slistener(servers[it->get_my_default()].get_slistener());
+			fcntl(it->get_slistener(), F_SETFL, O_NONBLOCK, FD_CLOEXEC);
 		}
 		else {
 			it->set_slistener(socket(cn->ai_family,
 				cn->ai_socktype, cn->ai_protocol));
+			setsockopt(it->get_slistener(), SOL_SOCKET,
+				SO_REUSEPORT, &reusePortOption, sizeof(reusePortOption));
 			if (bind(it->get_slistener(), cn->ai_addr,cn->ai_addrlen) < 0)
 			{
 				cout << RED << "bind() failed" << RESET_TEXT << endl;

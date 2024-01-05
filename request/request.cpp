@@ -1,5 +1,13 @@
 #include "../server.hpp"
+<<<<<<< HEAD
 
+=======
+using std::cout;
+using std::cin;
+using std::endl;
+using std::string;
+using std::vector;
+>>>>>>> master
 request::request() {
 
 }
@@ -49,13 +57,21 @@ void request::checkRequestLine(std::string request)
     std::string line;
     std::getline(stream, line);
 
+    // cout << "this is request" << request << endl;
     std::istringstream stream2(line);
 
+<<<<<<< HEAD
     std::cout << line << std::endl;
 
+=======
+>>>>>>> master
     stream2 >> this->method >> this->requestURI >> this->httpVersion;
-    if (this->method != "GET" && this->method != "POST" && this->method != "DELETE")
+    if (this->method != "GET" && this->method != "POST" && this->method != "DELETE"){
         printError("Method Not Allowed", 405);
+<<<<<<< HEAD
+=======
+    }
+>>>>>>> master
     if (this->requestURI.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%") != std::string::npos)
         printError("Bad Request", 400);
     if (this->requestURI.size() > 2048)// mazal request body larger than lbody li fl config file !!
@@ -66,7 +82,11 @@ void request::checkRequestLine(std::string request)
 
 void request::checkHeaderFields(std::string headerFiles)
 {
+<<<<<<< HEAD
     std::cout << request::method << std::endl;
+=======
+    // std::cout << request::method << std::endl;
+>>>>>>> master
 
     std::string line;
     std::vector<std::string> lines;
@@ -214,6 +234,31 @@ request::ParsingStatus request::checkBody(std::string body, server& _server)
     return ParsingDone;
 }
 
+<<<<<<< HEAD
+=======
+int request::getBytesRange()
+{
+    return bytesRange;
+}
+
+void request::setBytesRange()
+{
+    if (this->headerFields.find("Range") == this->headerFields.end())
+        this->bytesRange = 0;
+    else {
+        std::string input = this->headerFields["Range"];
+        std::string result;
+
+        for (std::string::iterator it = input.begin(); it != input.end(); ++it) {
+            if (std::isdigit(*it)) {
+                result += *it;
+            }
+        }
+        std::istringstream(result) >> this->bytesRange;
+    }
+}
+
+>>>>>>> master
 void request::parseRequest(std::string request, server& _server)
 {
     // std::cout << WHITE << request << RESET_TEXT << std::endl;
@@ -222,6 +267,7 @@ void request::parseRequest(std::string request, server& _server)
     // std::cout << request.substr(0, request.find("\r\n\r\n")) << std::endl;
     
     checkHeaderFields(request.substr(0, request.find("\r\n\r\n")));
+<<<<<<< HEAD
 
     chunkSize = 0;
     checkBody(request.substr(request.find("\r\n\r\n") + 4), _server);
@@ -259,6 +305,66 @@ void request::setContentType()
         std::string fileExtension;
         size_t dotPosition = requestURI.rfind(".");
 
+=======
+
+    chunkSize = 0;
+    checkBody(request.substr(request.find("\r\n\r\n") + 4), _server);
+
+    setContentType();
+    setBytesRange();
+    std::vector<Location> vec;
+    vec = _server.getLocations();
+    // std::string uri = this->requestURI;
+    // vector<std::string> uris;
+
+    // while (!uri.substr(uri.rfind("/")).empty() && uri.rfind("/") == std::string::npos)
+    // {
+    //     uris.push_back(uri.substr(uri.rfind("/")));
+    // }
+    
+    
+
+    // for (size_t i = 0; i < count; i++)
+    // {
+    //     for (std::vector<Location>::iterator i = vec.begin(); i != vec.end(); i++) {
+    //         if (requestURI == i->getPath())
+    //         {
+                
+    //         }
+        
+        
+    //         std::cout << MAGENTA << "URI: " << requestURI << RESET_TEXT << std::endl;
+    //         std::cout << MAGENTA << "location name: " << i->getLocationName() << RESET_TEXT << std::endl;
+    //         std::cout << MAGENTA << "path: " << i->getPath() << RESET_TEXT << std::endl;
+    //         std::cout << MAGENTA << "root: " << i->getRoot() << RESET_TEXT << std::endl;
+
+    
+    //     }
+    // }
+    
+}
+
+bool isDirectory(const char* path)
+{
+    struct stat fileInfo;
+
+    if (stat(path, &fileInfo) != 0) {
+        return false;
+    }
+    return S_ISDIR(fileInfo.st_mode);// need to check if this is allowed
+}
+
+void request::setContentType()
+{
+    addAllContentTypes();
+    if (isDirectory(requestURI.c_str())) {
+        this->ContentType = "text/html";
+    }
+    else {
+        std::string fileExtension;
+        size_t dotPosition = requestURI.rfind(".");
+
+>>>>>>> master
         if (dotPosition != std::string::npos) {
             fileExtension = requestURI.substr(dotPosition);
         }

@@ -7,12 +7,18 @@ using std::vector;
 //client_class
 
 void	client::setclient(char* r, int connection_socket, server& _server){
+<<<<<<< HEAD
 	// string buff(r);
 	requestObj.parseRequest(r, _server);
     responseObj.setcontentType(requestObj.getContentType());
     responseObj.setURI(requestObj.getrequestURI());
     responseObj.set_res(connection_socket);
     // responsestring = responseObj.get_res();
+=======
+	requestObj.parseRequest(r, _server);
+    cout << "hello maffuckers\n";
+    responseObj.set_res(connection_socket, requestObj);
+>>>>>>> master
 }
 
 string client::getresponse(){
