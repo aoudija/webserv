@@ -23,6 +23,7 @@
 #include <utility>
 #include <sstream>
 #include <fstream>
+#include <algorithm>
 #include "request/request.hpp"
 #include "response/response.hpp"
 #include "aubb/Location.hpp"
@@ -38,8 +39,7 @@ class server{
 	string	port, serverName, request, response, ip;
 	bool is_default;
 	int my_default, _s_listener, _s_connection;
-
-	// ayoub ---------
+	// ayoub ---------mnhna ltht(private)
 	string				root;
 	string				index;
 	int					client_body_limit;
@@ -71,6 +71,9 @@ class server{
 	public:
 		vector<Location>	locations;
 		int					line;
+		/*AMINE'S*/
+		vector<int> connections;
+		vector<int> serverallsockets;
 		void	portSetter(string prt);
 		void	set_my_default(int index);
 		void	set_isdefault(bool b);
@@ -87,7 +90,7 @@ class server{
 		int		get_my_default();
 		int		get_slistener();
 		int		get_sconncetion();
-	
+		/*END OF AMINE'S*/
 		//===========================
 		void	setPort(std::string);
 		void	setIp(std::string);
@@ -119,6 +122,7 @@ class serversInfos
 	private:
 		vector<server>			servers;
 	public:
+		vector<int> allSockets;
 		serversInfos(const vector<server>& servers);
 		void		SetListener();
 		void		closeListeners();

@@ -10,11 +10,7 @@ void	main_loop(vector<server> Confservers){
 	serversInfos	_si(Confservers);
 	_si.SetListener();
 	vector<server> servers = _si.get_servers();
-<<<<<<< HEAD
-	
-=======
 
->>>>>>> master
 	vector<pair<struct sockaddr_storage, client> > clients;
 	vector<pair<struct sockaddr_storage, client> >::iterator it;
 	struct sockaddr_storage client_addr;
@@ -25,66 +21,43 @@ void	main_loop(vector<server> Confservers){
 	while (true){
 		fd_set sockets, copy;
 		FD_ZERO(&sockets);
-<<<<<<< HEAD
-
-		for (size_t i = 0; i < servers.size();i++)
-			FD_SET(servers[i].get_slistener(), &sockets);
+		for (size_t i = 0; i < _si.allSockets.size();i++)
+			FD_SET(_si.allSockets[i], &sockets);
 		copy = sockets;
-		if (select(servers[servers.size() - 1].get_slistener() + 1
-			, &copy, 0, 0, 0) < 0){
-			cout << RED << "select() failed" << RESET_TEXT << endl;
-			exit(EXIT_FAILURE);
-		}
-		for (size_t i = 0; i < servers.size();i++){
-			if (FD_ISSET(servers[i].get_slistener(), &copy)){
-				cout << RED << "socket listenner: " << servers[i].get_slistener() << RESET_TEXT << endl;
-				servers[i].set_sconnection(accept(servers[i].get_slistener(),
-						(sockaddr*)&client_addr,
-						&clientaddr_len));
-
-=======
-		for (size_t i = 0; i < servers.size();i++){
-			FD_SET(servers[i].get_slistener(), &sockets);
-		}
-		// memcpy(&copy, &sockets, sizeof(sockets));
-		copy = sockets;
-		if (select(servers[servers.size() - 1].get_slistener() + 1
-			, &copy, 0, 0, 0) < 0){
+		int maxfd = *(std::max_element(_si.allSockets.begin(), _si.allSockets.end()));
+		if (select(maxfd + 1, &copy, 0, 0, 0) < 0){
 			perror("select failed");
 			exit(EXIT_FAILURE);
 		}
 		for (size_t i = 0; i < servers.size();i++){
-			// cout << "hello\n";
-			if (FD_ISSET(servers[i].get_slistener(), &copy)){
-				cout<<RED<<"socket listenner: "<< servers[i].get_slistener()
-					<< RESET_TEXT << endl;
-				servers[i].set_sconnection(accept(servers[i].get_slistener(),
-						(sockaddr*)&client_addr,
-						&clientaddr_len));
->>>>>>> master
-				cout << CYAN << "CONNECTION SOCKET : " << servers[i].get_sconncetion()
-					<< RESET_TEXT << endl;
-				cout << GREEN << "CONNECTION ACCEPTED .." << RESET_TEXT << endl;
-				/*--------------*/
-<<<<<<< HEAD
+			cout << "hello\n";
+			for (size_t j = 0; j < _si.allSockets.size();j++){
+			if (FD_ISSET(_si.allSockets[j], &copy)){
+				if (servers[i].serverallsockets[j] == servers[i].get_slistener()){
+					cout << RED << "this is fd from listners: "
+						<< servers[i].serverallsockets[j] << RESET_TEXT << endl;
+					servers[i].set_sconnection(accept(servers[i].get_slistener(),
+							(sockaddr*)&client_addr, &clientaddr_len));
 
-				recv(servers[i].get_sconncetion(),
-					request_string, 1024, 0);//request
-				
-=======
-				int bytesrecv = read(servers[i].get_sconncetion(), request_string, 1024);
+					servers[i].serverallsockets.push_back(servers[i].get_sconncetion());
+					_si.allSockets.push_back(servers[i].get_sconncetion());
+				}
+				else{
+				int bytesrecv = read(_si.allSockets[j], request_string, 1024);
 				if (!bytesrecv || bytesrecv < 0){
-					close(servers[i].get_sconncetion());
+					cout << "read error " << endl;
+					close(_si.allSockets[j]);
+					_si.allSockets.erase(std::find(_si.allSockets.begin(),
+						_si.allSockets.end(), _si.allSockets[j]));
 					break ;
 				}
-				cout << WHITE << "received: " << bytesrecv << RESET_TEXT << endl; 
-				printf("\033[1;37m%.*s\033[0m", bytesrecv, request_string);
->>>>>>> master
-				/*--------------*/
+				cout << WHITE << "received: " << bytesrecv << RESET_TEXT << endl;
+				printf("\033[1;37m'%.*s'\033[0m", bytesrecv, request_string);
 				int flag = 0;//to handle chucked request
 				for(it = clients.begin();it != clients.end();it++){
 					if (memcmp(&client_addr, &it->first, sizeof(client_addr)) == 0){
-						it->second.setclient(request_string, servers[i].get_sconncetion(),
+						cout << "already in" << endl;
+						it->second.setclient(request_string, _si.allSockets[j],
 							servers[i]);
 						flag = 1;
 						break ;
@@ -92,22 +65,15 @@ void	main_loop(vector<server> Confservers){
 				}
 				if (!flag){
 					client temp;
-					temp.setclient(request_string, servers[i].get_sconncetion(), servers[i]);
-<<<<<<< HEAD
-					cout << RED << "WHERE ARE WE" << RESET_TEXT << endl;
-					clients.push_back(std::make_pair(client_addr, temp));
-				}
-				/*--------------*/
-
-				cout << YELLOW << "SENDING RESPONSE ..." << RESET_TEXT << endl;
-=======
+					temp.setclient(request_string, _si.allSockets[j], servers[i]);
 					clients.push_back(std::make_pair(client_addr, temp));
 				}
 				/*--------------*/
 				cout << GREEN << "RESPONSE SENT " << RESET_TEXT << endl;
->>>>>>> master
-				close(servers[i].get_sconncetion());
+				}
 			}
+			}
+				// close(servers[i].get_sconncetion());
 		}
 	}
 }

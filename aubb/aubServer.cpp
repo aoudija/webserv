@@ -239,7 +239,7 @@ void	server::init(){
 	setAllowMethods("DELETE");
 }
 
-bool compareLocationByName(const Location& loc1, const Location& loc2)
+bool comparePath(const Location& loc1, const Location& loc2)
 {
     return loc1.getLocationName() > loc2.getLocationName();
 }
@@ -281,7 +281,7 @@ void	server::parse(std::map<int, std::string> &server){
 		Location	loc(getRoot(), getIndex(), getAutoindex(), getAllowMethods());
 		setLocations(loc);
 	}
-	std::sort(this->locations.begin(), this->locations.end(), compareLocationByName);
+	std::sort(this->locations.begin(), this->locations.end(), comparePath);
 }
 
 

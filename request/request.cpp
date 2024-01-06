@@ -1,13 +1,9 @@
 #include "../server.hpp"
-<<<<<<< HEAD
-
-=======
 using std::cout;
 using std::cin;
 using std::endl;
 using std::string;
 using std::vector;
->>>>>>> master
 request::request() {
 
 }
@@ -51,27 +47,23 @@ std::string request::getHttpVersion() {
     return this->httpVersion;
 }
 
+std::string request::getFilePath() {
+    return this->filePath;
+}
+
 void request::checkRequestLine(std::string request)
 {
     std::istringstream stream(request);
     std::string line;
     std::getline(stream, line);
 
-    // cout << "this is request" << request << endl;
     std::istringstream stream2(line);
 
-<<<<<<< HEAD
-    std::cout << line << std::endl;
+    // std::cout << line << std::endl;
 
-=======
->>>>>>> master
     stream2 >> this->method >> this->requestURI >> this->httpVersion;
-    if (this->method != "GET" && this->method != "POST" && this->method != "DELETE"){
+    if (this->method != "GET" && this->method != "POST" && this->method != "DELETE")
         printError("Method Not Allowed", 405);
-<<<<<<< HEAD
-=======
-    }
->>>>>>> master
     if (this->requestURI.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%") != std::string::npos)
         printError("Bad Request", 400);
     if (this->requestURI.size() > 2048)// mazal request body larger than lbody li fl config file !!
@@ -82,11 +74,7 @@ void request::checkRequestLine(std::string request)
 
 void request::checkHeaderFields(std::string headerFiles)
 {
-<<<<<<< HEAD
-    std::cout << request::method << std::endl;
-=======
     // std::cout << request::method << std::endl;
->>>>>>> master
 
     std::string line;
     std::vector<std::string> lines;
@@ -215,7 +203,6 @@ request::ParsingStatus request::checkBody(std::string body, server& _server)
 {
     if ((int)body.size() > _server.getClientBodyLimit())
         printError("Request Entity Too Large", 413);
-
     for (size_t i = 0; i < body.size(); ++i)
     {
         char currentChar = body[i];
@@ -234,8 +221,6 @@ request::ParsingStatus request::checkBody(std::string body, server& _server)
     return ParsingDone;
 }
 
-<<<<<<< HEAD
-=======
 int request::getBytesRange()
 {
     return bytesRange;
@@ -243,57 +228,121 @@ int request::getBytesRange()
 
 void request::setBytesRange()
 {
-    if (this->headerFields.find("Range") == this->headerFields.end())
-        this->bytesRange = 0;
-    else {
-        std::string input = this->headerFields["Range"];
-        std::string result;
+    std::string input = this->headerFields["Range"];
+    std::string result;
 
-        for (std::string::iterator it = input.begin(); it != input.end(); ++it) {
-            if (std::isdigit(*it)) {
-                result += *it;
-            }
+    for (std::string::iterator it = input.begin(); it != input.end(); ++it) {
+        if (std::isdigit(*it)) {
+            result += *it;
         }
-        std::istringstream(result) >> this->bytesRange;
+    }
+    std::istringstream(result) >> this->bytesRange;
+    // std::cout << "bytes tedtts  ; " << this->headerFields["Range"] << std::endl;
+}
+
+void generatePrefixes(const std::string& path, std::vector<std::string>& prefixes) {
+    std::istringstream iss(path);
+    std::string component;
+    std::string currentPrefix = "/";  // Start with the root "/"
+
+    while (std::getline(iss, component, '/')) {
+        if (!component.empty()) {
+            currentPrefix += component + "/";  // Add the component to the current prefix
+            prefixes.push_back(currentPrefix);
+        }
     }
 }
 
->>>>>>> master
+bool isDirectory(const char* path)
+{
+    struct stat fileInfo;
+
+    if (stat(path, &fileInfo) != 0) {
+        return false;
+    }
+    return S_ISDIR(fileInfo.st_mode);// need to check if this is allowed
+}
+
+bool fileExists(const char* path) {
+    struct stat fileInfo;
+
+    if (path[0] == '/')
+        path = path + 1;
+    if (stat(path, &fileInfo) != 0) {
+        return false;
+    }
+    return S_ISREG(fileInfo.st_mode);
+}
+
+int request::matchLocation(server& _server)
+{
+    std::vector<Location> vec;
+    vec = _server.getLocations();
+    std::string paths = this->requestURI;
+
+    // std::cout << MAGENTA << "***** the path *****" << paths << RESET_TEXT << std::endl;
+
+    if (fileExists(paths.c_str()))
+    {
+        // std::cout << GREEN << "***** flbla *****" << RESET_TEXT << std::endl;
+        filePath = this->requestURI;
+        return 0;
+    }
+
+    while (!paths.empty())
+    {
+        // std::cout << GREEN << "***** looping *****" << RESET_TEXT << std::endl;
+        for (std::vector<Location>::iterator it = vec.begin(); it != vec.end(); it++) {
+            // std::cout << RED << "is LOCATION: " << it->getLocationName() << "\t\tequal to URI: " << paths << RESET_TEXT << std::endl;
+            if (it->getLocationName() == paths) {
+                // std::cout << GREEN << "*****FOUND A MATCH*****" << RESET_TEXT << std::endl;
+                filePath = it->getRoot() + this->requestURI;
+                if (isDirectory(filePath.c_str()))
+                {
+                    // cout << RED << "___ it's a directory ___" << RESET_TEXT << endl;
+                    filePath = filePath + it->getIndex();
+                }
+                // std::cout << BLUE << filePath << RESET_TEXT << std::endl;
+                return 0;
+            }
+        }
+        std::size_t slashLoc = paths.find_last_of('/');
+        if (slashLoc != std::string::npos) {
+            size_t n = std::count(paths.begin(), paths.end(), '/');
+            if (n > 1)
+                paths = paths.substr(0, slashLoc);
+            else
+                paths = "/";
+        }
+    }
+    return 1;
+}
+
 void request::parseRequest(std::string request, server& _server)
 {
     // std::cout << WHITE << request << RESET_TEXT << std::endl;
-    // std::cout << RED << request << RESET_TEXT << std::endl;
     checkRequestLine(request);
     // std::cout << request.substr(0, request.find("\r\n\r\n")) << std::endl;
     
     checkHeaderFields(request.substr(0, request.find("\r\n\r\n")));
-<<<<<<< HEAD
 
     chunkSize = 0;
+    cout << MAGENTA << request.substr(request.find("\r\n\r\n") + 4) << RESET_TEXT << endl;;
     checkBody(request.substr(request.find("\r\n\r\n") + 4), _server);
 
     setContentType();
-    std::vector<Location> vec;
-    vec = _server.getLocations();
-    for (std::vector<Location>::iterator i = vec.begin(); i != vec.end(); i++) {
-            std::cout << MAGENTA << "location name: " << i->getLocationName() << RESET_TEXT << std::endl;
-            // std::cout << MAGENTA << "root: " << i->getRoot() << RESET_TEXT << std::endl;
-            // std::cout << MAGENTA << "path: " << i->getPath() << RESET_TEXT << std::endl;
 
-            // std::cout << MAGENTA << "URI: " << requestURI << RESET_TEXT << std::endl;
-    
-        }
-}
-
-bool isDirectory(const char* path)
-{
-    struct stat fileInfo;
-
-    if (stat(path, &fileInfo) != 0) {
-        return false;
+    if (matchLocation(_server))
+    {
+        std::cout << MAGENTA << "NO location matched" << RESET_TEXT << std::endl;
     }
-    return S_ISDIR(fileInfo.st_mode);// need to check if this is allowed
+
+    // std::cout << BLUE << "---> " << this->filePath << RESET_TEXT << std::endl;
+    /*remove the / from the begining of the path*/
+    if (filePath[0] == '/')
+        filePath = filePath.substr(1);
 }
+
 
 void request::setContentType()
 {
@@ -305,66 +354,6 @@ void request::setContentType()
         std::string fileExtension;
         size_t dotPosition = requestURI.rfind(".");
 
-=======
-
-    chunkSize = 0;
-    checkBody(request.substr(request.find("\r\n\r\n") + 4), _server);
-
-    setContentType();
-    setBytesRange();
-    std::vector<Location> vec;
-    vec = _server.getLocations();
-    // std::string uri = this->requestURI;
-    // vector<std::string> uris;
-
-    // while (!uri.substr(uri.rfind("/")).empty() && uri.rfind("/") == std::string::npos)
-    // {
-    //     uris.push_back(uri.substr(uri.rfind("/")));
-    // }
-    
-    
-
-    // for (size_t i = 0; i < count; i++)
-    // {
-    //     for (std::vector<Location>::iterator i = vec.begin(); i != vec.end(); i++) {
-    //         if (requestURI == i->getPath())
-    //         {
-                
-    //         }
-        
-        
-    //         std::cout << MAGENTA << "URI: " << requestURI << RESET_TEXT << std::endl;
-    //         std::cout << MAGENTA << "location name: " << i->getLocationName() << RESET_TEXT << std::endl;
-    //         std::cout << MAGENTA << "path: " << i->getPath() << RESET_TEXT << std::endl;
-    //         std::cout << MAGENTA << "root: " << i->getRoot() << RESET_TEXT << std::endl;
-
-    
-    //     }
-    // }
-    
-}
-
-bool isDirectory(const char* path)
-{
-    struct stat fileInfo;
-
-    if (stat(path, &fileInfo) != 0) {
-        return false;
-    }
-    return S_ISDIR(fileInfo.st_mode);// need to check if this is allowed
-}
-
-void request::setContentType()
-{
-    addAllContentTypes();
-    if (isDirectory(requestURI.c_str())) {
-        this->ContentType = "text/html";
-    }
-    else {
-        std::string fileExtension;
-        size_t dotPosition = requestURI.rfind(".");
-
->>>>>>> master
         if (dotPosition != std::string::npos) {
             fileExtension = requestURI.substr(dotPosition);
         }
