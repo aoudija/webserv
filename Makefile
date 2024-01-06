@@ -1,5 +1,5 @@
 NAME = webserv
-CPP = c++
+CPP = c++ -g
 FLAGS = -Wall -Wextra -Werror -std=c++98
 SRC_FILES = main.cpp server/server.cpp server/main_loop.cpp response/response.cpp \
 			request/request.cpp client/client.cpp \

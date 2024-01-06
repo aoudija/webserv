@@ -7,12 +7,14 @@ using std::string;
 using std::vector;
 //
 
-void	response::set_res(int connection_socket, request& request){
-	cout << RED << "thisi fileOFFSET: " << offset << RESET_TEXT << endl;
+int	response::set_res(int connection_socket,size_t offset, request& request){
+	cout << "in RESPONSE " << endl;
+	static size_t O;
+	offset = O;
+	cout << RED << "this is fileOFFSET: " << offset << RESET_TEXT << endl;
 	fcntl(connection_socket, F_SETFL, O_NONBLOCK, FD_CLOEXEC);
 	int bytes_sent;
 	string filePath = request.getFilePath();
-	cout << BLUE << "this is file: " << filePath << RESET_TEXT << endl;
 	string contentType = request.getContentType();
 	
 	std::ifstream File(filePath);
@@ -28,22 +30,31 @@ void	response::set_res(int connection_socket, request& request){
 	bytes_sent = send(connection_socket,
 		header.c_str(), strlen(header.c_str()), 0);//header
 	size_t total;
-	total = 0;
+	total = offset;
 	bytes_sent = 0;
-	while (total < filesize){
-		bytes_sent = write(connection_socket, buffer + total, filesize - total);
-		while (bytes_sent < 0){
-			bytes_sent = write(connection_socket, buffer + total, filesize - total);
+	while (total <= filesize){
+		bytes_sent = write(connection_socket, buffer + total, 1024);
+		if ((bytes_sent < 0)){
+			cout << total << endl;
+			offset = total;
+			break ;
 		}
 		total += bytes_sent;
+		offset = total;
 	}
-		// cout <<WHITE << "this is total bytes: " << total << RESET_TEXT << endl;
-	offset = bytes_sent;
+	offset = filesize;
 	free(buffer);
 	close(fd);
-	cout << YELLOW << "BODY RESPONSE SENT..." << RESET_TEXT << endl;
-	cout << GREEN << bytes_sent << '/' << filesize << " sent" << endl;
-	res = "";
+	cout << YELLOW << "RESPONSE SENT" << RESET_TEXT << endl;
+	cout << GREEN << "this is file: " << filePath << endl; 
+	cout << GREEN << offset << '/' << filesize << " sent" << RESET_TEXT  << endl;
+	O = offset;
+	if (offset >= filesize){
+		cout << WHITE<< "hey I've sent the hole file" << endl;
+		allFileSent = 1;
+		O = 0;
+	}
+	return offset;
 }
 
 string    response::get_res(){

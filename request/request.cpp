@@ -327,7 +327,6 @@ void request::parseRequest(std::string request, server& _server)
     checkHeaderFields(request.substr(0, request.find("\r\n\r\n")));
 
     chunkSize = 0;
-    cout << MAGENTA << request.substr(request.find("\r\n\r\n") + 4) << RESET_TEXT << endl;;
     checkBody(request.substr(request.find("\r\n\r\n") + 4), _server);
 
     setContentType();

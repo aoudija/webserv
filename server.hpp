@@ -72,8 +72,8 @@ class server{
 		vector<Location>	locations;
 		int					line;
 		/*AMINE'S*/
-		vector<int> connections;
-		vector<int> serverallsockets;
+		vector<int>		serversockets;
+		vector<int>		connectionsockets;
 		void	portSetter(string prt);
 		void	set_my_default(int index);
 		void	set_isdefault(bool b);
@@ -174,8 +174,11 @@ class client
 	request requestObj;
 	response responseObj;
 	string responsestring;
+	size_t		offset;
+	bool	filesent;
 	public:
 		void	setclient(char*, int, server&);
+		bool	getfilesent();
 		string getresponse();
 };
 

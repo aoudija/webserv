@@ -85,7 +85,6 @@ string	server::get_response(){
 	return response;
 }
 
-
 void serversInfos::SetListener(){
 	vector<server>::iterator it;
 	int reusePortOption = 1;
@@ -95,10 +94,10 @@ void serversInfos::SetListener(){
 		server_addr.ai_family = AF_UNSPEC;
 		server_addr.ai_socktype = SOCK_STREAM;
 		server_addr.ai_flags = AI_PASSIVE;
-		
+
 		if (getaddrinfo(0, (it->portGetter()).c_str(),
-			&server_addr, &cn) != 0)
-		{	cout << RED << "getaddrinfo() failed" << RESET_TEXT << endl;
+			&server_addr, &cn) != 0){
+			cout << RED << "getaddrinfo() failed" << RESET_TEXT << endl;
 			exit(EXIT_FAILURE);
 		}
 		//mainpart
@@ -107,10 +106,10 @@ void serversInfos::SetListener(){
 		else {
 			it->set_slistener(socket(cn->ai_family,
 				cn->ai_socktype, cn->ai_protocol));
-			it->serverallsockets.push_back(it->get_slistener());//pushtoallserverfds
-			allSockets.push_back(it->get_slistener());//pushtoallsifd
 			setsockopt(it->get_slistener(), SOL_SOCKET,
 				SO_REUSEPORT, &reusePortOption, sizeof(reusePortOption));
+			allSockets.push_back(it->get_slistener());//pushtoallsifd
+			it->serversockets.push_back(it->get_slistener());
 			fcntl(it->get_slistener(), F_SETFL, O_NONBLOCK, FD_CLOEXEC);
 			if (bind(it->get_slistener(), cn->ai_addr,cn->ai_addrlen) < 0){
 				cout << RED << "bind() failed" << RESET_TEXT << endl;

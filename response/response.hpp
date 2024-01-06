@@ -12,15 +12,17 @@
 class request;
 
 class response{
-	int		offset;
 	string	res;
+	bool	allFileSent;
 	public:
-	response(){
-		offset = 0;
-	}
-		void	set_res(int connection_socket, request&);
+		response(){
+			allFileSent = 0;
+		}
+		bool getallfs(){
+			return allFileSent;
+		}
+		int	set_res(int connection_socket, size_t offset, request&);
 		string	get_res();
-		void	setcontentType(string contenttype);
 };
 
 #endif
