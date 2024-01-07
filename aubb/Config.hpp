@@ -6,8 +6,6 @@
 #include <map>
 #include <fstream>
 #include "../server.hpp"
-#include <iostream>
-#include <fstream>
 #include <sstream>
 
 class server;
@@ -27,6 +25,7 @@ class Config {
         std::vector<server> Servers;
         Config(std::string av);
         ~Config();
+        void	display();
 
 };
 
