@@ -5,36 +5,6 @@ using std::endl;
 using std::string;
 using std::vector;
 
-void selectAndCopyset(fd_set& sockets, fd_set& copy, vector<int> allSockets){
-	//struct pollfd pfds[allSockets.size];
-	FD_ZERO(&sockets);
-	for (size_t i = 0; i < allSockets.size();i++){
-		FD_SET(allSockets[i], &sockets);
-		/*pfds[i].fd = allSockets[i];
-    	pfds[0].events = POLLIN | POLLOUT;*/
-	}
-	copy = sockets;
-	int maxfd = *(std::max_element(allSockets.begin(), allSockets.end()));
-	if (select(maxfd + 1, &copy, 0, 0, 0) < 0){
-		perror("select failed");
-		exit(EXIT_FAILURE);
-	}
-}
-
-int	receiving(int connectionSocket, server server, map<int,client>& clients,vector<int>& toRemove){
-	char request[1024];
-	int bytesrecv = read(connectionSocket, request, 1024);
-	if (!bytesrecv || bytesrecv < 0)
-		return 0;
-	clients[connectionSocket].setclient(request, connectionSocket,
-		server);
-	if (clients[connectionSocket].getfilesent()){
-		cout << "to be removed: " << connectionSocket << endl;
-		toRemove.push_back(connectionSocket);
-	}
-	return 1;
-}
-
 void	main_loop(vector<server> Confservers){
 	serversInfos	_si(Confservers);
 	_si.SetListener();
@@ -43,65 +13,56 @@ void	main_loop(vector<server> Confservers){
 	map<int, client> clients;
 	struct sockaddr_storage client_addr;
 	socklen_t clientaddr_len = sizeof(client_addr);
+	char request[1024];
 
-	//multiplexing v3.1
+	//multiplexing v3.2
 	while (true){
-		fd_set copy, sockets;
-		selectAndCopyset(sockets, copy, _si.allSockets);
-		for (size_t i = 0; i < servers.size();i++){
-			for (size_t j = 0; j < servers[i].serversockets.size();j++){
-			if (FD_ISSET(servers[i].serversockets[j], &copy)){
-				int fd = servers[i].serversockets[j];
-				if (fd == servers[i].get_slistener()){
-					cout << "listener: " << fd << endl;
-					servers[i].set_sconnection(accept(servers[i].get_slistener(),
-							(sockaddr*)&client_addr, &clientaddr_len));
-					fcntl(servers[i].get_sconncetion(),F_SETFL,O_NONBLOCK,FD_CLOEXEC);
-					cout << "connection socket: " << servers[i].get_sconncetion()<<endl;;
-					_si.allSockets.push_back(servers[i].get_sconncetion());
-					servers[i].connectionsockets.push_back(servers[i].get_sconncetion());
-					servers[i].serversockets.push_back(servers[i].get_sconncetion());
-					client temp;
-					clients[servers[i].get_sconncetion()] = temp;
+		struct pollfd pfds[_si.allSockets.size()];
+		for (size_t i = 0; i < _si.allSockets.size();i++){
+			pfds[i].fd = _si.allSockets[i];
+			pfds[i].events = POLLIN | POLLHUP | POLLOUT;
+		}
+		poll(pfds, _si.allSockets.size(), -1);
+		size_t i = 0;
+		for (; i < servers.size();i++){
+			size_t x = 0;
+			for (; x < _si.allSockets.size();x++){
+				int fd = pfds[x].fd;
+				if (pfds[x].revents & POLLIN){
+					if (fd == servers[i].get_slistener()){//listener
+						cout << "listener: " << fd << endl;
+						servers[i].set_sconnection(accept(servers[i].get_slistener(),
+								(sockaddr*)&client_addr, &clientaddr_len));
+						fcntl(servers[i].get_sconncetion(),F_SETFL,O_NONBLOCK,FD_CLOEXEC);
+						cout << "connection socket: " << servers[i].get_sconncetion()<<endl;;
+						_si.allSockets.push_back(servers[i].get_sconncetion());
+						servers[i].connectionsockets.push_back(servers[i].get_sconncetion());
+						servers[i].serversockets.push_back(servers[i].get_sconncetion());
+						client temp;
+						clients[servers[i].get_sconncetion()] = temp;
+					}
+					else if (std::find(servers[i].connectionsockets.begin(),
+						servers[i].connectionsockets.end(), fd)
+							!= servers[i].connectionsockets.end() && !clients[fd].getTookreques()){//read request 	&& clients[fd].getfilesent()
+						int r = read(fd, request, 1024);
+						cout << "Received " << r << " bytes." << endl;
+						printf("\033[1;37m%.*s\033[0m", r, request);
+						clients[fd].set_request(request, servers[i]);
+					}
 				}
-				// cout << "whatspopping!!!\n";
-				else if (std::find(servers[i].connectionsockets.begin(),
-					servers[i].connectionsockets.end(), fd) != servers[i].connectionsockets.end()){
-						cout << "yo!\n";
-				if (!receiving(fd, servers[i], clients, toRemove)){
-					cout << "read error " << endl;
-					close(fd);
-					FD_CLR(fd ,&sockets);
-					if (std::find(_si.allSockets.begin(),
-					_si.allSockets.end(), fd) != _si.allSockets.end())
-					_si.allSockets.erase(std::find(_si.allSockets.begin(),
-						_si.allSockets.end(), fd));
-					break ;
-				}
-				if (!clients[fd].getfilesent()){
-					cout << "to be removed: " << fd << endl;
-					toRemove.push_back(fd);
-				}
-				else{
-					cout<<"remove this fd because file sentall=1: "<<fd<<endl;
-					FD_CLR(fd ,&sockets);
-					_si.allSockets.erase(std::find(_si.allSockets.begin(),
-						_si.allSockets.end(), fd));
-				}
-				cout << "out of response" << endl;
+				else if (!(pfds[x].revents & POLLHUP) && fd != servers[i].get_slistener()
+					&& clients[fd].getTookreques()){
+					if (std::find(servers[i].connectionsockets.begin(),
+					servers[i].connectionsockets.end(), fd) != servers[i].connectionsockets.end()){//respond to request
+						clients[fd].set_response(fd);
+						cout<<GREEN<<"response_sent"<<RESET_TEXT<<endl;
+						if (clients[fd].getfilesent()){
+							close(fd);
+							_si.allSockets.erase(std::find(_si.allSockets.begin(),_si.allSockets.end(), fd));
+						}
+					}
 				}
 			}
 		}
-		}
-		for (vector<int>::iterator i = toRemove.begin();i != toRemove.end();i++){
-			cout << toRemove.size() << " fd clear: " << *i << endl;
-			close(*i);
-			FD_CLR(*i ,&copy);
-			if (std::find(_si.allSockets.begin(),
-				_si.allSockets.end(), *i) != _si.allSockets.end())
-			_si.allSockets.erase(std::find(_si.allSockets.begin(),
-				_si.allSockets.end(), *i));
-		}
-		toRemove.clear();
 	}
 }

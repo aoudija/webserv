@@ -16,14 +16,12 @@ int	response::set_res(int connection_socket,size_t offset, request& request){
 	int bytes_sent;
 	string filePath = request.getFilePath();
 	string contentType = request.getContentType();
-	
 	std::ifstream File(filePath);
 	int fd = open(filePath.c_str(), O_RDONLY);
 	size_t filesize = lseek(fd, 0, SEEK_END);
 	lseek(fd, 0, SEEK_SET);
 	char* buffer = (char*)malloc(filesize + 1);
-	read(fd, buffer, filesize);
-	
+	size_t c = read(fd, buffer, filesize);
 	std::string header = "HTTP/1.1 200 OK\r\n"
 		"Content-Length: " + std::to_string(filesize) + "\r\n"
 		"Content-Type: "+ contentType + "\r\n\r\n";
@@ -32,8 +30,14 @@ int	response::set_res(int connection_socket,size_t offset, request& request){
 	size_t total;
 	total = offset;
 	bytes_sent = 0;
+	size_t len = 1024;
+	cout << c << endl;
 	while (total <= filesize){
-		bytes_sent = write(connection_socket, buffer + total, 1024);
+		if (total != c && 1024 + total >= c)
+			len = c - total;
+		bytes_sent = write(connection_socket, buffer + total, len);
+		// cout << len << endl;
+		usleep(100);
 		if ((bytes_sent < 0)){
 			cout << total << endl;
 			offset = total;
@@ -42,7 +46,6 @@ int	response::set_res(int connection_socket,size_t offset, request& request){
 		total += bytes_sent;
 		offset = total;
 	}
-	offset = filesize;
 	free(buffer);
 	close(fd);
 	cout << YELLOW << "RESPONSE SENT" << RESET_TEXT << endl;
@@ -50,7 +53,7 @@ int	response::set_res(int connection_socket,size_t offset, request& request){
 	cout << GREEN << offset << '/' << filesize << " sent" << RESET_TEXT  << endl;
 	O = offset;
 	if (offset >= filesize){
-		cout << WHITE<< "hey I've sent the hole file" << endl;
+		cout << WHITE<< "hey I've sent the whole file" << endl;
 		allFileSent = 1;
 		O = 0;
 	}

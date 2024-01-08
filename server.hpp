@@ -15,6 +15,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <poll.h>
 
 #include <iostream>
 #include <string>
@@ -176,9 +177,15 @@ class client
 	string responsestring;
 	size_t		offset;
 	bool	filesent;
+	bool	tookrequest;
 	public:
-		void	setclient(char*, int, server&);
+		client(){
+			tookrequest = 0;
+		}
+		void	set_request(char*, server&);
+		void	set_response(int);
 		bool	getfilesent();
+		bool	getTookreques();
 		string getresponse();
 };
 
