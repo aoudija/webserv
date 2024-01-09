@@ -38,6 +38,8 @@ class request
     size_t chunkSize;
     std::string filePath;
 
+    bool requestStatus;
+
 public:
     enum ParsingStatus {
     ParsingDone,
@@ -71,6 +73,8 @@ public:
     void    setContentType();
     void    addAllContentTypes();
 
+    bool    isRequestDone();
+    
     void checkRequestLine(std::string request);
     void checkHeaderFields(std::string headerFiles);
     void parseRequest(std::string request, server& _server);

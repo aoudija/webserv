@@ -4,12 +4,14 @@ using std::cin;
 using std::endl;
 using std::string;
 using std::vector;
-request::request() {
 
+request::request() : requestStatus(true) {
+    this->chunkSize = 0;
 }
 
-request::request(std::string request, server _server)
+request::request(std::string request, server _server) : requestStatus(true)
 {
+    this->chunkSize = 0;
     parseRequest(request, _server);
 }
 
@@ -49,6 +51,10 @@ std::string request::getHttpVersion() {
 
 std::string request::getFilePath() {
     return this->filePath;
+}
+
+bool    request::isRequestDone() {
+    return requestStatus;
 }
 
 void request::checkRequestLine(std::string request)
@@ -340,6 +346,8 @@ void request::parseRequest(std::string request, server& _server)
     /*remove the / from the begining of the path*/
     if (filePath[0] == '/')
         filePath = filePath.substr(1);
+    if (chunkSize != 0)
+        requestStatus = false;
 }
 
 
