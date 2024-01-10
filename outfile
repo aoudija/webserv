@@ -544,4 +544,4 @@ int main() {
     // writeToFile("<style>\n");
     // writeToFile(".copy-container {text-align: center;}\n");
     // // writeToFile(".container { width: 100%;}\n");
-    // writeToFile(".center-xy {top: 50%;left: 50%;transform: translate(-50%, -50%);position: absol
+    // writeToFile(".center-xy {top: 50%;left: 50%;transform: translate(-50%, -50%);position: absol

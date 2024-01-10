@@ -19,6 +19,8 @@ using std::vector;
 class server;
 class request
 {
+    // std::string _request;
+    // server _server;
     // int socket_listenner;
     // std::string  port;
     // std::string server_name;
@@ -35,10 +37,13 @@ class request
 
     // bodyParser b;
     // int chunkSize;
-    size_t chunkSize;
+    int chunkSize;
     std::string filePath;
 
-    bool requestStatus;
+    int bodyContentLength;
+    int actualContentLength;
+
+	bool requestStatus;
 
 public:
     enum ParsingStatus {
@@ -63,6 +68,7 @@ public:
     // ~request();
 
     void setBytesRange();
+    void setContentLength();
     int getBytesRange();
     std::string getMethod();
     std::string getHttpVersion();
@@ -73,14 +79,15 @@ public:
     void    setContentType();
     void    addAllContentTypes();
 
-    bool    isRequestDone();
-    
     void checkRequestLine(std::string request);
     void checkHeaderFields(std::string headerFiles);
     void parseRequest(std::string request, server& _server);
     request::ParsingStatus checkBody(std::string body, server& _server);
+    request::ParsingStatus checkBody2(std::string body, server& _server);
 
     int matchLocation(server& _server);
+
+    bool    isRequestDone();
 
     ChunkedBodyState currentChunkedState;
     
