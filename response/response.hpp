@@ -13,15 +13,8 @@ class request;
 
 class response{
 	string	res;
-	bool	allFileSent;
 	public:
-		response(){
-			allFileSent = 0;
-		}
-		bool getallfs(){
-			return allFileSent;
-		}
-		int	set_res(int connection_socket, size_t offset, request&);
+		int	set_res(int connection_socket, request&);
 		string	get_res();
 };
 

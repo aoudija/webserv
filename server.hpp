@@ -73,6 +73,7 @@ class server{
 		vector<Location>	locations;
 		int					line;
 		/*AMINE'S*/
+		int				tempsm3;
 		vector<int>		serversockets;
 		vector<int>		connectionsockets;
 		void	portSetter(string prt);
@@ -175,17 +176,17 @@ class client
 	request requestObj;
 	response responseObj;
 	string responsestring;
-	size_t		offset;
 	bool	filesent;
 	bool	tookrequest;
 	public:
 		client(){
+			filesent = 0;
 			tookrequest = 0;
 		}
 		void	set_request(char*, server&);
 		void	set_response(int);
 		bool	getfilesent();
-		bool	getTookreques();
+		bool	getTookrequest();
 		string getresponse();
 };
 
