@@ -37,7 +37,7 @@ int	response::set_res(int connection_socket, request& request){
 		if (len > filesize - total)
 			len = filesize - total;
 		bytes_sent = write(connection_socket, buffer + total, len);
-		// cout << "len: "<<len << endl;
+		cout << "len: "<<len << endl;
 		// usleep(100);
 		// if ((bytes_sent <= 0)){
 		// 	cout << "failed to write" << endl;

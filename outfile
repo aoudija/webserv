@@ -1,0 +1,547 @@
+POST / HTTP/1.1
+Content-Type: form-data;
+Transfer-Encoding: chunked
+User-Agent: PostmanRuntime/7.33.0
+Accept: */*
+Cache-Control: no-cache
+Postman-Token: a3ca182d-389d-4e40-bd0e-1b20bce4a4c3
+Host: 10.11.13.3
+Connection: keep-alive
+Content-Length: 527
+
+20f
+‰PNG
+
+POST / HTTP/1.1
+Content-Type: form-data;
+Transfer-Encoding: chunked
+User-Agent: PostmanRuntime/7.33.0
+Accept: */*
+Cache-Control: no-cache
+Postman-Token: ee5e99a1-5a85-49ae-a9e9-7edd74f0cc05
+Host: 10.11.13.3
+Connection: keep-alive
+
+20f
+‰PNG
+
+POST / HTTP/1.1
+Content-Type: form-data;
+Transfer-Encoding: chunked
+User-Agent: PostmanRuntime/7.33.0
+Accept: */*
+Cache-Control: no-cache
+Postman-Token: f6a00019-eceb-4a9d-8a29-62af0cfcb2b9
+Host: 10.11.13.3
+Connection: keep-alive
+
+d12
+#include <iostream>
+#include <string>
+#include <sstream>
+#include <cctype>
+#include <fstream>
+
+// void writeToFile(std::string content)
+// {
+//     std::ofstream outputFile("errorpage.html", std::ios::app);
+
+//     if (outputFile.is_open())
+//     {
+//         outputFile << content;
+//         outputFile.close();
+//     }
+//     else
+//         std::cout << "error" << std::endl;
+// }
+
+void errorPageTamplate(std::string errorMessage)
+{
+    std::ofstream outputFile("errorpage.html", std::ios::trunc);
+
+    if (outputFile.is_open())
+    {
+        outputFile << "<!DOCTYPE html>\n";
+        outputFile << "<html>\n";
+        outputFile << "<style>\n";
+        outputFile << ".copy-container {text-align: center;}\n";
+        // writeToFile(".container { width: 100%;}\n");
+    POST / HTTP/1.1
+Content-Type: form-data;
+Transfer-Encoding: chunked
+User-Agent: PostmanRuntime/7.33.0
+Accept: */*
+Cache-Control: no-cache
+Postman-Token: e8b7f339-3b28-42e8-a54a-06da6ae78850
+Host: 10.11.13.3
+Connection: keep-alive
+
+d12
+#include <iostream>
+#include <string>
+#include <sstream>
+#include <cctype>
+#include <fstream>
+
+// void writeToFile(std::string content)
+// {
+//     std::ofstream outputFile("errorpage.html", std::ios::app);
+
+//     if (outputFile.is_open())
+//     {
+//         outputFile << content;
+//         outputFile.close();
+//     }
+//     else
+//         std::cout << "error" << std::endl;
+// }
+
+void errorPageTamplate(std::string errorMessage)
+{
+    std::ofstream outputFile("errorpage.html", std::ios::trunc);
+
+    if (outputFile.is_open())
+    {
+        outputFile << "<!DOCTYPE html>\n";
+        outputFile << "<html>\n";
+        outputFile << "<style>\n";
+        outputFile << ".copy-container {text-align: center;}\n";
+        // writeToFile(".container { width: 100%;}\n");
+        outputFile << ".center-xy {top: 50%;left: 50%;transform: translate(-50%, -50%);position: absolute;}\n";
+
+        outputFile << "</style>\n";
+
+        outputFile << "<head>\n";
+        
+        outputFile << "</head>\n";
+        outputFile << "<body>\n";
+
+        outputFile << "<div class='container'>\n";
+        outputFile << "<div class='copy-container center-xy'>\n";
+        outputFile << "<p>\n";
+        outputFile << errorMessage + "\n";
+
+        outputFile << "</div>\n";
+        // writeToFile("</div>\n");
+        outputFile << "</p>\n";
+
+        outputFile << "</body>\n";
+        outputFile << "</html>\n";
+        outputFile.close();
+    }
+    else
+        std::cout << "error" << std::endl;
+}
+
+// void    errorPageTamplate(std::string errorMessage)
+// {
+//     writeToFileFirst("<!DOCTYPE html>\n");
+//     writeToFile("<html>\n");
+//     writeToFile("<style>\n");
+//     writeToFile(".copy-container {text-align: center;}\n");
+//     // writeToFile(".container { width: 100%;}\n");
+//     writeToFile(".center-xy {top: 50%;left: 50%;transform: translate(-50%, -50%);position: absolute;}\n");
+
+//     writeToFile("</style>\n");
+
+//     writeToFile("<head>\n");
+    
+//     writeToFile("</head>\n");
+//     writeToFile("<body>\n");
+
+//     writeToFile("<div class='container'>\n");
+//     writeToFile("<div class='copy-container center-xy'>\n");
+//     writeToFile("<p>\n");
+//     writeToFile(errorMessage + "\n");
+
+//     writeToFile("</div>\n");
+//     // writeToFile("</div>\n");
+//     writeToFile("</p>\n");
+
+//     writeToFile("</body>\n");
+//     writeToFile("</html>\n");
+// }
+
+int main() {
+    std::string input = "bytes=900-";
+    std::string result;
+
+    writeToFileFirst("jfhdjksh djdhf 000");
+    // writeToFile("<!DOCTYPE html>\n");
+    // writeToFile("<html>\n");
+    // writeToFile("<style>\n");
+    // writeToFile(".copy-container {text-align: center;}\n");
+    // // writeToFile(".container { width: 100%;}\n");
+    // writeToFile(".center-xy {top: 50%;left: 50%;transform: translate(-50%, -50%);position: absolute;}\n");
+
+    // writeToFile("</style>\n");
+
+    // writeToFile("<head>\n");
+    
+    // writeToFile("</head>\n");
+    // writeToFile("<body>\n");
+
+    // writeToFile("<div class='container'>\n");
+    // writeToFile("<div class='copy-container center-xy'>\n");
+    // writeToFile("<p>\n");
+    // writeToFile("404, page not found.\n");
+
+    // writeToFile("</div>\n");
+    // // writeToFile("</div>\n");
+    // writeToFile("</p>\n");
+
+    // writeToFile("</body>\n");
+    // writeToFile("</html>\n");
+
+    return 0;
+}
+
+0
+
+("</body>\n");
+//     writeToFile("</html>\n");
+// }
+
+int main() {
+    std::string input = "bytes=900-";
+    std::string result;
+
+    writeToFileFirst("jfhdjksh djdhf 000");
+    // writeToFile("<!DOCTYPE html>\n");
+    // writeToFile("<html>\n");
+    // writeToFile("<style>\n");
+    // writeToFile(".copy-container {text-align: center;}\n");
+    // // writeToFile(".container { width: 100%;}\n");
+    // writeToFile(".center-xy {top: 50%;left: 50%;transform: translate(-50%, -50%);position: absolute;}\n");
+
+    // writeToFile("</style>\n");
+
+    // writeToFile("<head>\n");
+    
+    // writeToFile("</head>\n");
+    // writeToFile("<body>\n");
+
+    // writeToFile("<div class='container'>\n");
+    // writeToFile("<div class='copy-container center-xy'>\n");
+    // writeToFile("<p>\n");
+    // writeToFile("404, page not found.\n");
+
+    // writeToFile("</div>\n");
+    // // writeToFile("</div>\n");
+    // writeToFile("</p>\n");
+
+    // writeToFile("</body>\n");
+    // writeToFile("</html>\n");
+
+    return 0;
+}
+
+0
+
+("</body>\n");
+//     writeToFile("</html>\n");
+// }
+
+int main() {
+    std::string input = "bytes=900-";
+    std::string result;
+
+    writeToFileFirst("jfhdjksh djdhf 000");
+    // writeToFile("<!DOCTYPE html>\n");
+    // writeToFile("<html>\n");
+    // writeToFile("<style>\n");
+    // writeToFile(".copy-container {text-align: center;}\n");
+    // // writeToFile(".container { width: 100%;}\n");
+    // writeToFile(".center-xy {top: 50%;left: 50%;transform: translate(-50%, -50%);position: absolPOST / HTTP/1.1
+Content-Type: form-data;
+Transfer-Encoding: chunked
+User-Agent: PostmanRuntime/7.33.0
+Accept: */*
+Cache-Control: no-cache
+Postman-Token: c947fa7b-ac22-4176-9eff-832f40996f80
+Host: 10.11.13.3
+Connection: keep-alive
+
+d12
+#include <iostream>
+#include <string>
+#include <sstream>
+#include <cctype>
+#include <fstream>
+
+// void writeToFile(std::string content)
+// {
+//     std::ofstream outputFile("errorpage.html", std::ios::app);
+
+//     if (outputFile.is_open())
+//     {
+//         outputFile << content;
+//         outputFile.close();
+//     }
+//     else
+//         std::cout << "error" << std::endl;
+// }
+
+void errorPageTamplate(std::string errorMessage)
+{
+    std::ofstream outputFile("errorpage.html", std::ios::trunc);
+
+    if (outputFile.is_open())
+    {
+        outputFile << "<!DOCTYPE html>\n";
+        outputFile << "<html>\n";
+        outputFile << "<style>\n";
+        outputFile << ".copy-container {text-align: center;}\n";
+        // writeToFile(".container { width: 100%;}\n");
+        outputFile << ".center-xy {top: 50%;left: 50%;transform: translate(-50%, -50%);position: absolute;}\n";
+
+        outputFile << "</style>\n";
+
+        outputFile << "<head>\n";
+        
+        outputFile << "</head>\n";
+        outputFile << "<body>\n";
+
+        outputFile << "<div class='container'>\n";
+        outputFile << "<div class='copy-container center-xy'>\n";
+        outputFile << "<p>\n";
+        outputFile << errorMessage + "\n";
+
+        outputFile << "</div>\n";
+        // writeToFile("</div>\n");
+        outputFile << "</p>\n";
+
+        outputFile << "</body>\n";
+        outputFile << "</html>\n";
+        outputFile.close();
+    }
+    else
+        std::cout << "error" << std::endl;
+}
+
+// void    errorPageTamplate(std::string errorMessage)
+// {
+//     writeToFileFirst("<!DOCTYPE html>\n");
+//     writeToFile("<html>\n");
+//     writeToFile("<style>\n");
+//     writeToFile(".copy-container {text-align: center;}\n");
+//     // writeToFile(".container { width: 100%;}\n");
+//     writeToFile(".center-xy {top: 50%;left: 50%;transform: translate(-50%, -50%);position: absolute;}\n");
+
+//     writeToFile("</style>\n");
+
+//     writeToFile("<head>\n");
+    
+//     writeToFile("</head>\n");
+//     writeToFile("<body>\n");
+
+//     writeToFile("<div class='container'>\n");
+//     writeToFile("<div class='copy-container center-xy'>\n");
+//     writeToFile("<p>\n");
+//     writeToFile(errorMessage + "\n");
+
+//     writeToFile("</div>\n");
+//     // writeToFile("</div>\n");
+//     writeToFile("</p>\n");
+
+//     writeToFile("</body>\n");
+//     writeToFile("</html>\n");
+// }
+
+int main() {
+    std::string input = "bytes=900-";
+    std::string result;
+
+    writeToFileFirst("jfhdjksh djdhf 000");
+    // writeToFile("<!DOCTYPE html>\n");
+    // writeToFile("<html>\n");
+    // writeToFile("<style>\n");
+    // writeToFile(".copy-container {text-align: center;}\n");
+    // // writeToFile(".container { width: 100%;}\n");
+    // writeToFile(".center-xy {top: 50%;left: 50%;transform: translate(-50%, -50%);position: absolute;}\n");
+
+    // writeToFile("</style>\n");
+
+    // writeToFile("<head>\n");
+    
+    // writeToFile("</head>\n");
+    // writeToFile("<body>\n");
+
+    // writeToFile("<div class='container'>\n");
+    // writeToFile("<div class='copy-container center-xy'>\n");
+    // writeToFile("<p>\n");
+    // writeToFile("404, page not found.\n");
+
+    // writeToFile("</div>\n");
+    // // writeToFile("</div>\n");
+    // writeToFile("</p>\n");
+
+    // writeToFile("</body>\n");
+    // writeToFile("</html>\n");
+
+    return 0;
+}
+
+0
+
+("</body>\n");
+//     writeToFile("</html>\n");
+// }
+
+int main() {
+    std::string input = "bytes=900-";
+    std::string result;
+
+    writeToFileFirst("jfhdjksh djdhf 000");
+    // writeToFile("<!DOCTYPE html>\n");
+    // writeToFile("<html>\n");
+    // writeToFile("<style>\n");
+    // writeToFile(".copy-container {text-align: center;}\n");
+    // // writeToFile(".container { width: 100%;}\n");
+    // writeToFile(".center-xy {top: 50%;left: 50%;transform: translate(-50%, -50%);position: absolPOST / HTTP/1.1
+Content-Type: form-data;
+Transfer-Encoding: chunked
+User-Agent: PostmanRuntime/7.33.0
+Accept: */*
+Cache-Control: no-cache
+Postman-Token: 665fb315-929c-415d-8e37-1552c9e5f745
+Host: 10.11.13.3
+Connection: keep-alive
+
+d12
+#include <iostream>
+#include <string>
+#include <sstream>
+#include <cctype>
+#include <fstream>
+
+// void writeToFile(std::string content)
+// {
+//     std::ofstream outputFile("errorpage.html", std::ios::app);
+
+//     if (outputFile.is_open())
+//     {
+//         outputFile << content;
+//         outputFile.close();
+//     }
+//     else
+//         std::cout << "error" << std::endl;
+// }
+
+void errorPageTamplate(std::string errorMessage)
+{
+    std::ofstream outputFile("errorpage.html", std::ios::trunc);
+
+    if (outputFile.is_open())
+    {
+        outputFile << "<!DOCTYPE html>\n";
+        outputFile << "<html>\n";
+        outputFile << "<style>\n";
+        outputFile << ".copy-container {text-align: center;}\n";
+        // writeToFile(".container { width: 100%;}\n");
+        outputFile << ".center-xy {top: 50%;left: 50%;transform: translate(-50%, -50%);position: absolute;}\n";
+
+        outputFile << "</style>\n";
+
+        outputFile << "<head>\n";
+        
+        outputFile << "</head>\n";
+        outputFile << "<body>\n";
+
+        outputFile << "<div class='container'>\n";
+        outputFile << "<div class='copy-container center-xy'>\n";
+        outputFile << "<p>\n";
+        outputFile << errorMessage + "\n";
+
+        outputFile << "</div>\n";
+        // writeToFile("</div>\n");
+        outputFile << "</p>\n";
+
+        outputFile << "</body>\n";
+        outputFile << "</html>\n";
+        outputFile.close();
+    }
+    else
+        std::cout << "error" << std::endl;
+}
+
+// void    errorPageTamplate(std::string errorMessage)
+// {
+//     writeToFileFirst("<!DOCTYPE html>\n");
+//     writeToFile("<html>\n");
+//     writeToFile("<style>\n");
+//     writeToFile(".copy-container {text-align: center;}\n");
+//     // writeToFile(".container { width: 100%;}\n");
+//     writeToFile(".center-xy {top: 50%;left: 50%;transform: translate(-50%, -50%);position: absolute;}\n");
+
+//     writeToFile("</style>\n");
+
+//     writeToFile("<head>\n");
+    
+//     writeToFile("</head>\n");
+//     writeToFile("<body>\n");
+
+//     writeToFile("<div class='container'>\n");
+//     writeToFile("<div class='copy-container center-xy'>\n");
+//     writeToFile("<p>\n");
+//     writeToFile(errorMessage + "\n");
+
+//     writeToFile("</div>\n");
+//     // writeToFile("</div>\n");
+//     writeToFile("</p>\n");
+
+//     writeToFile("</body>\n");
+//     writeToFile("</html>\n");
+// }
+
+int main() {
+    std::string input = "bytes=900-";
+    std::string result;
+
+    writeToFileFirst("jfhdjksh djdhf 000");
+    // writeToFile("<!DOCTYPE html>\n");
+    // writeToFile("<html>\n");
+    // writeToFile("<style>\n");
+    // writeToFile(".copy-container {text-align: center;}\n");
+    // // writeToFile(".container { width: 100%;}\n");
+    // writeToFile(".center-xy {top: 50%;left: 50%;transform: translate(-50%, -50%);position: absolute;}\n");
+
+    // writeToFile("</style>\n");
+
+    // writeToFile("<head>\n");
+    
+    // writeToFile("</head>\n");
+    // writeToFile("<body>\n");
+
+    // writeToFile("<div class='container'>\n");
+    // writeToFile("<div class='copy-container center-xy'>\n");
+    // writeToFile("<p>\n");
+    // writeToFile("404, page not found.\n");
+
+    // writeToFile("</div>\n");
+    // // writeToFile("</div>\n");
+    // writeToFile("</p>\n");
+
+    // writeToFile("</body>\n");
+    // writeToFile("</html>\n");
+
+    return 0;
+}
+
+0
+
+("</body>\n");
+//     writeToFile("</html>\n");
+// }
+
+int main() {
+    std::string input = "bytes=900-";
+    std::string result;
+
+    writeToFileFirst("jfhdjksh djdhf 000");
+    // writeToFile("<!DOCTYPE html>\n");
+    // writeToFile("<html>\n");
+    // writeToFile("<style>\n");
+    // writeToFile(".copy-container {text-align: center;}\n");
+    // // writeToFile(".container { width: 100%;}\n");
+    // writeToFile(".center-xy {top: 50%;left: 50%;transform: translate(-50%, -50%);position: absol

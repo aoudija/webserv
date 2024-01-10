@@ -44,20 +44,24 @@ void readRequest(struct pollfd &pfd, server& server, map<int, client>& clients){
 		&& !clients[pfd.fd].getTookrequest())
 	{
 		int r = read(pfd.fd, request, 1024);
-		std::ofstream outfile("outfile.png", std::ios::app);
+		std::ofstream outfile("outfile", std::ios::app);
 		outfile << request;
 		outfile.close();
 		cout << "Received " << r << " bytes." << endl;
 		printf("\033[1;37m%.*s\033[0m", r, request);
-		clients[pfd.fd].set_request(request, server);
-		pfd.events = POLLOUT;
+		if (r == 0){
+			clients[pfd.fd].set_request(request, server);
+			cout<<"mawslatsh"<<endl;
+			pfd.events = POLLOUT;
+		}
 	}
 
 }
 
-void	sendResponse(struct pollfd &pfd, server& server,
+void	sendResponse(vector<struct pollfd>&	pfds, struct pollfd &pfd, server& server,
 		map<int,client>& clients)
 {
+	(void)pfds;
 	if ((pfd.revents & POLLOUT) && pfd.fd != server.get_slistener()
 		&& clients[pfd.fd].getTookrequest())
 	{
@@ -69,11 +73,16 @@ void	sendResponse(struct pollfd &pfd, server& server,
 			{
 				close(pfd.fd);
 				server.set_slistener(server.tempsm3);
-				// _si.allSockets.erase(std::find(_si.allSockets.begin()
-				// 	,_si.allSockets.end(), pfd.fd));
 			}
 		}
 	}
+	else if (pfd.revents & POLLHUP){
+		cout << "POLLHUP " << pfd.fd << endl;
+		// close(pfd.fd);
+		// exit(0);
+	}
+	else if (pfd.revents & POLLNVAL)
+		cout << "nothing--> " << pfd.fd << endl;
 }
 
 void	accept_read_write(vector<struct pollfd>&	pfds, struct pollfd &pfd,
@@ -85,8 +94,8 @@ void	accept_read_write(vector<struct pollfd>&	pfds, struct pollfd &pfd,
 			else
 				readRequest(pfd, servers[i], clients);
 		}
-		else
-			sendResponse(pfd, servers[i], clients);
+		else if ((pfd.revents & POLLOUT) || (pfd.revents & POLLHUP))
+			sendResponse(pfds, pfd, servers[i], clients);
 	}
 }
 
