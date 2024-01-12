@@ -281,7 +281,7 @@ request::ParsingStatus request::checkBody2(std::string body, server& _server)
 		// }
 	}
 	bodyContentLength += i;
-	cout << RED << "the parsing is done 3" << RESET_TEXT << endl;
+	// cout << RED << "the parsing is done 3" << RESET_TEXT << endl;
 	return ParsingDone;
 }
 
@@ -419,15 +419,15 @@ void request::parseRequest(std::string request, server& _server)
 		else
 			checkBody2(request.substr(request.find("\r\n\r\n") + 4), _server);
 	}
-	cout << MAGENTA << chunkSize << RESET_TEXT << endl;
+	// cout << MAGENTA << chunkSize << RESET_TEXT << endl;
 
-	if (bodyContentLength >= this->actualContentLength)
-	{
-		cout << chunkSize << endl;
-		cout << bodyContentLength << endl;
-		cout << this->actualContentLength << endl;
+	// if (bodyContentLength >= this->actualContentLength)
+	// {
+	// 	cout << chunkSize << endl;
+	// 	cout << bodyContentLength << endl;
+	// 	cout << this->actualContentLength << endl;
 		setContentType();//! need to remove comment after chuncked body done
-	}
+	// }
 
 	if (matchLocation(_server)) {
 		std::cout << MAGENTA << "NO location matched" << RESET_TEXT << std::endl;
@@ -437,7 +437,7 @@ void request::parseRequest(std::string request, server& _server)
 	/*remove the / from the begining of the path*/
 	if (filePath[0] == '/')
 		filePath = filePath.substr(1);
-	cout << BLUE << " and chunk size is: ============================================================ "<< chunkSize << RESET_TEXT << endl;
+	// cout << BLUE << " and chunk size is: ============================================================ "<< chunkSize << RESET_TEXT << endl;
 	if (chunkSize != 0)
 		requestStatus = false;
 }

@@ -9,93 +9,105 @@ void	fillpoll_listen(vector<struct pollfd>&	pfds, serversInfos _si){
 	struct pollfd p;
 	for (size_t i = 0;i < _si.allSockets.size();i++){
 		p.fd = _si.allSockets[i];
-		p.events = POLLIN;
+		p.events = POLLIN | POLLHUP;
 		pfds.push_back(p);
 	}
 }
 
-void	accept_connection(vector<struct pollfd>& pfds, int fd, server& server,
-	serversInfos& _si)
+void	accept_connection(vector<struct pollfd>& pfds, struct pollfd& pfd, server& server)
 {
 	struct sockaddr_storage client_addr;
 	socklen_t clientaddr_len = sizeof(client_addr);
 	int cs;
 
-	cout<<"listen socket: "<<fd<<endl;
-	cs = accept(fd, (sockaddr*)&client_addr, &clientaddr_len);
+	cout<<"listen socket: "<<pfd.fd<<endl;
+	cs = accept(pfd.fd, (sockaddr*)&client_addr, &clientaddr_len);
 	fcntl(cs,F_SETFL,O_NONBLOCK,FD_CLOEXEC);
 	cout << "connection socket: " << cs <<endl;
-	_si.allSockets.push_back(cs);
-	server.connectionsockets.push_back(cs);
-	// server.serversockets.push_back(cs);
+	server.mysockets.push_back(cs);
 	struct pollfd p;
 	p.fd = cs;
 	p.events = POLLIN;
+	client t;
+	server.clients[p.fd] = t;
 	pfds.push_back(p);
-	server.tempsm3 = server.get_slistener();
-	server.set_slistener(-1);
 }
 
-void readRequest(struct pollfd &pfd, server& server, map<int, client>& clients){
+void readRequest(struct pollfd &pfd, server& server){
 	char request[1024];
 
-	if (std::find(server.connectionsockets.begin(),
-		server.connectionsockets.end(), pfd.fd) != server.connectionsockets.end()
-		&& !clients[pfd.fd].getTookrequest())
+	if (!server.clients[pfd.fd].getTookrequest())
 	{
 		int r = read(pfd.fd, request, 1024);
-		std::ofstream outfile("outfile", std::ios::app);
-		outfile << request;
-		outfile.close();
+		if (r <= 0){
+			perror("read");
+			sleep(2);
+		}
+		
 		cout << "Received " << r << " bytes." << endl;
 		printf("\033[1;37m%.*s\033[0m", r, request);
-		if (r == 0){
-			clients[pfd.fd].set_request(request, server);
-			cout<<"mawslatsh"<<endl;
-			pfd.events = POLLOUT;
-		}
+		server.clients[pfd.fd].set_request(request, server);
+		pfd.events = POLLOUT | POLLHUP;
 	}
-
 }
 
-void	sendResponse(vector<struct pollfd>&	pfds, struct pollfd &pfd, server& server,
-		map<int,client>& clients)
+void	sendResponse(vector<struct pollfd>&	pfds, struct pollfd &pfd, server& server)
 {
-	(void)pfds;
-	if ((pfd.revents & POLLOUT) && pfd.fd != server.get_slistener()
-		&& clients[pfd.fd].getTookrequest())
+	if (server.clients[pfd.fd].getTookrequest())
 	{
-		if (std::find(server.connectionsockets.begin(),
-			server.connectionsockets.end(), pfd.fd) != server.connectionsockets.end())
+		server.clients[pfd.fd].set_response(pfd.fd);
+		if (server.clients[pfd.fd].getfilesent())
 		{
-			clients[pfd.fd].set_response(pfd.fd);
-			if (clients[pfd.fd].getfilesent())
-			{
-				close(pfd.fd);
-				server.set_slistener(server.tempsm3);
+			close(pfd.fd);
+			server.clients.erase(pfd.fd);
+			for(vector<pollfd>::iterator it = pfds.begin();it != pfds.end();it++){
+				if (!memcmp(&(*it), &pfd, sizeof(struct pollfd))){
+					cout<<RED<<"found IT: "<<it->fd<<RESET_TEXT<<endl;
+					pfds.erase(it);
+					break;
+				}
 			}
+			vector<int>::iterator it = std::find(server.mysockets.begin(),
+			server.mysockets.end(),	pfd.fd);
+			if (it != server.mysockets.end())
+				server.mysockets.erase(it);
 		}
 	}
-	else if (pfd.revents & POLLHUP){
-		cout << "POLLHUP " << pfd.fd << endl;
-		// close(pfd.fd);
-		// exit(0);
-	}
-	else if (pfd.revents & POLLNVAL)
-		cout << "nothing--> " << pfd.fd << endl;
 }
 
 void	accept_read_write(vector<struct pollfd>&	pfds, struct pollfd &pfd,
-	vector<server>& servers, serversInfos& _si, map<int, client>& clients){
+	vector<server>& servers){
 	for (size_t i = 0;i < servers.size();i++){
-		if (pfd.revents & POLLIN){
-			if (pfd.fd == servers[i].get_slistener())
-				accept_connection(pfds, pfd.fd, servers[i], _si);
-			else
-				readRequest(pfd, servers[i], clients);
+		if (std::find(servers[i].mysockets.begin(),
+			servers[i].mysockets.end(), pfd.fd) != servers[i].mysockets.end())
+		{
+			if (pfd.revents & POLLIN){
+				printf("POLLIN: %d.\n", pfd.fd);
+				if (pfd.fd == servers[i].get_slistener())
+					accept_connection(pfds, pfd, servers[i]);
+				else
+					readRequest(pfd, servers[i]);
+			}
+			else if ((pfd.revents & POLLOUT)){
+				printf("POLLOUT : %d\n", pfd.fd);
+				sendResponse(pfds, pfd, servers[i]);
+			}
+			if (pfd.revents & POLLHUP){
+				printf("POLLHUP or POLLERR ... closed fd: %d\n", pfd.fd);
+				servers[i].clients.erase(pfd.fd);
+				close(pfd.fd);
+				for(vector<pollfd>::iterator it = pfds.begin();it != pfds.end();it++){
+					if (!memcmp(&(*it), &pfd, sizeof(struct pollfd))){
+						pfds.erase(it);
+						break;
+					}
+				}
+				vector<int>::iterator it = std::find(servers[i].mysockets.begin(),
+				servers[i].mysockets.end(),	pfd.fd);
+				if (it != servers[i].mysockets.end())
+					servers[i].mysockets.erase(it);
+			}
 		}
-		else if ((pfd.revents & POLLOUT) || (pfd.revents & POLLHUP))
-			sendResponse(pfds, pfd, servers[i], clients);
 	}
 }
 
@@ -103,7 +115,7 @@ void	main_loop(vector<server> Confservers){
 	serversInfos	_si(Confservers);
 	_si.SetListener();
 	vector<server> servers = _si.get_servers();
-	map<int, client>	clients;
+
 	//multiplexing v4.0 ~
 	vector<struct pollfd>	pfds;
 	fillpoll_listen(pfds, _si);
@@ -111,8 +123,11 @@ void	main_loop(vector<server> Confservers){
 
 	while(1){
 		p = pfds.data();
-		poll(p, pfds.size(), -1);
+		if (poll(p, pfds.size(), -1) < 0){
+			perror("poll");
+			sleep(1);
+		}
 		for (size_t i = 0;i < pfds.size();i++)
-			accept_read_write(pfds, pfds[i], servers, _si, clients);
+			accept_read_write(pfds, pfds[i], servers);
 	}
 }

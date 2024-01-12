@@ -36,6 +36,29 @@ using std::vector;
 using std::string;
 using std::pair;
 
+//Client class
+class client
+{
+	request requestObj;
+	response responseObj;
+	string responsestring;
+	bool	filesent;
+	bool	tookrequest;
+	public:
+		client(){
+			filesent = 0;
+			tookrequest = 0;
+		}
+		void	set_request(char*, server&);
+		void	set_response(int);
+		bool	getfilesent();
+		bool	getTookrequest();
+		void	setTookrequest(bool t){
+			tookrequest = t;
+		}
+		string getresponse();
+};
+
 class server{
 	string	port, serverName, request, response, ip;
 	bool is_default;
@@ -73,9 +96,8 @@ class server{
 		vector<Location>	locations;
 		int					line;
 		/*AMINE'S*/
-		int				tempsm3;
-		vector<int>		serversockets;
-		vector<int>		connectionsockets;
+		vector<int>		mysockets;
+		map<int, client>	clients;
 		void	portSetter(string prt);
 		void	set_my_default(int index);
 		void	set_isdefault(bool b);
@@ -170,25 +192,6 @@ void	main_loop(vector<server>);
 // 		void	setcontentType(string contenttype);
 // };
 
-//Client class
-class client
-{
-	request requestObj;
-	response responseObj;
-	string responsestring;
-	bool	filesent;
-	bool	tookrequest;
-	public:
-		client(){
-			filesent = 0;
-			tookrequest = 0;
-		}
-		void	set_request(char*, server&);
-		void	set_response(int);
-		bool	getfilesent();
-		bool	getTookrequest();
-		string getresponse();
-};
 
 
 #endif
