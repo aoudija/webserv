@@ -38,6 +38,7 @@ void readRequest(struct pollfd &pfd, server& server){
 
 	if (!server.clients[pfd.fd].getTookrequest())
 	{
+		cout << "thisis socket connection: " << pfd.fd<<endl;
 		int r = read(pfd.fd, request, 1024);
 		if (r <= 0){
 			perror("read");

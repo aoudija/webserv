@@ -398,10 +398,6 @@ int request::matchLocation(server& _server)
 
 void request::parseRequest(std::string request, server& _server)
 {
-	// std::cout << WHITE << request << RESET_TEXT << std::endl;
-	std::ofstream output("theultimattest", std::ios::app);
-	output << request;
-	output << "++++++++++++++++++++++++++++++++++++++++++\n";
 	if (currentChunkedState != 4)
 	checkRequestLine(request);
 		
