@@ -1,6 +1,7 @@
 
 #include "../server.hpp"
-
+using std::endl;
+using std::cout;
 std::vector<std::string> server::splitString(const std::string& input, const std::string& delm) {
     std::vector<std::string> tokens;
     std::string::size_type start = 0;
@@ -321,7 +322,8 @@ void	server::Myclient_body_limit(std::vector<std::string> list, int line){
 			throw std::invalid_argument(throwmessage(line, "Error: Invalide input in Client Body Limit."));
 	char* endPtr;
     long parsedcbl = std::strtol(withoutsemicolon(list[1]).c_str(), &endPtr, 10);
-	if (*endPtr != '\0' || parsedcbl < 0 || parsedcbl > static_cast<long>(INT_MAX))
+	std::string str = withoutsemicolon(list[1]).c_str();
+	if (endPtr == str.c_str() + strlen(str.c_str()) || parsedcbl < 0 || parsedcbl > static_cast<long>(INT_MAX))
 		throw std::invalid_argument(throwmessage(line, "Error: Invalide input in Client Body Limit."));
     this->client_body_limit = static_cast<int>(parsedcbl);
 }
@@ -369,7 +371,8 @@ void	server::Myerror_page(std::vector<std::string> list, int line){
 		throw std::invalid_argument(throwmessage(line, "Error: Invalide Input in Error_Page."));
 	char* endPtr;
     long errornbr = std::strtol(withoutsemicolon(list[1]).c_str(), &endPtr, 10);
-	if (*endPtr != '\0' || errornbr < 0 || errornbr > static_cast<long>(INT_MAX))
+	std::string str = withoutsemicolon(list[1]).c_str();
+	if (endPtr == str.c_str() + strlen(str.c_str()) || errornbr > static_cast<long>(INT_MAX))
 		throw std::invalid_argument(throwmessage(line, "Error: Invalide Error Code."));
 	std::string path = withoutsemicolon(list[2]);
 	this->error_page[errornbr] = path;

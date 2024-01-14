@@ -5,6 +5,23 @@ using std::endl;
 using std::string;
 using std::vector;
 
+void removefd(vector<struct pollfd>& pfds, struct pollfd& pfd, server& server){
+	int fd = pfd.fd;
+	close(fd);
+	server.clients.erase(fd);
+	for(vector<pollfd>::iterator it = pfds.begin();it != pfds.end();it++){
+		if (!memcmp(&(*it), &pfd, sizeof(struct pollfd))){
+			cout<<RED<<"found IT: "<<it->fd<<RESET_TEXT<<endl;
+			pfds.erase(it);
+			break;
+		}
+	}
+	vector<int>::iterator it = std::find(server.mysockets.begin(),
+	server.mysockets.end(),	fd);
+	if (it != server.mysockets.end())
+		server.mysockets.erase(it);
+}
+
 void	fillpoll_listen(vector<struct pollfd>&	pfds, serversInfos _si){
 	struct pollfd p;
 	for (size_t i = 0;i < _si.allSockets.size();i++){
@@ -22,7 +39,7 @@ void	accept_connection(vector<struct pollfd>& pfds, struct pollfd& pfd, server& 
 
 	cout<<"listen socket: "<<pfd.fd<<endl;
 	cs = accept(pfd.fd, (sockaddr*)&client_addr, &clientaddr_len);
-	fcntl(cs,F_SETFL,O_NONBLOCK,FD_CLOEXEC);
+	fcntl(cs, F_SETFL,O_NONBLOCK, FD_CLOEXEC);
 	cout << "connection socket: " << cs <<endl;
 	server.mysockets.push_back(cs);
 	struct pollfd p;
@@ -33,10 +50,12 @@ void	accept_connection(vector<struct pollfd>& pfds, struct pollfd& pfd, server& 
 	pfds.push_back(p);
 }
 
-void readRequest(struct pollfd &pfd, server& server){
+void readRequest(vector<struct pollfd>&	pfds,struct pollfd &pfd, server& server){
 	char request[1024];
 
-	if (!server.clients[pfd.fd].getTookrequest())
+	if (pfd.revents & POLLHUP)
+		removefd(pfds,pfd,server);
+	else if (!server.clients[pfd.fd].getTookrequest())
 	{
 		cout << "thisis socket connection: " << pfd.fd<<endl;
 		int r = read(pfd.fd, request, 1024);
@@ -57,22 +76,8 @@ void	sendResponse(vector<struct pollfd>&	pfds, struct pollfd &pfd, server& serve
 	if (server.clients[pfd.fd].getTookrequest())
 	{
 		server.clients[pfd.fd].set_response(pfd.fd);
-		if (server.clients[pfd.fd].getfilesent())
-		{
-			close(pfd.fd);
-			server.clients.erase(pfd.fd);
-			for(vector<pollfd>::iterator it = pfds.begin();it != pfds.end();it++){
-				if (!memcmp(&(*it), &pfd, sizeof(struct pollfd))){
-					cout<<RED<<"found IT: "<<it->fd<<RESET_TEXT<<endl;
-					pfds.erase(it);
-					break;
-				}
-			}
-			vector<int>::iterator it = std::find(server.mysockets.begin(),
-			server.mysockets.end(),	pfd.fd);
-			if (it != server.mysockets.end())
-				server.mysockets.erase(it);
-		}
+		if (server.clients[pfd.fd].getfilesent() || pfd.revents & POLLHUP)
+			removefd(pfds, pfd, server);
 	}
 }
 
@@ -87,26 +92,11 @@ void	accept_read_write(vector<struct pollfd>&	pfds, struct pollfd &pfd,
 				if (pfd.fd == servers[i].get_slistener())
 					accept_connection(pfds, pfd, servers[i]);
 				else
-					readRequest(pfd, servers[i]);
+					readRequest(pfds, pfd, servers[i]);
 			}
 			else if ((pfd.revents & POLLOUT)){
 				printf("POLLOUT : %d\n", pfd.fd);
 				sendResponse(pfds, pfd, servers[i]);
-			}
-			if (pfd.revents & POLLHUP){
-				printf("POLLHUP or POLLERR ... closed fd: %d\n", pfd.fd);
-				servers[i].clients.erase(pfd.fd);
-				close(pfd.fd);
-				for(vector<pollfd>::iterator it = pfds.begin();it != pfds.end();it++){
-					if (!memcmp(&(*it), &pfd, sizeof(struct pollfd))){
-						pfds.erase(it);
-						break;
-					}
-				}
-				vector<int>::iterator it = std::find(servers[i].mysockets.begin(),
-				servers[i].mysockets.end(),	pfd.fd);
-				if (it != servers[i].mysockets.end())
-					servers[i].mysockets.erase(it);
 			}
 		}
 	}
