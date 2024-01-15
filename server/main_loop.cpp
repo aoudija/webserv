@@ -51,7 +51,8 @@ void	accept_connection(vector<struct pollfd>& pfds, struct pollfd& pfd, server& 
 }
 
 void readRequest(vector<struct pollfd>&	pfds,struct pollfd &pfd, server& server){
-	char request[1024];
+	char request[1025];
+	string theRequest;
 
 	if (pfd.revents & POLLHUP)
 		removefd(pfds,pfd,server);
@@ -63,11 +64,14 @@ void readRequest(vector<struct pollfd>&	pfds,struct pollfd &pfd, server& server)
 			perror("read");
 			sleep(2);
 		}
-		
+		request[r] = '\0';
+		theRequest = string(request, r);
+
 		cout << "Received " << r << " bytes." << endl;
 		printf("\033[1;37m%.*s\033[0m", r, request);
-		server.clients[pfd.fd].set_request(request, server);
-		pfd.events = POLLOUT | POLLHUP;
+		server.clients[pfd.fd].set_request(theRequest, server);
+		if (server.clients[pfd.fd].tookrequest == 1)
+			pfd.events = POLLOUT | POLLHUP;
 	}
 }
 
@@ -88,14 +92,14 @@ void	accept_read_write(vector<struct pollfd>&	pfds, struct pollfd &pfd,
 			servers[i].mysockets.end(), pfd.fd) != servers[i].mysockets.end())
 		{
 			if (pfd.revents & POLLIN){
-				printf("POLLIN: %d.\n", pfd.fd);
+				// printf("POLLIN: %d.\n", pfd.fd);
 				if (pfd.fd == servers[i].get_slistener())
 					accept_connection(pfds, pfd, servers[i]);
 				else
 					readRequest(pfds, pfd, servers[i]);
 			}
 			else if ((pfd.revents & POLLOUT)){
-				printf("POLLOUT : %d\n", pfd.fd);
+				// printf("POLLOUT : %d\n", pfd.fd);
 				sendResponse(pfds, pfd, servers[i]);
 			}
 		}

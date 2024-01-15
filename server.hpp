@@ -43,13 +43,13 @@ class client
 	response responseObj;
 	string responsestring;
 	bool	filesent;
-	bool	tookrequest;
 	public:
+	bool	tookrequest;
 		client(){
 			filesent = 0;
 			tookrequest = 0;
 		}
-		void	set_request(char*, server&);
+		void	set_request(std::string, server&);
 		void	set_response(int);
 		bool	getfilesent();
 		bool	getTookrequest();

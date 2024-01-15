@@ -8,6 +8,7 @@
 #include <string>
 #include <sstream>
 #include <map>
+#include <dirent.h>
 
 #include <vector>
 #include "../server.hpp"
@@ -41,11 +42,17 @@ class request
     std::string filePath;
 
     int bodyContentLength;
-    int actualContentLength;
 
 	bool requestStatus;
 
+	int statusCode;
+
+	std::string kolchi;
+
+
 public:
+	Location loc;
+    int actualContentLength;
     enum ParsingStatus {
     ParsingDone,
     ParsingFailed,
@@ -75,13 +82,17 @@ public:
     string getrequestURI();
 	string getContentType();
 	string getFilePath();
+	void setFilePath(std::string filePath);
+	int getStatusCode();
+
+	void setStatusCode(int statusCode);
 
     void    setContentType();
     void    addAllContentTypes();
 
-    void checkRequestLine(std::string request);
-    void checkHeaderFields(std::string headerFiles);
-    void parseRequest(std::string request, server& _server);
+    int checkRequestLine(std::string request);
+    int checkHeaderFields(std::string headerFiles);
+    int parseRequest(std::string request, server& _server);
     request::ParsingStatus checkBody(std::string body, server& _server);
     request::ParsingStatus checkBody2(std::string body, server& _server);
 
@@ -95,7 +106,13 @@ public:
 
 
     ParsingStatus parsChunked(char c);
+
 };
+
+bool fileExists(const char* path);
+bool isDirectory(const char* path);
+
+std::string errorPageTamplate(std::string errorMessage);
 
 // void parseRequest(std::string request);
 

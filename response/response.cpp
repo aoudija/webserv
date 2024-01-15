@@ -8,6 +8,8 @@ using std::vector;
 //
 
 void	response::initialize(request& request){
+	cout << RED<< request.getFilePath() << RESET_TEXT << endl;
+
 	int fd = open(request.getFilePath().c_str(), O_RDONLY);
 	filesize = lseek(fd, 0, SEEK_END);
 	lseek(fd, 0, SEEK_SET);
@@ -28,12 +30,13 @@ void	response::sendHeader(int connection_socket, request& request){
 }
 
 int	response::sendBody(int connection_socket, request& request){
-	cout << MAGENTA << request.getFilePath() << endl;
-	cout << "connectionsocket: " << connection_socket << endl;
+	(void) request;
+	// cout << MAGENTA << request.getFilePath() << RESET_TEXT << endl;
+	// cout << "connectionsocket: " << connection_socket << endl;
 	size_t len = 1024;
 	if (len > filesize - totalSent)
 		len = filesize - totalSent;
-	cout << len << RESET_TEXT << endl;
+	// cout << len << RESET_TEXT << endl;
 	int bytes_sent = write(connection_socket, buffer + totalSent, len);
 	if (bytes_sent <= 0){
 		cout << "error\n";
@@ -42,7 +45,7 @@ int	response::sendBody(int connection_socket, request& request){
 		sleep(2);
 	}
 	totalSent += bytes_sent;
-	cout << GREEN << totalSent << '/' << filesize << " sent" << RESET_TEXT  << endl;
+	// cout << GREEN << totalSent << '/' << filesize << " sent" << RESET_TEXT  << endl;
 	int allFileSent = 0;
 	if (totalSent >= filesize){
 		cout << WHITE<< "hey I've sent the whole file" << endl;
