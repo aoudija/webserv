@@ -148,6 +148,7 @@ void	requestCases(request &requestObj, server& _server)
 				|| getFileExtension(requestObj.getFilePath()) == ".py") {
 				cout << RED << "ta hna dakchi f cgi" << RESET_TEXT << endl;
 			}
+			
 		}
 	}
 	else if (requestObj.getMethod() == "DELETE") {
