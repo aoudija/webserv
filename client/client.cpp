@@ -70,7 +70,6 @@ void	requestCases(request &requestObj, server& _server)
 {
 	if (requestObj.getMethod() == "GET") {
 		if (!fileExists(requestObj.getFilePath().c_str()) && !isDirectory(requestObj.getFilePath().c_str())) {
-					cout << BLUE << "HEEERRREEE " << requestObj.getFilePath() << RESET_TEXT << endl;
 			requestObj.setStatusCode(404);
 			requestObj.setFilePath(errorPageTamplate("404, Not Found."));
 			return ;
@@ -80,7 +79,7 @@ void	requestCases(request &requestObj, server& _server)
 			if (!endsWithSlash(requestObj.getFilePath()))
 			{
 				requestObj.setStatusCode(301);
-				requestObj.setFilePath(errorPageTamplate("301, Moved Permanently."));
+				requestObj.setFilePath(requestObj.getFilePath() + "/");
 				return ;
 			}
 			if (!_server.getIndex().empty()) {
@@ -109,10 +108,47 @@ void	requestCases(request &requestObj, server& _server)
 				cout << RED << "ta hna dakchi f cgi" << RESET_TEXT << endl;
 			}
 		}
-
+//!if uri in get has "?" take until ?
 	}
 	else if (requestObj.getMethod() == "POST") {
-
+		if (_server.getUpload()) {
+			cout << RED << "UPLOAD IS ON" << RESET_TEXT << endl;
+		}
+		if (!_server.getUpload())
+				cout << RED << "UPLOAD IS OFF" << RESET_TEXT << endl;
+		if (!fileExists(requestObj.getFilePath().c_str()) && !isDirectory(requestObj.getFilePath().c_str())) {
+			requestObj.setStatusCode(404);
+			requestObj.setFilePath(errorPageTamplate("404, Not Found."));
+			return ;
+		}
+		if (isDirectory(requestObj.getFilePath().c_str()))
+		{
+			if (!endsWithSlash(requestObj.getFilePath()))
+			{
+				requestObj.setStatusCode(301);
+				requestObj.setFilePath(requestObj.getFilePath() + "/");
+				return ;
+			}
+			else {
+				if (!_server.getIndex().empty()) {
+					requestObj.setStatusCode(403);
+					requestObj.setFilePath(errorPageTamplate("403, Forbidden."));
+					return ;
+				}
+				else {
+					if (getFileExtension(requestObj.getFilePath()) == ".php"
+						|| getFileExtension(requestObj.getFilePath()) == ".py") {
+						cout << RED << "hna dakchi f cgi" << RESET_TEXT << endl;
+					}
+				}
+			}
+		}
+		else {
+			if (getFileExtension(requestObj.getFilePath()) == ".php"
+				|| getFileExtension(requestObj.getFilePath()) == ".py") {
+				cout << RED << "ta hna dakchi f cgi" << RESET_TEXT << endl;
+			}
+		}
 	}
 	else if (requestObj.getMethod() == "DELETE") {
 

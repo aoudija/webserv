@@ -29,7 +29,6 @@ class request
     std::string method;
     std::string requestURI;
     std::string httpVersion;
-    std::map<std::string, std::string> headerFields;
     std::string body;
 
     map<std::string, std::string> allContTypes;
@@ -47,10 +46,12 @@ class request
 
 	int statusCode;
 
-	std::string kolchi;
+	std::string	queryString;
+	// std::string kolchi;
 
 
 public:
+    std::map<std::string, std::string> headerFields;
 	Location loc;
     int actualContentLength;
     enum ParsingStatus {
@@ -84,6 +85,7 @@ public:
 	string getFilePath();
 	void setFilePath(std::string filePath);
 	int getStatusCode();
+	string getQueryString();
 
 	void setStatusCode(int statusCode);
 
@@ -97,7 +99,7 @@ public:
     request::ParsingStatus checkBody2(std::string body, server& _server);
 
     int matchLocation(server& _server);
-
+	std::string removeAndSetQueryString(const std::string& uri);
     bool    isRequestDone();
 
     ChunkedBodyState currentChunkedState;

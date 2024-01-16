@@ -63,6 +63,7 @@ bool server::isInMyList(const std::string& target, int &token) {
     lst.push_back("index");
     lst.push_back("client_body_limit");
     lst.push_back("error_page");
+	lst.push_back("upload");
 	for (size_t i = 0; i < lst.size(); i++){
 		if (lst[i].compare(target) == 0){
 			token = i + 1;
@@ -138,6 +139,9 @@ void	server::set_value(std::vector<std::string> list, int token, int line){
 		break;
 	case 8:
 		Myerror_page(list, line);
+		break;
+	case 9:
+		Myupload(list, line);
 		break;
 	default:
 		break;
@@ -238,6 +242,7 @@ void	server::init(){
 	setAllowMethods("GET");
 	setAllowMethods("POST");
 	setAllowMethods("DELETE");
+	setUpload(1);
 }
 
 bool comparePath(const Location& loc1, const Location& loc2)
@@ -344,6 +349,22 @@ void	server::Myautoindex(std::vector<std::string> list, int line){
 		throw std::invalid_argument(throwmessage(line, "Error: Invalide Input in autoindex ON/OFF."));
 }
 
+void	server::Myupload(std::vector<std::string> list, int line){
+	std::string autoin;
+
+	if (!list[list.size() - 1].compare(";"))
+		list.pop_back();
+	if (list.size() != 2 || list.empty())
+		throw std::invalid_argument(throwmessage(line, "Error: Invalide Input in upload ON/OFF."));
+	autoin = withoutsemicolon(list[1]);
+	if (!autoin.compare("ON"))
+		this->upload = 1;
+	else if (!autoin.compare("OFF"))
+		this->upload = 0;
+	else
+		throw std::invalid_argument(throwmessage(line, "Error: Invalide Input in upload ON/OFF."));
+}
+
 void	server::Myallow_methods(std::vector<std::string> list, int line){
 	std::vector<std::string> allows;
 	std::string	method;
@@ -425,6 +446,9 @@ void		server::setLocations(Location& obj){
 	this->locations.push_back(obj);
 }
 
+void		server::setUpload(bool b){
+	this->upload = b;
+}
 
 //=============== geters ===================//
 std::string	server::getIndex(void) const{
@@ -465,4 +489,8 @@ std::vector< std::string>	server::getAllowMethods(void) const{
 
 std::vector<Location>	server::getLocations(void) const{
 	return this->locations;
+}
+
+bool	server::getUpload(void) const{
+	return this->upload;
 }

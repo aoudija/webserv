@@ -74,6 +74,10 @@ void request::setStatusCode(int statusCode) {
 	this->statusCode = statusCode;
 }
 
+string request::getQueryString() {
+	return this->queryString;
+}
+
 std::string errorPageTamplate(std::string errorMessage)
 {
     std::string filePath = "errorpage.html";
@@ -141,6 +145,18 @@ std::string errorPageTamplate(std::string errorMessage)
     }
 }
 
+std::string request::removeAndSetQueryString(const std::string& uri) {
+
+	std::string::size_type queryStringPos = uri.find('?');
+
+	if (queryStringPos != std::string::npos) {
+		this->queryString = uri.substr(queryStringPos + 1);
+		return uri.substr(0, queryStringPos);
+	}
+	this->queryString = "";
+	return uri;
+}
+
 int request::checkRequestLine(std::string request)
 {
 	std::istringstream stream(request);
@@ -152,6 +168,7 @@ int request::checkRequestLine(std::string request)
 	// std::cout << line << std::endl;
 
 	stream2 >> this->method >> this->requestURI >> this->httpVersion;
+	this->requestURI = removeAndSetQueryString(this->requestURI);
 	if (this->method != "GET" && this->method != "POST" && this->method != "DELETE") {
 		this->statusCode = 405;
 		this->filePath = errorPageTamplate("405, Method Not Allowed.");

@@ -68,6 +68,7 @@ class server{
 	string				index;
 	int					client_body_limit;
 	bool				autoindex;
+	bool				upload;
 	vector<string>		allow_methods;
 	map<int,string>		error_page;
 
@@ -91,6 +92,7 @@ class server{
 	void	Myerror_page(std::vector<std::string> list, int line);
 	void	Mylocations(std::vector<Location>&);
 	void	setmylocation(std::map<int, std::string>::const_iterator &it, std::map<int, std::string> &server);
+	void	Myupload(std::vector<std::string> list, int line);
 	//================
 	public:
 		vector<Location>	locations;
@@ -126,6 +128,7 @@ class server{
 		void	setAllowMethods(std::string);
 		void	setErrorPage(int, std::string);
 		void	setLocations(Location&);
+		void	setUpload(bool);
 
 		std::string	getServerName(void) const;
 		std::string	getPort(void) const;
@@ -134,6 +137,7 @@ class server{
 		std::string	getIndex(void) const;
 		int			getClientBodyLimit(void) const;
 		bool		getAutoindex(void) const;
+		bool		getUpload(void) const;
 		std::vector< std::string>		getAllowMethods(void) const;
 		std::map<int, std::string>		getErrorPage(void) const;
 		std::vector<Location>			getLocations(void) const;
