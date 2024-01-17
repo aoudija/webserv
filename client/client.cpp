@@ -161,7 +161,6 @@ void	client::set_request(string r, server& _server){
     if (tookrequest == 1) {
 		requestObj.matchLocation(_server);
 		requestCases(requestObj, _server);
-		cout << RED<< "|" << requestObj.getFilePath() << "|" << RESET_TEXT << endl;
 		responseObj.totalSent = 0;
 		responseObj.initialize(requestObj);
 	}
@@ -170,12 +169,9 @@ void	client::set_request(string r, server& _server){
 void	client::set_response(int connection_socket){
 	if (!responseObj.totalSent)
 		responseObj.sendHeader(connection_socket, requestObj);
-	filesent = responseObj.sendBody(connection_socket, requestObj);
-	// cout << RED <<"filesent: " << filesent << RESET_TEXT << endl;
-	if (filesent == 1){
+	filesent = responseObj.sendBody(connection_socket);
+	if (filesent == 1)
 	    tookrequest = 0;
-	    // cout << BLUE<< "tookrequest is set to 0 again" << RESET_TEXT << endl;
-	}
 }
 
 string client::getresponse(){

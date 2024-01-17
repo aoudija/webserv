@@ -11,7 +11,6 @@ void removefd(vector<struct pollfd>& pfds, struct pollfd& pfd, server& server){
 	server.clients.erase(fd);
 	for(vector<pollfd>::iterator it = pfds.begin();it != pfds.end();it++){
 		if (!memcmp(&(*it), &pfd, sizeof(struct pollfd))){
-			cout<<RED<<"found IT: "<<it->fd<<RESET_TEXT<<endl;
 			pfds.erase(it);
 			break;
 		}
@@ -58,12 +57,9 @@ void readRequest(vector<struct pollfd>&	pfds,struct pollfd &pfd, server& server)
 		removefd(pfds,pfd,server);
 	else if (!server.clients[pfd.fd].getTookrequest())
 	{
-		cout << "thisis socket connection: " << pfd.fd<<endl;
 		int r = read(pfd.fd, request, 1024);
-		if (r <= 0){
+		if (r <= 0)
 			perror("read");
-			sleep(2);
-		}
 		request[r] = '\0';
 		theRequest = string(request, r);
 
@@ -92,16 +88,13 @@ void	accept_read_write(vector<struct pollfd>&	pfds, struct pollfd &pfd,
 			servers[i].mysockets.end(), pfd.fd) != servers[i].mysockets.end())
 		{
 			if (pfd.revents & POLLIN){
-				// printf("POLLIN: %d.\n", pfd.fd);
 				if (pfd.fd == servers[i].get_slistener())
 					accept_connection(pfds, pfd, servers[i]);
 				else
 					readRequest(pfds, pfd, servers[i]);
 			}
-			else if ((pfd.revents & POLLOUT)){
-				// printf("POLLOUT : %d\n", pfd.fd);
+			else if ((pfd.revents & POLLOUT))
 				sendResponse(pfds, pfd, servers[i]);
-			}
 		}
 	}
 }
@@ -111,7 +104,7 @@ void	main_loop(vector<server> Confservers){
 	_si.SetListener();
 	vector<server> servers = _si.get_servers();
 
-	//multiplexing v4.0 ~
+	//multiplexing v6.01 ~
 	vector<struct pollfd>	pfds;
 	fillpoll_listen(pfds, _si);
 	struct pollfd*			p;
@@ -120,7 +113,6 @@ void	main_loop(vector<server> Confservers){
 		p = pfds.data();
 		if (poll(p, pfds.size(), -1) < 0){
 			perror("poll");
-			sleep(1);
 		}
 		for (size_t i = 0;i < pfds.size();i++)
 			accept_read_write(pfds, pfds[i], servers);

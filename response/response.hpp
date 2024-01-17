@@ -18,7 +18,7 @@ class response{
 		char*	buffer;
 		void	initialize(request& request);
 		void	sendHeader(int connection_socket, request& request);
-		int		sendBody(int connection_socket, request& request);
+		int		sendBody(int connection_socket);
 };
 
 #endif

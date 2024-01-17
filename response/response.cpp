@@ -29,14 +29,10 @@ void	response::sendHeader(int connection_socket, request& request){
 		strlen(header.c_str()));
 }
 
-int	response::sendBody(int connection_socket, request& request){
-	(void) request;
-	// cout << MAGENTA << request.getFilePath() << RESET_TEXT << endl;
-	// cout << "connectionsocket: " << connection_socket << endl;
+int	response::sendBody(int connection_socket){
 	size_t len = 1024;
 	if (len > filesize - totalSent)
 		len = filesize - totalSent;
-	// cout << len << RESET_TEXT << endl;
 	int bytes_sent = write(connection_socket, buffer + totalSent, len);
 	if (bytes_sent <= 0){
 		cout << "error\n";
@@ -45,17 +41,11 @@ int	response::sendBody(int connection_socket, request& request){
 		sleep(2);
 	}
 	totalSent += bytes_sent;
-	// cout << GREEN << totalSent << '/' << filesize << " sent" << RESET_TEXT  << endl;
 	int allFileSent = 0;
 	if (totalSent >= filesize){
-		cout << WHITE<< "hey I've sent the whole file" << endl;
 		allFileSent = 1;
 		totalSent = 0;
-		// free(buffer);
+		free(buffer);
 	}
 	return allFileSent;
 }
-
-//SEND():
-// FAILS with ->> 351608 Bytes left on socket buffer .
-// WORKS FINE with ->> 638328 Bytes left on socket buffer .
