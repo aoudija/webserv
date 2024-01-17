@@ -22,7 +22,6 @@ void	response::initialize(request& request){
 void	response::sendHeader(int connection_socket, request& request){
 	std::string header = "HTTP/1.1 200 OK\r\n"
 		"Content-Length: " + std::to_string(filesize) + "\r\n"
-		"Keep-Alive: timeout=1" + "\r\n"
 		"Content-Type: "+ request.getContentType() + "\r\n\r\n"+'\0';
 
 	write(connection_socket, header.c_str(),	//header
@@ -35,10 +34,8 @@ int	response::sendBody(int connection_socket){
 		len = filesize - totalSent;
 	int bytes_sent = write(connection_socket, buffer + totalSent, len);
 	if (bytes_sent <= 0){
-		cout << "error\n";
 		perror("write");
 		totalSent++;
-		sleep(2);
 	}
 	totalSent += bytes_sent;
 	int allFileSent = 0;
