@@ -9,7 +9,10 @@ using std::vector;
 request::request() : requestStatus(true) {
 	this->chunkSize = 0;
 	this->bodyContentLength = 0;
-
+	this->bodyDone = 0;
+	this->headersDone = 0;
+	this->flag = 0;
+	this->gg = 0;
 }
 
 // request::request()
@@ -211,7 +214,7 @@ int request::checkHeaderFields(std::string headerFiles)
 
 	for (std::vector<std::string>::iterator i = lines.begin(); i != lines.end(); i++) {
 		if (i->find(":") != std::string::npos) {
-			this->headerFields[i->substr(0, i->find(":"))] = i->substr(i->find(":") + 1);
+			this->headerFields[i->substr(0, i->find(":"))] = i->substr(i->find(":") + 2);
 		}
 	}
 	if (headerFields.find("Transfer-Encoding") != headerFields.end()
@@ -392,6 +395,91 @@ request::ParsingStatus request::checkBody2(std::string body, server& _server)
 	return ParsingDone;
 }
 
+request::ParsingStatus request::checkBody3(std::string body, server& _server)
+{
+	// cout << RED << "ENTER " << boundary << RESET_TEXT << endl;
+	// cout << BLUE << "BODY " << body << RESET_TEXT << endl;
+	if ((int)body.size() > _server.getClientBodyLimit()) {
+		this->statusCode = 413;
+		this->filePath = errorPageTamplate("413, Request Entity Too Large");
+		return ParsingFailed;
+		printError("Request Entity Too Large", 413);
+	}
+	// std::istringstream iss(string(&body[0], &body[0] + body.size()));
+	std::istringstream iss(body);
+
+	std::string line;
+	// std::string filename;
+
+    while (getline(iss, line)) {
+		if (line.find(boundary) != std::string::npos && flag == 0) {
+			getline(iss, line);// skip boundary
+			flag = 1;
+		}
+		// if (line.compare(boundary + "--") == 0) {
+		// 		// end of file upload
+		// 		break;
+		// }
+		if (line.find("Content-Disposition:") != std::string::npos)
+		{
+			bodyContentLength++;//? added to handel when there is no body
+			gg = 1;
+			if (line.find("filename=\"") != std::string::npos) {
+				size_t filename_start = line.find("filename=\"") + 10;
+				size_t filename_end = line.find('\"', filename_start);
+				if (filename_start != std::string::npos && filename_end != std::string::npos) {
+					filename = line.substr(filename_start, filename_end - filename_start);
+				}
+				// if (iss.tellg() != -1)
+					getline(iss, line); // skip Content-Type line
+				// if (iss.tellg() != -1)
+					getline(iss, line); // skip empty line
+			}
+			else {
+				filename = "form_field.txt";
+				getline(iss, line); // skip empty line
+			}
+		}
+		// cout << RED << "ENTER " << filename << RESET_TEXT << endl;
+		std::ofstream outputFile(filename, std::ios::app);//std::ios::app);
+		if (outputFile.is_open()) {
+			if (line == "\r")
+				getline(iss, line);
+			cout << BLACK << line << RESET_TEXT << endl;
+			if (gg == 0 || bodyContentLength == 1) {
+					outputFile << line + '\n' ;//<< std::endl;
+				// if (iss.tellg() != -1)
+				// 	outputFile << line + '\n' ;//<< std::endl;
+				// else
+				// 	outputFile << line;
+				// outputFile << std::endl;
+				bodyContentLength += line.size() + 1;
+			}
+			while (getline(iss, line)) {
+				gg = 0;
+				if (line.find(boundary) != std::string::npos || line.find(boundary + "--") != std::string::npos) {
+					flag = 0;
+					break;
+				}
+				if (line == "\r")
+					continue;
+				cout << BLACK << line << RESET_TEXT << endl;
+					outputFile << line + '\n' ;//<< std::endl;
+				// if (iss.tellg() != -1)
+				// 	outputFile << line + '\n' ;//<< std::endl;
+				// else
+				// 	outputFile << line;
+				bodyContentLength += line.size() + 1;
+			}
+			outputFile.close();
+			if (line.find(boundary + "--") != std::string::npos) {
+				bodyContentLength = this->actualContentLength;
+			}
+		}
+	}
+	return ParsingDone;
+}
+
 int request::getBytesRange()
 {
 	return bytesRange;
@@ -508,47 +596,16 @@ int request::matchLocation(server& _server)
 
 int request::parseRequest(std::string request, server& _server)
 {
-	// std::cout << WHITE << request << RESET_TEXT << std::endl;
-	if (currentChunkedState != ParsingChunkData && bodyContentLength == 0) {
-		if (checkRequestLine(request))
-			return 1;
-	}
-		
-	if (currentChunkedState != ParsingChunkData && bodyContentLength == 0) {
-		if (checkHeaderFields(request.substr(0, request.find("\r\n\r\n")))){
-			return 1;
-		}
-	}
-	setContentLength();//!
-	setContentType();
-	// if (matchLocation(_server)) {
-	// std::cout << MAGENTA << "NO location matched" << RESET_TEXT << std::endl;
-	// }
-	/*remove the / from the begining of the path*/
-	// if (filePath[0] == '/')
-	// 	filePath = filePath.substr(1);
-	// if (!fileExists(filePath.c_str()))
-	// {
-	// 	this->statusCode = 404;
-	// 	this->filePath = errorPageTamplate("404, Not Found.");
-	// 	return 1;
-	// 	printError("Not Found.", 404);
-	// }
-	if (getMethod() == "GET")
-		return 1;
-	
-	if (bodyContentLength > 0 && bodyContentLength < this->actualContentLength)
-	{
-		checkBody2(request, _server);
-	}
-	else if (currentChunkedState == 4)
+	if (headerFields.find("Transfer-Encoding") != headerFields.end()) {
 		checkBody(request, _server);
+	}
 	else {
-		if (headerFields.find("Transfer-Encoding") != headerFields.end()) {
-			checkBody(request.substr(request.find("\r\n\r\n") + 4), _server);
+		if (headerFields.find("Content-Type") != headerFields.end()
+		&& headerFields["Content-Type"].find("multipart/form-data") != std::string::npos) {
+			checkBody3(request, _server);
 		}
 		else {
-			checkBody2(request.substr(request.find("\r\n\r\n") + 4), _server);
+			checkBody2(request, _server);
 		}
 	}
 
@@ -579,20 +636,31 @@ int request::parseRequest(std::string request, server& _server)
 void request::setContentType()
 {
 	addAllContentTypes();
-	if (isDirectory(requestURI.c_str())) {
-		this->ContentType = "text/html";
-	}
-	else {
-		std::string fileExtension;
-		size_t dotPosition = requestURI.rfind(".");
-
-		if (dotPosition != std::string::npos) {
-			fileExtension = requestURI.substr(dotPosition);
+	if (this->method == "GET") {
+		if (isDirectory(requestURI.c_str())) {
+			this->ContentType = "text/html";
 		}
 		else {
-			std::cerr << "Error: No dot found in requestURI\n";
+			std::string fileExtension;
+			size_t dotPosition = requestURI.rfind(".");
+
+			if (dotPosition != std::string::npos) {
+				fileExtension = requestURI.substr(dotPosition);
+			}
+			else {
+				std::cerr << "Error: No dot found in requestURI\n";
+			}
+			this->ContentType = allContTypes[fileExtension];
 		}
-		this->ContentType = allContTypes[fileExtension];
+	}
+	if (this->method == "POST") {
+		this->ContentType = this->headerFields["Content-Type"];
+		this->boundary = "--" + this->ContentType.substr(this->ContentType.find("boundary=") + 9);
+		size_t lastNonSpace = this->boundary.find_last_not_of(" \t\r\n");
+
+		if (lastNonSpace != std::string::npos) {
+			this->boundary.erase(lastNonSpace + 1);
+		}
 	}
 }
 
@@ -674,4 +742,58 @@ void	request::addAllContentTypes()
 	allContTypes[".3gp"] = "video/3gpp"; // audio/3gpp
 	allContTypes[".3g2"] = "video/3gpp2"; // audio/3gpp2
 	allContTypes[".7z"] = "application/x-7z-compressed";
+}
+
+int request::getHeadersRequest(std::string requestPart) {
+	if (!headersDone && requestPart.find("\r\n\r\n") == std::string::npos) {
+		this->headers.append(requestPart.substr(0, requestPart.find("\r\n\r\n")));
+		return 0;
+	}
+	if (!headersDone && requestPart.find("\r\n\r\n") != std::string::npos) {
+		// cout << "hhh " << requestPart.substr(0, requestPart.find("\r\n\r\n")) << endl;
+		// this->headers = this->headers.append(requestPart.substr(0, requestPart.find("\r\n\r\n")), requestPart.substr(0, requestPart.find("\r\n\r\n")).size());
+		// this->headers = requestPart.substr(0, requestPart.find("\r\n\r\n"));
+		this->headers.append(requestPart.substr(0, requestPart.find("\r\n\r\n")));
+		// this->theBody.append(requestPart.substr(requestPart.find("\r\n\r\n")));
+		headersDone = 1;
+		return 1;
+	}
+	return 0;
+}
+
+
+int request::getBodyRequest(std::string requestPart)
+{
+	if (headersDone) {
+		if (headersDone == 3) {
+			bodyContentLength += requestPart.substr(requestPart.find("\r\n\r\n") + 4).size();
+			this->theBody.append(requestPart.substr(requestPart.find("\r\n\r\n") + 4));
+			headersDone = 4;
+		}
+		else
+			this->theBody.append(requestPart);
+		if (headerFields.find("Content-Type") != headerFields.end()
+			&& headerFields["Content-Type"].find("multipart/form-data") != std::string::npos) {
+				if (requestPart.find(boundary + "--") != std::string::npos) {
+					cout << WHITE << "out HERE  +++"<< RESET_TEXT << endl;
+					return 1;
+				}
+		}
+		if (headerFields.find("Transfer-Encoding") != headerFields.end()
+			&& headerFields["Transfer-Encoding"].find("chunked") != std::string::npos) {
+				if (requestPart.find("\r\n0\r\n\r\n") != std::string::npos) {
+					cout << WHITE << "HERE 1"<< RESET_TEXT << endl;
+					return 1;
+				}
+		}
+		else {
+			// cout << bodyContentLength<< " == " << this->actualContentLength << endl;
+			if ((int)this->theBody.size() >= this->actualContentLength) {
+				cout << WHITE << "HERE 2"<< RESET_TEXT << endl;
+				return 1;
+			}
+			// bodyContentLength += requestPart.size();
+		}
+	}
+	return 0;
 }

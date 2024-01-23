@@ -77,6 +77,7 @@ bool Location::isInMyList(const std::string& target, int &token) {
     lst.push_back("allow_methods");
     lst.push_back("cgi_path");
     lst.push_back("cgi_extension");
+	lst.push_back("return");
 	for (size_t i = 0; i < lst.size(); i++){
 		if (lst[i].compare(target) == 0){
 			token = i + 1;
@@ -125,6 +126,15 @@ void	Location::Myindex(std::vector<std::string> list, int line){
 	this->i = 1;
 }
 
+
+void	Location::Myreturn(std::vector<std::string> list, int line){
+	if (!list[list.size() - 1].compare(";"))
+		list.pop_back();
+	if (list.size() != 2 || list.empty())
+			throw std::invalid_argument(throwmessage(line, "Error: Invalide return path."));
+	this->redirection = withoutsemicolon(list[1]);
+	this->i = 1;
+}
 
 void	Location::Myautoindex(std::vector<std::string> list, int line){
 	std::string autoin;
@@ -202,6 +212,9 @@ void	Location::set_value(std::vector<std::string> list, int token, int line){
 		break;
 	case 6:
 		Mycgi_extension(list, line);
+		break;
+	case 7:
+		Myreturn(list, line);
 		break;
 	default:
 		break;

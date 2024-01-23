@@ -22,7 +22,6 @@ private:
 	std::vector< std::string>	allow_methods;
 	std::string					cgi_path;
 	std::string					cgi_extension;
-
 	std::map<std::string, std::string> data;
 
 	void	init();
@@ -42,8 +41,10 @@ private:
 	void	Myautoindex(std::vector<std::string> list, int line);
 	void	Myallow_methods(std::vector<std::string> list, int line);
 	void	Mycgi_path(std::vector<std::string> list, int line);
+	void	Myreturn(std::vector<std::string> list, int line);
 	void	pathset();
 public:
+	std::string					redirection;
 	int	r, i, a, am;
 	Location(){}
 	Location(std::map<int, std::string>&);

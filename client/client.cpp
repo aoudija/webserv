@@ -112,6 +112,7 @@ void	requestCases(request &requestObj, server& _server)
 	}
 	else if (requestObj.getMethod() == "POST") {
 		if (_server.getUpload()) {
+			requestObj.parseRequest(requestObj.theBody, _server);
 			cout << RED << "UPLOAD IS ON" << RESET_TEXT << endl;
 		}
 		if (!_server.getUpload())
@@ -156,9 +157,34 @@ void	requestCases(request &requestObj, server& _server)
 }
 
 void	client::set_request(string r, server& _server){
-    tookrequest = requestObj.parseRequest(r, _server);
+	if (!requestObj.headersDone) {
+		if (!requestObj.getHeadersRequest(r)) {
+			cout <<RED<< "ERROR1" <<RESET_TEXT << endl;
+		}
+	}
+	if (requestObj.headersDone == 1) {
+		if (requestObj.checkRequestLine(r)) {
+			cout <<RED<< "ERROR2" <<RESET_TEXT << endl;
+		}
+		else
+			requestObj.headersDone = 2;
+	}
+	if (requestObj.headersDone == 2) {
+		if (requestObj.checkHeaderFields(r.substr(0, r.find("\r\n\r\n")))) {
+			cout <<RED<< "ERROR3" <<RESET_TEXT << endl;
+		}
+		else
+			requestObj.headersDone = 3;
+	}
+	requestObj.setContentLength();//!
+	requestObj.setContentType();
+	if (requestObj.getMethod() == "POST")
+		tookrequest = requestObj.getBodyRequest(r);
+	if (requestObj.getMethod() == "GET")//!add delete
+		tookrequest = 1;
 	
     if (tookrequest == 1) {
+		
 		requestObj.matchLocation(_server);
 		requestCases(requestObj, _server);
 		responseObj.totalSent = 0;

@@ -48,9 +48,20 @@ class request
 
 	std::string	queryString;
 	// std::string kolchi;
+	std::string	boundary;
 
+
+	int flag;
+	int gg;
+	std::string filename;
+	// int boundaryHeadersCount;
 
 public:
+	int bodyDone;
+	int headersDone;
+	std::string headers;//before parsing
+	std::string theBody;//after parsing
+
     std::map<std::string, std::string> headerFields;
 	Location loc;
     int actualContentLength;
@@ -75,6 +86,9 @@ public:
     request& operator=(const request& other);
     // ~request();
 
+	int getBodyRequest(std::string requestPart);
+	int getHeadersRequest(std::string requestPart);
+
     void setBytesRange();
     void setContentLength();
     int getBytesRange();
@@ -97,6 +111,7 @@ public:
     int parseRequest(std::string request, server& _server);
     request::ParsingStatus checkBody(std::string body, server& _server);
     request::ParsingStatus checkBody2(std::string body, server& _server);
+	request::ParsingStatus checkBody3(std::string body, server& _server);
 
     int matchLocation(server& _server);
 	std::string removeAndSetQueryString(const std::string& uri);
