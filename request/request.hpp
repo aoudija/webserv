@@ -56,6 +56,9 @@ class request
 	std::string filename;
 	// int boundaryHeadersCount;
 
+    //ayoub
+    string cgi_header;
+    string cgi_body;
 public:
 	int bodyDone;
 	int headersDone;
@@ -123,7 +126,14 @@ public:
 
 
     ParsingStatus parsChunked(char c);
+//  ayoub
+    bool    is_CGI;
+    std::pair<string, string> cgi_exe;
+    void    setCgiHeader(std::string);
+    void    setCgiBody(std::string);
 
+    string    getCgiHeader(void);
+    string    getCgiBody(void);
 };
 
 bool fileExists(const char* path);

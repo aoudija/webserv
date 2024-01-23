@@ -20,8 +20,9 @@ private:
 	std::string					index;
 	bool						autoindex;
 	std::vector< std::string>	allow_methods;
-	std::string					cgi_path;
-	std::string					cgi_extension;
+	bool						upload;
+	std::string					redirection;
+	std::vector< std::pair<std::string, std::string> >	cgi_exe;
 	std::map<std::string, std::string> data;
 
 	void	init();
@@ -34,18 +35,18 @@ private:
 	bool	isWhitespace(const std::string& str);
 	void	set_value(std::vector<std::string> list, int token, int line);
 	std::string	withoutsemicolon(std::string str);
-	void	Mycgi_extension(std::vector<std::string> list, int line);
+
 
 	void	Myroot(std::vector<std::string> list, int line);
 	void	Myindex(std::vector<std::string> list, int line);
 	void	Myautoindex(std::vector<std::string> list, int line);
+	void	Myupload(std::vector<std::string> list, int line);
 	void	Myallow_methods(std::vector<std::string> list, int line);
-	void	Mycgi_path(std::vector<std::string> list, int line);
-	void	Myreturn(std::vector<std::string> list, int line);
 	void	pathset();
+	void	Mycgi_exe(std::vector<std::string> list, int line);
+	void	Myredirection(std::vector<std::string> list, int line);
 public:
-	std::string					redirection;
-	int	r, i, a, am;
+	int	r, i, a, am, u, cg;
 	Location(){}
 	Location(std::map<int, std::string>&);
 	Location(string root, string index, bool autoindex, vector<string> allowMethods);
@@ -54,20 +55,22 @@ public:
 	void	setLocationName(std::string);
 	void	setRoot(std::string);
 	void	setIndex(std::string);
-	void	setCgiPath(std::string);
-	void	setCgiExtension(std::string);
 	void	setAutoindex(bool);
+	void	setUpload(bool);
 	void	setAllowMethods(std::string);
 	void	setVecAllowMethods(std::vector< std::string>);
+	void	setCgiExe(std::vector< std::pair<std::string, std::string> >);
+	void	setRedirection(std::string);
 
 	std::string	getPath(void) const;
 	std::string	getLocationName(void) const;
 	std::string	getRoot(void) const;
 	std::string	getIndex(void) const;
-	std::string	getCgiPath(void) const;
-	std::string	getCgiExtension(void) const;
 	bool		getAutoindex(void) const;
+	bool		getUpload(void) const;
 	std::vector< std::string>	getAllowMethods(void) const;
+	std::vector< std::pair<std::string, std::string> > getCgiExe(void) const;
+	std::string	getRedirection(void) const;
 };
 
 std::string intToString(int value);

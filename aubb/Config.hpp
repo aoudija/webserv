@@ -27,7 +27,7 @@ class Config {
         std::vector<server> Servers;
         Config(std::string av);
         ~Config();
-
+		void    display();
 };
 
 #endif // CONFIG_HPP

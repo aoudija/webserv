@@ -13,6 +13,7 @@ request::request() : requestStatus(true) {
 	this->headersDone = 0;
 	this->flag = 0;
 	this->gg = 0;
+	this->is_CGI = 0;
 }
 
 // request::request()
@@ -796,4 +797,19 @@ int request::getBodyRequest(std::string requestPart)
 		}
 	}
 	return 0;
+}
+
+
+void	request::setCgiHeader(std::string s){
+	this->cgi_header = s;
+}
+void	request::setCgiBody(std::string s){
+	this->cgi_body = s;
+}
+
+string request::getCgiBody(){
+	return this->cgi_body;
+}
+string request::getCgiHeader(){
+	return this->cgi_header;
 }

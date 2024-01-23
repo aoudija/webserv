@@ -8,9 +8,12 @@ using std::vector;
 //
 
 void	response::initialize(request& request){
-	cout << RED<< request.getFilePath() << RESET_TEXT << endl;
-
-	int fd = open(request.getFilePath().c_str(), O_RDONLY);
+	int fd;
+		cout << RED<< request.getFilePath() << RESET_TEXT << endl;
+	if (request.is_CGI)
+			fd = open(request.getCgiBody().c_str(), O_RDONLY);
+	else
+			fd = open(request.getFilePath().c_str(), O_RDONLY);
 	filesize = lseek(fd, 0, SEEK_END);
 	lseek(fd, 0, SEEK_SET);
 	buffer = new char[filesize];
@@ -23,8 +26,10 @@ void	response::sendHeader(int connection_socket, request& request){
 	std::string header = "HTTP/1.1 200 OK\r\n"
 		"Content-Length: " + std::to_string(filesize) + "\r\n"
 		"Content-Type: "+ request.getContentType() + "\r\n\r\n"+'\0';
-
-	write(connection_socket, header.c_str(),	//header
+	if (request.is_CGI)
+		write(connection_socket, request.getCgiHeader().c_str(), strlen(request.getCgiHeader().c_str()));
+	else
+		write(connection_socket, header.c_str(),	//header
 		strlen(header.c_str()));
 }
 

@@ -60,13 +60,29 @@ std::string getFileExtension(const std::string& filePath) {
     std::string::size_type dotPos = filePath.rfind('.');
 
     if (dotPos != std::string::npos) {
-        return filePath.substr(dotPos);
+        return filePath.substr(dotPos + 1);
     }
 
     return "";
 }
 
-void	requestCases(request &requestObj, server& _server)
+bool client::isCGI(const std::string& filePath, server& _server){
+	std::string exe = getFileExtension(filePath);
+	vector< std::pair<string, string> > cgi_exe = _server.getCgiExe();
+	for (size_t i = 0; i < cgi_exe.size(); i++)
+	{
+		if (exe == cgi_exe[i].second)
+		{
+			requestObj.is_CGI = 1;
+			requestObj.cgi_exe = cgi_exe[i];
+			return 1;
+		}
+	}
+	return 0;
+	
+}
+
+void	client::requestCases(request &requestObj, server& _server)
 {
 	if (requestObj.getMethod() == "GET") {
 		if (!fileExists(requestObj.getFilePath().c_str()) && !isDirectory(requestObj.getFilePath().c_str())) {
@@ -96,16 +112,22 @@ void	requestCases(request &requestObj, server& _server)
 				}
 			}
 			else {
-				if (getFileExtension(requestObj.getFilePath()) == ".php"
-					|| getFileExtension(requestObj.getFilePath()) == ".py") {
-					cout << RED << "hna dakchi f cgi" << RESET_TEXT << endl;
+				if (isCGI(requestObj.getFilePath(), _server)) {
+						cout << RED << "CGI_GET" << RESET_TEXT << endl;
+					Cgi	cgi(_server, requestObj.loc, requestObj);
+					cgi.exe();
+					requestObj.setCgiBody(cgi.body);
+					requestObj.setCgiHeader(cgi.header);
 				}
 			}
 		}
 		else {
-			if (getFileExtension(requestObj.getFilePath()) == ".php"
-				|| getFileExtension(requestObj.getFilePath()) == ".py") {
-				cout << RED << "ta hna dakchi f cgi" << RESET_TEXT << endl;
+			if (isCGI(requestObj.getFilePath(), _server)) {
+				cout << RED << "CGI_GET" << RESET_TEXT << endl;
+				Cgi	cgi(_server, requestObj.loc, requestObj);
+				cgi.exe();
+				requestObj.setCgiBody(cgi.body);
+				requestObj.setCgiHeader(cgi.header);
 			}
 		}
 //!if uri in get has "?" take until ?
@@ -137,17 +159,23 @@ void	requestCases(request &requestObj, server& _server)
 					return ;
 				}
 				else {
-					if (getFileExtension(requestObj.getFilePath()) == ".php"
-						|| getFileExtension(requestObj.getFilePath()) == ".py") {
-						cout << RED << "hna dakchi f cgi" << RESET_TEXT << endl;
+					if (isCGI(requestObj.getFilePath(), _server)) {
+						cout << RED << "CGI_POST" << RESET_TEXT << endl;
+						Cgi	cgi(_server, requestObj.loc, requestObj);
+						cgi.exe();
+						requestObj.setCgiBody(cgi.body);
+						requestObj.setCgiHeader(cgi.header);
 					}
 				}
 			}
 		}
 		else {
-			if (getFileExtension(requestObj.getFilePath()) == ".php"
-				|| getFileExtension(requestObj.getFilePath()) == ".py") {
-				cout << RED << "ta hna dakchi f cgi" << RESET_TEXT << endl;
+			if (isCGI(requestObj.getFilePath(), _server)){
+				cout << RED << "CGI_post" << RESET_TEXT << endl;
+				Cgi	cgi(_server, requestObj.loc, requestObj);
+				cgi.exe();
+				requestObj.setCgiBody(cgi.body);
+				requestObj.setCgiHeader(cgi.header);
 			}
 		}
 	}

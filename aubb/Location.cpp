@@ -75,8 +75,8 @@ bool Location::isInMyList(const std::string& target, int &token) {
     lst.push_back("index");
     lst.push_back("autoindex");
     lst.push_back("allow_methods");
-    lst.push_back("cgi_path");
-    lst.push_back("cgi_extension");
+	lst.push_back("cgi_exe");
+	lst.push_back("upload");
 	lst.push_back("return");
 	for (size_t i = 0; i < lst.size(); i++){
 		if (lst[i].compare(target) == 0){
@@ -126,14 +126,12 @@ void	Location::Myindex(std::vector<std::string> list, int line){
 	this->i = 1;
 }
 
-
-void	Location::Myreturn(std::vector<std::string> list, int line){
+void	Location::Myredirection(std::vector<std::string> list, int line){
 	if (!list[list.size() - 1].compare(";"))
 		list.pop_back();
 	if (list.size() != 2 || list.empty())
 			throw std::invalid_argument(throwmessage(line, "Error: Invalide return path."));
-	this->redirection = withoutsemicolon(list[1]);
-	this->i = 1;
+	setRedirection(withoutsemicolon(list[1]));
 }
 
 void	Location::Myautoindex(std::vector<std::string> list, int line){
@@ -176,20 +174,37 @@ void	Location::Myallow_methods(std::vector<std::string> list, int line){
 	this->am = 1;
 }
 
-void	Location::Mycgi_path(std::vector<std::string> list, int line){
+
+void	Location::Mycgi_exe(std::vector<std::string> list, int line){
+	std::pair<std::string, std::string>	method;
+
 	if (!list[list.size() - 1].compare(";"))
 		list.pop_back();
-	if (list.size() != 2 || list.empty())
-			throw std::invalid_argument(throwmessage(line, "Error: Invalide index path."));
-	setCgiPath(withoutsemicolon(list[1]));
+	if (list.size() != 3 || list.empty())
+		throw std::invalid_argument(throwmessage(line, "Error: Invalide Input in CGI."));
+	method.first = withoutsemicolon(list[1]);
+	method.second = withoutsemicolon(list[2]);
+	this->cgi_exe.push_back(method);
+	this->cg = 1;
 }
 
-void	Location::Mycgi_extension(std::vector<std::string> list, int line){
+
+void	Location::Myupload(std::vector<std::string> list, int line){
+	std::string autoin;
+
 	if (!list[list.size() - 1].compare(";"))
 		list.pop_back();
+
 	if (list.size() != 2 || list.empty())
-			throw std::invalid_argument(throwmessage(line, "Error: Invalide index path."));
-	setCgiExtension(withoutsemicolon(list[1]));
+		throw std::invalid_argument(throwmessage(line, "Error: Invalide Input in upload ON/OFF."));
+	autoin = withoutsemicolon(list[1]);
+	if (!autoin.compare("ON"))
+		this->upload = 1;
+	else if (!autoin.compare("OFF"))
+		this->upload = 0;
+	else
+		throw std::invalid_argument(throwmessage(line, "Error: Invalide Input in upload ON/OFF."));
+	this->u = 1;
 }
 
 void	Location::set_value(std::vector<std::string> list, int token, int line){
@@ -208,13 +223,13 @@ void	Location::set_value(std::vector<std::string> list, int token, int line){
 		Myallow_methods(list, line);
 		break;
 	case 5:
-		Mycgi_path(list, line);
+		Mycgi_exe(list, line);
 		break;
 	case 6:
-		Mycgi_extension(list, line);
+		Myupload(list, line);
 		break;
 	case 7:
-		Myreturn(list, line);
+		Myredirection(list, line);
 		break;
 	default:
 		break;
@@ -247,10 +262,10 @@ void	Location::seter(std::string str, int line){
 void	Location::init(){
 	setAutoindex(0);
 	setLocationName("/");
-	setPath("/public/");
-	setRoot("/public");
+	setPath("public/");
+	setRoot("public");
 	setIndex("");
-	setAutoindex(0);
+	setUpload(0);
 	setAllowMethods("GET");
 	setAllowMethods("POST");
 	setAllowMethods("DELETE");
@@ -258,6 +273,8 @@ void	Location::init(){
 	this->am = 0;
 	this->i = 0;
 	this->r = 0;
+	this->u = 0;
+	this->cg = 0;
 }
 
 
@@ -329,10 +346,8 @@ std::string& Location::operator[](const std::string& key) {
 		return path;
 	else if (key == "index")
 		return index;
-	else if (key == "cgi_path")
-		return cgi_path;
-	else if (key == "cgi_extension")
-		return cgi_extension;
+	else if (key == "redirection")
+		return redirection;
 	else
 		return data[key];
 }
@@ -356,16 +371,12 @@ void	Location::setIndex(std::string str){
 	this->data["index"] = str;
 	this->index = str;
 }
-void	Location::setCgiPath(std::string str){
-	this->data["cgi_path"] = str;
-	this->cgi_path = str;
-}
-void	Location::setCgiExtension(std::string str){
-	this->data["cgi_extension"] = str;
-	this->cgi_extension = str;
-}
+
 void	Location::setAutoindex(bool b){
 	this->autoindex = b;
+}
+void	Location::setUpload(bool b){
+	this->upload = b;
 }
 void	Location::setAllowMethods(std::string str){
 	this->allow_methods.push_back(str);
@@ -375,6 +386,14 @@ void	Location::setVecAllowMethods(std::vector< std::string> vec){
 	this->allow_methods = vec;
 }
 
+void	Location::setCgiExe(std::vector< std::pair<std::string, std::string> > vec){
+	this->cgi_exe = vec;
+}
+
+void	Location::setRedirection(std::string str){
+	this->data["redirection"] = str;
+	this->redirection = str;
+}
 //=============== geters ===================//
 
 std::string	Location::getPath(void) const{
@@ -389,15 +408,22 @@ std::string	Location::getRoot(void) const{
 std::string	Location::getIndex(void) const{
 	return this->index;
 }
-std::string	Location::getCgiPath(void) const{
-	return this->cgi_path;
-}
-std::string	Location::getCgiExtension(void) const{
-	return this->cgi_extension;
-}
+
 std::vector< std::string>	Location::getAllowMethods(void) const{
 	return this->allow_methods;
 }
 bool		Location::getAutoindex(void) const{
 	return this->autoindex;
+}
+
+std::vector< std::pair<std::string, std::string> > Location::getCgiExe(void) const{
+	return this->cgi_exe;
+}
+
+bool		Location::getUpload(void) const{
+	return this->upload;
+}
+
+std::string	Location::getRedirection(void) const{
+	return this->redirection;
 }

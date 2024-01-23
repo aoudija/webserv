@@ -64,6 +64,7 @@ bool server::isInMyList(const std::string& target, int &token) {
     lst.push_back("client_body_limit");
     lst.push_back("error_page");
 	lst.push_back("upload");
+	lst.push_back("cgi_exe");
 	for (size_t i = 0; i < lst.size(); i++){
 		if (lst[i].compare(target) == 0){
 			token = i + 1;
@@ -143,6 +144,9 @@ void	server::set_value(std::vector<std::string> list, int token, int line){
 	case 9:
 		Myupload(list, line);
 		break;
+	case 10:
+		Mycgi(list, line);
+		break;
 	default:
 		break;
 	}
@@ -156,11 +160,11 @@ void	server::seter(std::string str, int line){
 	if (list.empty() || list[0][0] == '#')
 		return ;
 	if (!isInMyList(list[0], token))
-		throw std::invalid_argument(throwmessage(line, "invalid input."));
+		throw std::invalid_argument(throwmessage(line, "Error: invalid input."));
 	if (list[list.size() - 1][list[list.size() - 1].length() - 1] != ';')
-		throw std::invalid_argument(throwmessage(line, "the line have to end with ';'."));
+		throw std::invalid_argument(throwmessage(line, "Error: the line have to end with ';'."));
 	if (isWhitespace(str) && str.size() > 0)
-		throw std::invalid_argument(throwmessage(line, "extra whitespaces."));
+		throw std::invalid_argument(throwmessage(line, "Error: extra whitespaces."));
 	int f = 0;
 	for (size_t i = str.size() - 1; i > 0; i--){
 		if (str[i] == ';')
@@ -169,28 +173,28 @@ void	server::seter(std::string str, int line){
 			throw std::invalid_argument(throwmessage(line, "Error: More than one semicolon in the string."));
 	}
 	if (str[0] != '\t' || std::isspace(str[1]))
-		throw std::invalid_argument(throwmessage(line, "execept one TAB at the start."));
+		throw std::invalid_argument(throwmessage(line, "Error: execept one TAB at the start."));
 	if (std::isspace(str[str.length() - 1]))
-		throw std::invalid_argument(throwmessage(line, "extra whitespaces at the end."));
+		throw std::invalid_argument(throwmessage(line, "Error: extra whitespaces at the end."));
 	for (size_t i = 1; i < str.length() - 1; ++i) {
         if (std::isspace(str[i]) && std::isspace(str[i + 1]))
-			throw std::invalid_argument(throwmessage(line, "extra whitespaces."));
+			throw std::invalid_argument(throwmessage(line, "Error: extra whitespaces."));
 	}
 	set_value(list, token, line);
 }
 
 void	server::checkfirstline(std::string str, int line){
 	if (std::isspace(str[0]) )
-        throw std::invalid_argument(throwmessage(line, "extra whitespaces at the beginning."));
+        throw std::invalid_argument(throwmessage(line, "Error: extra whitespaces at the beginning."));
 	if (std::isspace(str[str.length() - 1]))
-		throw std::invalid_argument(throwmessage(line, "extra whitespaces at the end."));
+		throw std::invalid_argument(throwmessage(line, "Error: extra whitespaces at the end."));
 	// Check for excessive whitespace between words
     for (size_t i = 0; i < str.length() - 1; ++i) {
         if (std::isspace(str[i]) && std::isspace(str[i + 1]))
-			throw std::invalid_argument(throwmessage(line, "extra whitespaces."));
+			throw std::invalid_argument(throwmessage(line, "Error: extra whitespaces."));
     }
 	if (str.compare("server {"))
-		throw std::invalid_argument(throwmessage(line, "invalid input."));
+		throw std::invalid_argument(throwmessage(line, "Error: Invalid input."));
 	this->line = line;
 }
 
@@ -217,13 +221,13 @@ void	server::setmylocation(std::map<int, std::string>::const_iterator &it, std::
 	int itfirst = it->first;
 	for(; it != server.end() && it->second.find(")") == std::string::npos; ++it){
 		if (it != itf && it->second.find("(") != std::string::npos)
-			throw std::invalid_argument(throwmessage(itfirst, "You have to close your location with ')'."));
+			throw std::invalid_argument(throwmessage(itfirst, "Error: You have to close your location with ')'."));
 		locations[it->first] = it->second;
 	}
 	if (it->second.find(")") != std::string::npos)
 		locations[it->first] = it->second;
 	else if (it == server.end())
-		throw std::invalid_argument(throwmessage(itfirst, "Error:"));
+		throw std::invalid_argument(throwmessage(itfirst, "Error: You have to close your location with ')'."));
 	Location	local(locations);
 	setLocations(local);
 }
@@ -233,7 +237,7 @@ void	server::init(){
 	setClientBodyLimit(50);
 	set_isdefault(1);
 	set_my_default(-1);
-	setRoot("/public");
+	setRoot("public");
 	setIndex("index.html");
 	setErrorPage(404, "404.html");
 	setIp("localhost");
@@ -268,6 +272,8 @@ void	server::parse(std::map<int, std::string> &server){
        			seter(it->second, it->first);
 		}
 	}
+
+	// add in / location
 	std::vector<Location> &local = this->locations;
 	size_t i = 0;
 	for (; i < local.size(); i++){
@@ -280,6 +286,10 @@ void	server::parse(std::map<int, std::string> &server){
 				local[i].setRoot(getRoot());
 			if (!local[i].am)
 				local[i].setVecAllowMethods(getAllowMethods());
+			if (!local[i].u)
+				local[i].setUpload(getUpload());
+			if (!local[i].cg)
+				local[i].setCgiExe(getCgiExe());
 			break;
 		}
 	}
@@ -385,6 +395,23 @@ void	server::Myallow_methods(std::vector<std::string> list, int line){
 	this->allow_methods = allows;
 }
 
+void	server::Mycgi(std::vector<std::string> list, int line){
+	std::pair<string, string> cgi;
+
+	if (!list[list.size() - 1].compare(";"))
+		list.pop_back();
+	if (list.size() != 3 || list.empty())
+		throw std::invalid_argument(throwmessage(line, "Error: Invalide Input in CGI."));
+	cgi.first = withoutsemicolon(list[1]);
+	cgi.second = withoutsemicolon(list[2]);
+	for (size_t i = 0; i < this->cgi_exe.size(); i++)
+	{
+		if (this->cgi_exe[i].second == cgi.second)
+			throw std::invalid_argument(throwmessage(line, "Error: This CGI is already exist."));
+	}
+	this->cgi_exe.push_back(cgi);
+}
+
 void	server::Myerror_page(std::vector<std::string> list, int line){
 	if (!list[list.size() - 1].compare(";"))
 		list.pop_back();
@@ -450,6 +477,10 @@ void		server::setUpload(bool b){
 	this->upload = b;
 }
 
+void		server::setCgiExe(std::vector< std::pair<std::string, std::string> > cgi){
+	this->cgi_exe = cgi;
+}
+
 //=============== geters ===================//
 std::string	server::getIndex(void) const{
 	return this->index;
@@ -493,4 +524,8 @@ std::vector<Location>	server::getLocations(void) const{
 
 bool	server::getUpload(void) const{
 	return this->upload;
+}
+
+std::vector< std::pair<std::string, std::string> > server::getCgiExe(void) const{
+	return this->cgi_exe;
 }

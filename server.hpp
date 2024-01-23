@@ -29,6 +29,7 @@
 #include "response/response.hpp"
 #include "aubb/Location.hpp"
 #include "aubb/Config.hpp"
+#include "cgi/Cgi.hpp"
 
 
 using std::map;
@@ -57,6 +58,9 @@ class client
 			tookrequest = t;
 		}
 		string getresponse();
+	// ayoub
+	void	requestCases(request &requestObj, server& _server);
+	bool	isCGI(const std::string& filePath, server& _server);
 };
 
 class server{
@@ -71,7 +75,7 @@ class server{
 	bool				upload;
 	vector<string>		allow_methods;
 	map<int,string>		error_page;
-
+	vector< std::pair<string, string> >	cgi_exe;
 	//===============
 	void	checkfirstline(std::string str, int line);
 	void	checklastline(std::string str, int line, int firstline);
@@ -93,6 +97,7 @@ class server{
 	void	Mylocations(std::vector<Location>&);
 	void	setmylocation(std::map<int, std::string>::const_iterator &it, std::map<int, std::string> &server);
 	void	Myupload(std::vector<std::string> list, int line);
+	void	Mycgi(std::vector<std::string> list, int line);
 	//================
 	public:
 		vector<Location>	locations;
@@ -129,6 +134,7 @@ class server{
 		void	setErrorPage(int, std::string);
 		void	setLocations(Location&);
 		void	setUpload(bool);
+		void	setCgiExe(std::vector< std::pair<std::string, std::string> >);
 
 		std::string	getServerName(void) const;
 		std::string	getPort(void) const;
@@ -141,6 +147,7 @@ class server{
 		std::vector< std::string>		getAllowMethods(void) const;
 		std::map<int, std::string>		getErrorPage(void) const;
 		std::vector<Location>			getLocations(void) const;
+		std::vector< std::pair<std::string, std::string> > getCgiExe(void) const;
 		void	parse(std::map<int, std::string>&);
 		void	init();
 };
