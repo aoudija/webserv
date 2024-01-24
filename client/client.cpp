@@ -86,30 +86,31 @@ void	client::requestCases(request &requestObj, server& _server)
 {
 	if (requestObj.getMethod() == "GET") {
 		if (!fileExists(requestObj.getFilePath().c_str()) && !isDirectory(requestObj.getFilePath().c_str())) {
-			requestObj.setStatusCode(404);
+			requestObj.setStatusCode("404 Not Found");
 			requestObj.setContentType("text/html");
 			requestObj.setFilePath(errorPageTamplate("404, Not Found."));
+			cout << "HEERREE 1" << endl;
 			return ;
 		}
 		if (isDirectory(requestObj.getFilePath().c_str()))
 		{
 			if (!endsWithSlash(requestObj.getFilePath()))
 			{
-				requestObj.setStatusCode(301);
+				requestObj.setStatusCode("301 Moved Permanently");
 				requestObj.setContentType("text/html");
 				requestObj.setFilePath(requestObj.getFilePath() + "/");
 				return ;
 			}
 			if (!_server.getIndex().empty()) {
 				if (!_server.getAutoindex()) {
-					requestObj.setStatusCode(403);
+					requestObj.setStatusCode("403 Forbidden");
 					requestObj.setContentType("text/html");
 					requestObj.setFilePath(errorPageTamplate("403, Forbidden."));
 					return ;
 				}
 				else {
 					generateAutoIndex(requestObj.getFilePath(), "autoindex.html");//?need to do lmsa l file d index
-					requestObj.setStatusCode(200);
+					requestObj.setStatusCode("200 ok");
 					requestObj.setContentType("text/html");
 					requestObj.setFilePath("autoindex.html");
 					return ;
@@ -144,23 +145,24 @@ void	client::requestCases(request &requestObj, server& _server)
 		if (!_server.getUpload())
 				cout << RED << "UPLOAD IS OFF" << RESET_TEXT << endl;
 		if (!fileExists(requestObj.getFilePath().c_str()) && !isDirectory(requestObj.getFilePath().c_str())) {
-			requestObj.setStatusCode(404);
+			requestObj.setStatusCode("404 Not Found");
 			requestObj.setContentType("text/html");
 			requestObj.setFilePath(errorPageTamplate("404, Not Found."));
+			cout << "HEERREE" << endl;
 			return ;
 		}
 		if (isDirectory(requestObj.getFilePath().c_str()))
 		{
 			if (!endsWithSlash(requestObj.getFilePath()))
 			{
-				requestObj.setStatusCode(301);
+				requestObj.setStatusCode("301 Moved Permanently");
 				requestObj.setContentType("text/html");
 				requestObj.setFilePath(requestObj.getFilePath() + "/");
 				return ;
 			}
 			else {
 				if (!_server.getIndex().empty()) {
-					requestObj.setStatusCode(403);
+					requestObj.setStatusCode("403 Forbidden");
 					requestObj.setContentType("text/html");
 					requestObj.setFilePath(errorPageTamplate("403, Forbidden."));
 					return ;
@@ -219,7 +221,6 @@ void	client::set_request(string r, server& _server){
 		tookrequest = 1;
 	
     if (tookrequest == 1) {
-		
 		requestObj.matchLocation(_server);
 		requestCases(requestObj, _server);
 		responseObj.totalSent = 0;
