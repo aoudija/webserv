@@ -572,9 +572,14 @@ int request::matchLocation(server& _server)
 			if (it->getLocationName() == paths) {
 				std::cout << GREEN << "*****FOUND A MATCH*****" << RESET_TEXT << std::endl;
 				filePath = it->getRoot() + this->requestURI;
+				if (!it->getRedirection().empty()) {
+					redirectURL = it->getRedirection();
+				}
 				if (isDirectory(filePath.c_str())) {
 				std::cout << GREEN << "*****FOUND A MATCH 22 *****" << RESET_TEXT << std::endl;
 					filePath = filePath + it->getIndex();
+					if (!it->getRedirection().empty())
+						redirectURL = it->getRedirection();
 				}
 				loc = *it;
 				// cout << BLUE <<loc.getCgiPath()<< RESET_TEXT << endl;
@@ -663,6 +668,11 @@ void request::setContentType()
 			this->boundary.erase(lastNonSpace + 1);
 		}
 	}
+}
+
+void	request::setContentType(std::string contentType)
+{
+	this->ContentType = contentType;
 }
 
 void	request::addAllContentTypes()

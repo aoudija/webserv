@@ -39,6 +39,7 @@ class request
     // int chunkSize;
     int chunkSize;
     std::string filePath;
+	std::string redirectURL;
 
     int bodyContentLength;
 
@@ -54,6 +55,7 @@ class request
 	int flag;
 	int gg;
 	std::string filename;
+
 	// int boundaryHeadersCount;
 
     //ayoub
@@ -107,6 +109,7 @@ public:
 	void setStatusCode(int statusCode);
 
     void    setContentType();
+    void    setContentType(std::string contentType);
     void    addAllContentTypes();
 
     int checkRequestLine(std::string request);

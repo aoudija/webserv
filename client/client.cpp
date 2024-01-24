@@ -87,6 +87,7 @@ void	client::requestCases(request &requestObj, server& _server)
 	if (requestObj.getMethod() == "GET") {
 		if (!fileExists(requestObj.getFilePath().c_str()) && !isDirectory(requestObj.getFilePath().c_str())) {
 			requestObj.setStatusCode(404);
+			requestObj.setContentType("text/html");
 			requestObj.setFilePath(errorPageTamplate("404, Not Found."));
 			return ;
 		}
@@ -95,18 +96,21 @@ void	client::requestCases(request &requestObj, server& _server)
 			if (!endsWithSlash(requestObj.getFilePath()))
 			{
 				requestObj.setStatusCode(301);
+				requestObj.setContentType("text/html");
 				requestObj.setFilePath(requestObj.getFilePath() + "/");
 				return ;
 			}
 			if (!_server.getIndex().empty()) {
 				if (!_server.getAutoindex()) {
 					requestObj.setStatusCode(403);
+					requestObj.setContentType("text/html");
 					requestObj.setFilePath(errorPageTamplate("403, Forbidden."));
 					return ;
 				}
 				else {
 					generateAutoIndex(requestObj.getFilePath(), "autoindex.html");//?need to do lmsa l file d index
 					requestObj.setStatusCode(200);
+					requestObj.setContentType("text/html");
 					requestObj.setFilePath("autoindex.html");
 					return ;
 				}
@@ -141,6 +145,7 @@ void	client::requestCases(request &requestObj, server& _server)
 				cout << RED << "UPLOAD IS OFF" << RESET_TEXT << endl;
 		if (!fileExists(requestObj.getFilePath().c_str()) && !isDirectory(requestObj.getFilePath().c_str())) {
 			requestObj.setStatusCode(404);
+			requestObj.setContentType("text/html");
 			requestObj.setFilePath(errorPageTamplate("404, Not Found."));
 			return ;
 		}
@@ -149,12 +154,14 @@ void	client::requestCases(request &requestObj, server& _server)
 			if (!endsWithSlash(requestObj.getFilePath()))
 			{
 				requestObj.setStatusCode(301);
+				requestObj.setContentType("text/html");
 				requestObj.setFilePath(requestObj.getFilePath() + "/");
 				return ;
 			}
 			else {
 				if (!_server.getIndex().empty()) {
 					requestObj.setStatusCode(403);
+					requestObj.setContentType("text/html");
 					requestObj.setFilePath(errorPageTamplate("403, Forbidden."));
 					return ;
 				}
