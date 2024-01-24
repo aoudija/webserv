@@ -14,6 +14,7 @@ request::request() : requestStatus(true) {
 	this->flag = 0;
 	this->gg = 0;
 	this->is_CGI = 0;
+	this->redirectURL = "";
 }
 
 // request::request()
