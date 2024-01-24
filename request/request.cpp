@@ -46,11 +46,15 @@ std::string request::getMethod() {
 	return this->method;
 }
 
-string request::getrequestURI(){
-	return requestURI;
+string request::getrequestURI() {
+	return this->requestURI;
 }
 
-string request::getContentType(){
+string request::getredirectURL() {
+	return this->redirectURL;
+}
+
+string request::getContentType() {
 	return this->ContentType;
 }
 
