@@ -45,7 +45,7 @@ class request
 
 	bool requestStatus;
 
-	std::string statusCode;
+	int statusCode;
 
 	std::string	queryString;
 	// std::string kolchi;
@@ -104,10 +104,10 @@ public:
 	string getContentType();
 	string getFilePath();
 	void setFilePath(std::string filePath);
-	std::string getStatusCode();
+	int getStatusCode();
 	string getQueryString();
 
-	void setStatusCode(std::string statusCode);
+	void setStatusCode(int statusCode);
 
     void    setContentType();
     void    setContentType(std::string contentType);
