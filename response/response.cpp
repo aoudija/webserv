@@ -9,7 +9,7 @@ using std::vector;
 
 void	response::initialize(request& request){
 	int fd;
-		cout << RED<< request.getFilePath() << RESET_TEXT << endl;
+		cout << RED<< "file path is: " << request.getFilePath() << RESET_TEXT << endl;
 	if (request.is_CGI)
 			fd = open(request.getCgiBody().c_str(), O_RDONLY);
 	else
@@ -23,11 +23,21 @@ void	response::initialize(request& request){
 }
 
 void	response::sendHeader(int connection_socket, request& request){
-	std::string header = "HTTP/1.1 200 OK\r\n"
-		"Content-Length: " + std::to_string(filesize) + "\r\n"
-		"Content-Type: "+ request.getContentType() + "\r\n\r\n"+'\0';
-	if (request.is_CGI)
-		write(connection_socket, request.getCgiHeader().c_str(), strlen(request.getCgiHeader().c_str()));
+	std::string header;
+	if (!request.getredirectURL().empty()){
+		header = "HTTP/1.1 301 Moved Permanently\r\n"
+			"Location: "+ request.getredirectURL() +'\0';
+	}
+	else{
+		header = "HTTP/1.1 " + request.getStatusCode()+ "\r\n"
+			"Content-Length: " + std::to_string(filesize) + "\r\n"
+			"Content-Type: "+ request.getContentType() + "\r\n\r\n"+'\0';
+		cout<<RED<<"statuscode: " << request.getStatusCode() << RESET_TEXT<<endl;
+	}
+	if (request.is_CGI){
+		write(connection_socket, request.getCgiHeader().c_str(),
+			strlen(request.getCgiHeader().c_str()));
+	}
 	else
 		write(connection_socket, header.c_str(),	//header
 		strlen(header.c_str()));

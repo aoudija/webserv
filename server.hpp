@@ -36,8 +36,19 @@ using std::map;
 using std::vector;
 using std::string;
 using std::pair;
-
+class request;
 //Client class
+void	_delete_(request&, server&);
+void	_get_(request&, server&);
+void	_post_(request&, server&);
+//utils
+int		checkExistance(request&);
+bool	endsWithSlash(const std::string&);
+bool	isCGI(request&, const std::string&, server&);
+string	getFileExtension(const std::string&);
+void generateAutoIndex(const std::string&, const std::string&);
+void	codeNpath(request&, const char*, const char*);
+//
 class client
 {
 	request requestObj;
@@ -60,9 +71,8 @@ class client
 		string getresponse();
 	// ayoub
 	void	requestCases(request &requestObj, server& _server);
-	bool	isCGI(const std::string& filePath, server& _server);
 };
-
+//
 class server{
 	string	port, serverName, request, response, ip;
 	bool is_default;
@@ -165,44 +175,5 @@ class serversInfos
 };
 
 void	main_loop(vector<server>);
-
-//REQUEST_CLASS
-// class request
-// {
-// 	string method;
-// 	string requestURI;
-// 	string httpVersion;
-// 	map<std::string, std::string> headerFields;
-// 	string body;
-
-// public:
-// 	request();
-// 	request(std::string req);
-// 	request(const request &other);
-// 	request& operator=(const request& other);
-// 	std::string getMethod();
-// 	void checkRequestLine(std::string request);
-// 	void checkHeaderFields(std::string headerFiles);
-// 	void parseRequest(std::string request);
-// 	void checkBody(std::string body);
-// 	string getrequestURI();
-// 	string getContentType();
-// };
-
-//RESPONSE_CLASS
-// class response{
-// 	// string http_version, status_code;
-// 	// map<string, string> header_fields;
-// 	// string	body;
-// 	string uri, contentType;
-// 	string res;
-// 	public:
-// 		void	set_res();
-// 		string	get_res();
-// 		void	setURI(string uri);
-// 		void	setcontentType(string contenttype);
-// };
-
-
 
 #endif

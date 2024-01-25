@@ -15,6 +15,7 @@ request::request() : requestStatus(true) {
 	this->gg = 0;
 	this->is_CGI = 0;
 	this->redirectURL = "";
+	this->statusCode = "200 OK";
 }
 
 // request::request()
@@ -75,11 +76,11 @@ bool	request::isRequestDone() {
 	return requestStatus;
 }
 
-int request::getStatusCode() {
+std::string request::getStatusCode() {
     return this->statusCode;
 }
 
-void request::setStatusCode(int statusCode) {
+void request::setStatusCode(std::string statusCode) {
 	this->statusCode = statusCode;
 }
 
@@ -179,25 +180,25 @@ int request::checkRequestLine(std::string request)
 	stream2 >> this->method >> this->requestURI >> this->httpVersion;
 	this->requestURI = removeAndSetQueryString(this->requestURI);
 	if (this->method != "GET" && this->method != "POST" && this->method != "DELETE") {
-		this->statusCode = 405;
+		this->statusCode = "405 Method Not Allowed";
 		this->filePath = errorPageTamplate("405, Method Not Allowed.");
 		return 1;
 		printError("Method Not Allowed", 405);
 	}
 	if (this->requestURI.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%") != std::string::npos) {
-		this->statusCode = 400;
+		this->statusCode = "400 Bad Request";
 		this->filePath = errorPageTamplate("400, Bad Request");
 		return 1;
 		printError("Bad Request", 400);
 	}
 	if (this->requestURI.size() > 2048)/* mazal request body larger than lbody li fl config file !!*/ {
-		this->statusCode = 414;
+		this->statusCode = "414 Bad Request";
 		this->filePath = errorPageTamplate("414, Bad Request");
 		return 1;
 		printError("Bad Request", 414);
 	}
 	if (this->httpVersion != "HTTP/1.1") {
-		this->statusCode = 505;
+		this->statusCode = "505 HTTP Version Not Supported";
 		this->filePath = errorPageTamplate("505, HTTP Version Not Supported");
 		return 1;
 		printError("HTTP Version Not Supported", 505);
@@ -225,7 +226,7 @@ int request::checkHeaderFields(std::string headerFiles)
 	}
 	if (headerFields.find("Transfer-Encoding") != headerFields.end()
 		&& headerFields["Transfer-Encoding"].find("chunked") == std::string::npos) {
-		this->statusCode = 501;
+		this->statusCode = "501 Not implemented";
 		this->filePath = errorPageTamplate("501, Not implemented");
 		return 1;
 		printError("Not implemented", 501);
@@ -233,7 +234,7 @@ int request::checkHeaderFields(std::string headerFiles)
 	if (headerFields.find("Transfer-Encoding") == headerFields.end()
 		&& headerFields.find("Content-Length") == headerFields.end()
 		&& this->method == "POST") {
-		this->statusCode = 400;
+		this->statusCode = "400 Bad Request";
 		this->filePath = errorPageTamplate("400, Bad Request");
 		return 1;
 		printError("Bad Request", 400);
@@ -349,10 +350,25 @@ request::ParsingStatus request::parsChunked(char c)
 return request::ParsingContinue;
 }
 
+std::string generateRandomFileName() {
+    std::string characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    const int length = 8;  // Adjust the length as needed
+
+    std::string randomFileName;
+    srand(static_cast<unsigned>(time(0)));
+
+    for (int i = 0; i < length; ++i) {
+        int randomIndex = rand() % characters.length();
+        randomFileName += characters[randomIndex];
+    }
+
+    return randomFileName;
+}
+
 request::ParsingStatus request::checkBody(std::string body, server& _server)
 {
 	if ((int)body.size() > _server.getClientBodyLimit()) {
-		this->statusCode = 413;
+		this->statusCode = "413 Request Entity Too Large";
 		this->filePath = errorPageTamplate("413, Request Entity Too Large");
 		return ParsingFailed;
 		printError("Request Entity Too Large", 413);
@@ -387,12 +403,15 @@ request::ParsingStatus request::checkBody(std::string body, server& _server)
 request::ParsingStatus request::checkBody2(std::string body, server& _server)
 {
 	if ((int)body.size() > _server.getClientBodyLimit()) {
-		this->statusCode = 413;
+		this->statusCode = "413 Request Entity Too Large";
 		this->filePath = errorPageTamplate("413, Request Entity Too Large");
 		return ParsingFailed;
 		printError("Request Entity Too Large", 413);
 	}
-	std::ofstream outputFile("theBodyContentIsHere", std::ios::app);
+	std::string fileName;
+	fileName = generateRandomFileName();
+	cout << "the content type is:" << this->ContentType << endl;
+	std::ofstream outputFile(filename, std::ios::app);
 	if (outputFile.is_open() && this->method != "GET") {
 		outputFile << body;
 		outputFile.close();
@@ -406,7 +425,7 @@ request::ParsingStatus request::checkBody3(std::string body, server& _server)
 	// cout << RED << "ENTER " << boundary << RESET_TEXT << endl;
 	// cout << BLUE << "BODY " << body << RESET_TEXT << endl;
 	if ((int)body.size() > _server.getClientBodyLimit()) {
-		this->statusCode = 413;
+		this->statusCode = "413 Request Entity Too Large";
 		this->filePath = errorPageTamplate("413, Request Entity Too Large");
 		return ParsingFailed;
 		printError("Request Entity Too Large", 413);
@@ -447,9 +466,9 @@ request::ParsingStatus request::checkBody3(std::string body, server& _server)
 			}
 		}
 		// cout << RED << "ENTER " << filename << RESET_TEXT << endl;
-		std::ofstream outputFile(filename, std::ios::app);//std::ios::app);
+		std::ofstream outputFile("upload/" + filename, std::ios::app);//std::ios::app);
 		if (outputFile.is_open()) {
-			if (line == "\r")
+			if (line == "\n")
 				getline(iss, line);
 			cout << BLACK << line << RESET_TEXT << endl;
 			if (gg == 0 || bodyContentLength == 1) {
