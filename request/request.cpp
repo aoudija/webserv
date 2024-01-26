@@ -657,7 +657,6 @@ int request::matchLocation(server& _server)
 int request::parseRequest(std::string request, server& _server)
 {
 	if (headerFields.find("Transfer-Encoding") != headerFields.end()) {
-		cout << BLUE << "content type in chumked: " << this->ContentType << RESET_TEXT << endl;
 		checkBody(request, _server);
 	}
 	else {
