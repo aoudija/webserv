@@ -1,4 +1,4 @@
-#include "../server.hpp"
+	#include "../server.hpp"
 
 using std::cout;
 using std::cin;
@@ -256,7 +256,45 @@ void printChar(char c)
 		std::cout << CYAN << c << RESET_TEXT << std::endl;
 }
 
-request::ParsingStatus request::parsChunked(char c)
+std::string getTheExtensionFromContentType(std::string daContentType)
+{
+	// Find the position of the '/'
+	size_t slashPos = daContentType.find('/');
+
+	if (slashPos != std::string::npos) {
+		// Extract the substring after the '/'
+		std::string fileType = daContentType.substr(slashPos + 1);
+
+		// Replace any '+' characters with '_' (e.g., image/jpeg -> jpeg)
+		size_t plusPos = fileType.find('+');
+		while (plusPos != std::string::npos) {
+			fileType[plusPos] = '_';
+			plusPos = fileType.find('+', plusPos + 1);
+		}
+		// Return the file extension
+		return "." + fileType;
+	} else {
+		// Return an empty string if no '/' is found
+		return "";
+	}
+}
+
+std::string generateRandomFileName() {
+	std::string characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+	const int length = 8;  // Adjust the length as needed
+
+	std::string randomFileName;
+	srand(static_cast<unsigned>(time(0)));
+
+	for (int i = 0; i < length; ++i) {
+		int randomIndex = rand() % characters.length();
+		randomFileName += characters[randomIndex];
+	}
+
+	return randomFileName;
+}
+
+request::ParsingStatus request::parsChunked(char c, std::string fileName)
 {
 	// cout << RED << "the char id: " << c << RESET_TEXT << endl;
 	switch (currentChunkedState) {
@@ -309,8 +347,7 @@ request::ParsingStatus request::parsChunked(char c)
 		}
 		// cout << "ja hna  +++++++++++++++++++++" << chunkSize << endl;
 		chunkSize--;
-		std::ofstream outputFile("theBodyContentIsHere", std::ios::app);
-
+		std::ofstream outputFile("upload/" + fileName, std::ios::app);
 			// cout << "ja hna +++++++++++++++++++++" << endl;
 		if (outputFile.is_open() && this->method != "GET")
 		{
@@ -350,21 +387,6 @@ request::ParsingStatus request::parsChunked(char c)
 return request::ParsingContinue;
 }
 
-std::string generateRandomFileName() {
-    std::string characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    const int length = 8;  // Adjust the length as needed
-
-    std::string randomFileName;
-    srand(static_cast<unsigned>(time(0)));
-
-    for (int i = 0; i < length; ++i) {
-        int randomIndex = rand() % characters.length();
-        randomFileName += characters[randomIndex];
-    }
-
-    return randomFileName;
-}
-
 request::ParsingStatus request::checkBody(std::string body, server& _server)
 {
 	if ((int)body.size() > _server.getClientBodyLimit()) {
@@ -373,6 +395,8 @@ request::ParsingStatus request::checkBody(std::string body, server& _server)
 		return ParsingFailed;
 		printError("Request Entity Too Large", 413);
 	}
+	std::string fileName;
+	fileName = generateRandomFileName() + getTheExtensionFromContentType(this->ContentType);
 	if (chunkSize == 0)
 		currentChunkedState = Initial;
 	else if (chunkSize > 0)
@@ -381,7 +405,7 @@ request::ParsingStatus request::checkBody(std::string body, server& _server)
 	for (size_t i = 0; i < body.size(); ++i)
 	{
 		char currentChar = body[i];
-		ParsingStatus status = parsChunked(currentChar);
+		ParsingStatus status = parsChunked(currentChar, fileName);
 		switch (status)
 		{
 		case ParsingContinue:
@@ -400,22 +424,26 @@ request::ParsingStatus request::checkBody(std::string body, server& _server)
 	return ParsingDone;
 }
 
+
 request::ParsingStatus request::checkBody2(std::string body, server& _server)
 {
 	if ((int)body.size() > _server.getClientBodyLimit()) {
-		this->statusCode = "413 Request Entity Too Large";
-		this->filePath = errorPageTamplate("413, Request Entity Too Large");
-		return ParsingFailed;
-		printError("Request Entity Too Large", 413);
+		// this->statusCode = "413 Request Entity Too Large";
+		// this->filePath = errorPageTamplate("413, Request Entity Too Large");
+		// return ParsingFailed;
+		// printError("Request Entity Too Large", 413);
 	}
 	std::string fileName;
-	fileName = generateRandomFileName();
-	cout << "the content type is:" << this->ContentType << endl;
-	std::ofstream outputFile(filename, std::ios::app);
-	if (outputFile.is_open() && this->method != "GET") {
+	fileName = generateRandomFileName() + getTheExtensionFromContentType(this->ContentType);
+	std::ofstream outputFile("upload/" + fileName, std::ios::app);
+	if (outputFile.is_open()) {
+		cout << "file is open" << endl;
 		outputFile << body;
-		outputFile.close();
 	}
+	if (!outputFile.is_open()) {
+		cout << "file not open" << endl;
+	}
+	outputFile.close();
 	bodyContentLength += body.size();
 	return ParsingDone;
 }
@@ -468,15 +496,17 @@ request::ParsingStatus request::checkBody3(std::string body, server& _server)
 		// cout << RED << "ENTER " << filename << RESET_TEXT << endl;
 		std::ofstream outputFile("upload/" + filename, std::ios::app);//std::ios::app);
 		if (outputFile.is_open()) {
-			if (line == "\n")
+			if (line.compare("\r\n") == 0) {
+				cout << "YEEESSSS" << endl;
 				getline(iss, line);
-			cout << BLACK << line << RESET_TEXT << endl;
+			}
+			// cout << BLACK << line << RESET_TEXT << endl;
 			if (gg == 0 || bodyContentLength == 1) {
+					// outputFile << line + '\n' ;//<< std::endl;
+				if (iss.tellg() != -1)
 					outputFile << line + '\n' ;//<< std::endl;
-				// if (iss.tellg() != -1)
-				// 	outputFile << line + '\n' ;//<< std::endl;
-				// else
-				// 	outputFile << line;
+				else
+					outputFile << line;
 				// outputFile << std::endl;
 				bodyContentLength += line.size() + 1;
 			}
@@ -486,14 +516,14 @@ request::ParsingStatus request::checkBody3(std::string body, server& _server)
 					flag = 0;
 					break;
 				}
-				if (line == "\r")
-					continue;
-				cout << BLACK << line << RESET_TEXT << endl;
+				// if (line == "\r")
+				// 	continue;
+				// cout << BLACK << line << RESET_TEXT << endl;
+					// outputFile << line + '\n' ;//<< std::endl;
+				if (iss.tellg() != -1)
 					outputFile << line + '\n' ;//<< std::endl;
-				// if (iss.tellg() != -1)
-				// 	outputFile << line + '\n' ;//<< std::endl;
-				// else
-				// 	outputFile << line;
+				else
+					outputFile << line;
 				bodyContentLength += line.size() + 1;
 			}
 			outputFile.close();
@@ -568,7 +598,7 @@ bool fileExists(const char* path) {
 	if (stat(path, &fileInfo) != 0) {
 		return false;
 	}
-	return S_ISREG(fileInfo.st_mode);
+	return S_ISREG(fileInfo.st_mode) || S_ISDIR(fileInfo.st_mode);
 }
 
 int request::matchLocation(server& _server)
@@ -627,15 +657,20 @@ int request::matchLocation(server& _server)
 int request::parseRequest(std::string request, server& _server)
 {
 	if (headerFields.find("Transfer-Encoding") != headerFields.end()) {
+		cout << BLUE << "content type in chumked: " << this->ContentType << RESET_TEXT << endl;
 		checkBody(request, _server);
 	}
 	else {
 		if (headerFields.find("Content-Type") != headerFields.end()
 		&& headerFields["Content-Type"].find("multipart/form-data") != std::string::npos) {
 			checkBody3(request, _server);
+			std::string extension = getFileExtension(this->requestURI);
+			if (!extension.empty())
+				this->ContentType = allContTypes[extension];
 		}
 		else {
 			checkBody2(request, _server);
+			cout << BLUE << "content type in content length: " << this->ContentType << RESET_TEXT << endl;
 		}
 	}
 
@@ -665,6 +700,7 @@ int request::parseRequest(std::string request, server& _server)
 
 void request::setContentType()
 {
+
 	addAllContentTypes();
 	if (this->method == "GET") {
 		if (isDirectory(requestURI.c_str())) {
@@ -684,6 +720,7 @@ void request::setContentType()
 		}
 	}
 	if (this->method == "POST") {
+			cout << BLUE << "content type in chumked: " << RESET_TEXT << endl;
 		this->ContentType = this->headerFields["Content-Type"];
 		this->boundary = "--" + this->ContentType.substr(this->ContentType.find("boundary=") + 9);
 		size_t lastNonSpace = this->boundary.find_last_not_of(" \t\r\n");

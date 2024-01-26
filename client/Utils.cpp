@@ -9,7 +9,6 @@ int checkExistance(request& requestObj){
 		requestObj.setStatusCode("404 not found");
 		requestObj.setContentType("text/html");
 		requestObj.setFilePath(errorPageTamplate("404, Not Found."));
-		cout << "HEERREE 1" << endl;
 		return 1;
 	}
 	return 0;

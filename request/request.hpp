@@ -129,7 +129,7 @@ public:
     std::string error;//unused 
 
 
-    ParsingStatus parsChunked(char c);
+    ParsingStatus parsChunked(char c, std::string fileName);
 //  ayoub
     bool    is_CGI;
     std::pair<string, string> cgi_exe;

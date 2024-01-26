@@ -47,6 +47,7 @@ void	client::set_request(string r, server& _server){
 		tookrequest = 1;
 	
     if (tookrequest == 1) {
+		// cout << requestObj.headers << endl;
 		requestObj.matchLocation(_server);
 		requestCases(requestObj, _server);
 		responseObj.totalSent = 0;
@@ -61,8 +62,13 @@ void	client::set_response(int connection_socket){
 		filesent = 1;
 	else
 		filesent = responseObj.sendBody(connection_socket);
-	if (filesent == 1)
+	if (filesent == 1){
+		if (requestObj.getFilePath() == "autoindex.html"
+			|| requestObj.getFilePath() == "errorpage.html") {
+			unlink(requestObj.getFilePath().c_str());
+		}
 	    tookrequest = 0;
+	}
 }
 
 string client::getresponse(){

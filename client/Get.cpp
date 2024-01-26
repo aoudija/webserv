@@ -13,6 +13,17 @@ void	_get_(request& requestObj,server& _server){
 		{
 			codeNpath(requestObj,"301 Moved Permanently",
 				string(requestObj.getFilePath() + "/").c_str());
+			if (!_server.getIndex().empty()) {
+				if (!_server.getAutoindex()) {
+					codeNpath(requestObj, "403 Forbidden", "text/html");
+					return ;
+				}
+				else {
+					generateAutoIndex(requestObj.getFilePath(), "autoindex.html");//?need to do lmsa l file d index
+					codeNpath(requestObj,"301 Moved Permanently", "autoindex.html");
+					return ;
+				}
+			}
 			return ;
 		}
 		if (!_server.getIndex().empty()) {
@@ -26,8 +37,9 @@ void	_get_(request& requestObj,server& _server){
 				return ;
 			}
 		}
-		else 
-				isCGI(requestObj, requestObj.getFilePath(), _server);
+		else {
+			isCGI(requestObj, requestObj.getFilePath(), _server);
+		}
 	}
 	else 
 		isCGI(requestObj, requestObj.getFilePath(), _server);

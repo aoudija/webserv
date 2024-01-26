@@ -28,7 +28,8 @@ void	response::sendHeader(int connection_socket, request& request){
 		header = "HTTP/1.1 301 Moved Permanently\r\n"
 			"Location: "+ request.getredirectURL() +'\0';
 	}
-	else{
+	else {
+		cout << "content type is: "<< request.getContentType() << endl;
 		header = "HTTP/1.1 " + request.getStatusCode()+ "\r\n"
 			"Content-Length: " + std::to_string(filesize) + "\r\n"
 			"Content-Type: "+ request.getContentType() + "\r\n\r\n"+'\0';
