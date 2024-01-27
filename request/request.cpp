@@ -609,14 +609,14 @@ int request::matchLocation(server& _server)
 
 	// std::cout << MAGENTA << "***** the path *****" << paths << RESET_TEXT << std::endl;
 
-	if (fileExists(paths.c_str()))
-	{
-		std::cout << GREEN << "***** flbla *****" << RESET_TEXT << std::endl;
-		filePath = this->requestURI;
-		if (filePath[0] == '/')
-			filePath = filePath.substr(1);
-		return 0;
-	}
+	// if (fileExists(paths.c_str()))
+	// {
+	// 	std::cout << GREEN << "***** flbla *****" << RESET_TEXT << std::endl;
+	// 	filePath = this->requestURI;
+	// 	if (filePath[0] == '/')
+	// 		filePath = filePath.substr(1);
+	// 	return 0;
+	// }
 
 	while (!paths.empty())
 	{
