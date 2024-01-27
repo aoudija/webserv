@@ -16,7 +16,7 @@ void	client::requestCases(request &requestObj, server& _server)
 		_post_(requestObj,_server);
 	}
 	else if (requestObj.getMethod() == "DELETE")
-		_delete_(requestObj, _server);
+		_delete_(requestObj);
 }
 
 void	client::set_request(string r, server& _server){
@@ -39,15 +39,13 @@ void	client::set_request(string r, server& _server){
 		else
 			requestObj.headersDone = 3;
 	}
-	requestObj.setContentLength();//!
+	requestObj.setContentLength();
 	requestObj.setContentType();
 	if (requestObj.getMethod() == "POST")
 		tookrequest = requestObj.getBodyRequest(r);
-	if (requestObj.getMethod() == "GET")//!add delete
+	if (requestObj.getMethod() == "GET" || requestObj.getMethod() == "DELETE")
 		tookrequest = 1;
-	
     if (tookrequest == 1) {
-		// cout << requestObj.headers << endl;
 		requestObj.matchLocation(_server);
 		requestCases(requestObj, _server);
 		responseObj.totalSent = 0;
@@ -58,7 +56,7 @@ void	client::set_request(string r, server& _server){
 void	client::set_response(int connection_socket){
 	if (!responseObj.totalSent)
 		responseObj.sendHeader(connection_socket, requestObj);
-	if (!requestObj.getredirectURL().empty())
+	if (!requestObj.getredirectURL().empty() || requestObj.getMethod() == "DELETE")
 		filesent = 1;
 	else
 		filesent = responseObj.sendBody(connection_socket);

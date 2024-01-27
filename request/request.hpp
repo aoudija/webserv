@@ -138,6 +138,11 @@ public:
 
     string    getCgiHeader(void);
     string    getCgiBody(void);
+    //amine
+    void    setmethod(string s){
+        method = s;
+    }
+    //endamine
 };
 
 bool fileExists(const char* path);

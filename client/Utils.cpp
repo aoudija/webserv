@@ -5,7 +5,12 @@ using std::string;
 using std::vector;
 
 int checkExistance(request& requestObj){
-	if (!fileExists(requestObj.getFilePath().c_str())) {
+    string path;
+    if (requestObj.getMethod() == "DELETE")
+        path = requestObj.loc.getRoot() + requestObj.getrequestURI();
+	else
+        path = requestObj.getFilePath();
+    if (!fileExists(path.c_str())) {
 		requestObj.setStatusCode("404 not found");
 		requestObj.setContentType("text/html");
 		requestObj.setFilePath(errorPageTamplate("404, Not Found."));
@@ -99,4 +104,5 @@ void	codeNpath(request& requestObj, const char* statusCode, const char* filePath
 	requestObj.setStatusCode(statusCode);
 	requestObj.setContentType("text/html");
 	requestObj.setFilePath(filePath);
+    requestObj.setmethod("GET");
 }

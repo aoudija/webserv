@@ -38,7 +38,7 @@ using std::string;
 using std::pair;
 class request;
 //Client class
-void	_delete_(request&, server&);
+void	_delete_(request&);
 void	_get_(request&, server&);
 void	_post_(request&, server&);
 //utils
