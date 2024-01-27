@@ -11,11 +11,9 @@ void	_get_(request& requestObj,server& _server){
 	{
 		if (!endsWithSlash(requestObj.getFilePath()))
 		{
-			codeNpath(requestObj,"301 Moved Permanently",
-				string(requestObj.getFilePath() + "/").c_str());
-			if (!_server.getIndex().empty()) {
+			if (requestObj.loc.getIndex().empty()) {
 				if (!_server.getAutoindex()) {
-					codeNpath(requestObj, "403 Forbidden", "text/html");
+					codeNpath(requestObj, "403 Forbidden", errorPageTamplate("403, Forbidden.").c_str());
 					return ;
 				}
 				else {
@@ -24,11 +22,12 @@ void	_get_(request& requestObj,server& _server){
 					return ;
 				}
 			}
+			codeNpath(requestObj, "301 Moved Permanently", (requestObj.getFilePath() + "/" + _server.getIndex()).c_str());
 			return ;
 		}
 		if (!_server.getIndex().empty()) {
 			if (!_server.getAutoindex()) {
-				codeNpath(requestObj, "403 Forbidden", "text/html");
+				codeNpath(requestObj, "403 Forbidden", errorPageTamplate("403, Forbidden.").c_str());
 				return ;
 			}
 			else {

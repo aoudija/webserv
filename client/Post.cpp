@@ -21,7 +21,7 @@ void	_post_(request& requestObj, server& _server){
 				string(requestObj.getFilePath() + "/").c_str());
 			if (!_server.getIndex().empty()) {
 				if (!_server.getAutoindex()) {
-					codeNpath(requestObj, "403 Forbidden", "text/html");
+					codeNpath(requestObj, "403 Forbidden", errorPageTamplate("403, Forbidden.").c_str());
 					return ;
 				}
 				else {
@@ -34,7 +34,7 @@ void	_post_(request& requestObj, server& _server){
 		}
 		else {
 			if (!_server.getIndex().empty()) {
-				codeNpath(requestObj, "403 Forbidden", "text/html");
+				codeNpath(requestObj, "403 Forbidden", errorPageTamplate("403, Forbidden.").c_str());
 				return ;
 			}
 			else 
