@@ -389,6 +389,32 @@ std::string extractFilename(const std::string& boundaryHeaders) {
 	return filename;
 }
 
+bool fileExists2(const std::string& fileName) {
+    std::ifstream file(fileName.c_str());
+    return file.is_open();
+}
+
+std::string generateNewFileName(const std::string& fileName) {
+	size_t dotPosition = fileName.find_last_of('.');
+	std::string baseName = fileName.substr(0, dotPosition);
+	std::string extension = fileName.substr(dotPosition);
+
+	int counter = 2;
+	std::string newFileName;
+	newFileName = fileName;
+	bool exist = fileExists2("upload/" + fileName);
+	while (exist)
+	{
+		std::ostringstream oss;
+		oss << baseName << counter << extension;
+		newFileName = oss.str();
+		exist = fileExists2("upload/" + newFileName);
+		counter++;
+	}
+
+	return newFileName;
+}
+
 request::ParsingStatus request::checkBody3(std::string body, server& _server)
 {
 	if ((int)body.size() > _server.getClientBodyLimit()) {
@@ -406,6 +432,7 @@ request::ParsingStatus request::checkBody3(std::string body, server& _server)
 		if (part.find("\r\n\r\n") != std::string::npos)
 		{
 			std::string fileName = extractFilename(part.substr(0, part.find("\r\n\r\n")));
+			fileName = generateNewFileName(fileName);
 			std::ofstream outputFile("upload/" + fileName);
 			if (outputFile.is_open())
 			{
