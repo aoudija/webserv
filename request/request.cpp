@@ -16,6 +16,7 @@ request::request() : requestStatus(true) {
 	this->is_CGI = 0;
 	this->redirectURL = "";
 	this->statusCode = "200 OK";
+	this->failHeader = false;
 }
 
 // request::request()
@@ -91,6 +92,8 @@ string request::getQueryString() {
 std::string errorPageTamplate(std::string errorMessage)
 {
     std::string filePath = "errorpage.html";
+	if (fileExists(filePath.c_str()))
+		unlink(filePath.c_str());
     std::ofstream outputFile(filePath, std::ios::trunc);
 
     if (outputFile.is_open())
@@ -175,9 +178,15 @@ int request::checkRequestLine(std::string request)
 
 	std::istringstream stream2(line);
 
-	// std::cout << line << std::endl;
-
 	stream2 >> this->method >> this->requestURI >> this->httpVersion;
+
+	if (this->method.empty() || this->requestURI.empty() || this->httpVersion.empty()) {
+		this->statusCode = "400 Bad Request";
+		this->filePath = errorPageTamplate("400, Bad Request");
+		return 1;
+		printError("Bad Request", 400);
+	}
+
 	this->requestURI = removeAndSetQueryString(this->requestURI);
 	if (this->method != "GET" && this->method != "POST" && this->method != "DELETE") {
 		this->statusCode = "405 Method Not Allowed";
@@ -192,6 +201,7 @@ int request::checkRequestLine(std::string request)
 		printError("Bad Request", 400);
 	}
 	if (this->requestURI.size() > 2048)/* mazal request body larger than lbody li fl config file !!*/ {
+		cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
 		this->statusCode = "414 Bad Request";
 		this->filePath = errorPageTamplate("414, Bad Request");
 		return 1;
@@ -699,11 +709,7 @@ int request::getHeadersRequest(std::string requestPart) {
 		return 0;
 	}
 	if (!headersDone && requestPart.find("\r\n\r\n") != std::string::npos) {
-		// cout << "hhh " << requestPart.substr(0, requestPart.find("\r\n\r\n")) << endl;
-		// this->headers = this->headers.append(requestPart.substr(0, requestPart.find("\r\n\r\n")), requestPart.substr(0, requestPart.find("\r\n\r\n")).size());
-		// this->headers = requestPart.substr(0, requestPart.find("\r\n\r\n"));
 		this->headers.append(requestPart.substr(0, requestPart.find("\r\n\r\n")));
-		// this->theBody.append(requestPart.substr(requestPart.find("\r\n\r\n")));
 		headersDone = 1;
 		return 1;
 	}

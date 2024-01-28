@@ -64,7 +64,8 @@ void generateAutoIndex(const std::string& directoryPath, const std::string& outp
         std::cerr << "Error opening directory: " << strerror(errno) << std::endl;
         return;
     }
-
+	if (fileExists(outputFileName.c_str()))
+		unlink(outputFileName.c_str());
     std::ofstream outputFile(outputFileName.c_str());
 
     if (!outputFile.is_open()) {

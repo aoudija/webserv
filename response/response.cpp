@@ -11,9 +11,9 @@ void	response::initialize(request& request){
 	int fd;
 		cout << RED<< "file path is: " << request.getFilePath() << RESET_TEXT << endl;
 	if (request.is_CGI)
-			fd = open(request.getCgiBody().c_str(), O_RDONLY);
+		fd = open(request.getCgiBody().c_str(), O_RDONLY);
 	else
-			fd = open(request.getFilePath().c_str(), O_RDONLY);
+		fd = open(request.getFilePath().c_str(), O_RDONLY);
 	filesize = lseek(fd, 0, SEEK_END);
 	lseek(fd, 0, SEEK_SET);
 	buffer = new char[filesize];

@@ -64,6 +64,7 @@ class request
 public:
 	int bodyDone;
 	int headersDone;
+	bool failHeader;
 	std::string headers;//before parsing
 	std::string theBody;//after parsing
 
