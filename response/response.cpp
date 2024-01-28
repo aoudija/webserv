@@ -28,6 +28,10 @@ void	response::sendHeader(int connection_socket, request& request){
 		header = "HTTP/1.1 301 Moved Permanently\r\n"
 			"Location: "+ request.getredirectURL() +'\0';
 	}
+	else if (request.getMethod() == "DELETE")
+	{
+		header = "HTTP/1.1 " + request.getStatusCode()+ "\r\n\r\n"+'\0';
+	}
 	else {
 		cout << "content type is: "<< request.getContentType() << endl;
 		header = "HTTP/1.1 " + request.getStatusCode()+ "\r\n"
@@ -39,9 +43,10 @@ void	response::sendHeader(int connection_socket, request& request){
 		write(connection_socket, request.getCgiHeader().c_str(),
 			strlen(request.getCgiHeader().c_str()));
 	}
-	else
-		write(connection_socket, header.c_str(),	//header
+	else{
+		write(connection_socket, header.c_str(),    //header
 		strlen(header.c_str()));
+	}
 }
 
 int	response::sendBody(int connection_socket){

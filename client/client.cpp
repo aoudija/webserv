@@ -48,7 +48,8 @@ void	client::set_request(string r, server& _server){
 	}
 	if (requestObj.failHeader && tookrequest) {
 		responseObj.totalSent = 0;
-		responseObj.initialize(requestObj);
+		if (requestObj.getMethod() != "DELETE")
+			responseObj.initialize(requestObj);
 	}
 	else {
 		if (requestObj.headersDone == 3) {
@@ -63,7 +64,8 @@ void	client::set_request(string r, server& _server){
 			requestObj.matchLocation(_server);
 			requestCases(requestObj, _server);
 			responseObj.totalSent = 0;
-			responseObj.initialize(requestObj);
+		if (requestObj.getMethod() != "DELETE")
+				responseObj.initialize(requestObj);
 		}
 	}
 }
