@@ -106,7 +106,7 @@ void	server::Myhostport(std::vector<std::string> list, int line){
     long parsedPort = std::strtol(portStr.c_str(), &endPtr, 10);
 
     // Check for conversion errors
-    if (*endPtr != '\0' || parsedPort < 0 || parsedPort > 65535)
+    if (*endPtr != '\0' || parsedPort <= 0 || parsedPort > 65535)
         throw std::invalid_argument(throwmessage(line, "Error: Invalid port number."));
 
 	setPort(portStr);
@@ -338,7 +338,7 @@ void	server::Myclient_body_limit(std::vector<std::string> list, int line){
 	char* endPtr;
     long parsedcbl = std::strtol(withoutsemicolon(list[1]).c_str(), &endPtr, 10);
 	std::string str = withoutsemicolon(list[1]).c_str();
-	if (endPtr == str.c_str() + strlen(str.c_str()) || parsedcbl < 0 || parsedcbl > static_cast<long>(INT_MAX))
+	if (endPtr == str.c_str() + strlen(str.c_str()) || parsedcbl < 0 || parsedcbl > static_cast<long long>(__LONG_LONG_MAX__))
 		throw std::invalid_argument(throwmessage(line, "Error: Invalide input in Client Body Limit."));
     this->client_body_limit = static_cast<int>(parsedcbl);
 }

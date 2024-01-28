@@ -27,8 +27,8 @@
 #include <algorithm>
 #include "request/request.hpp"
 #include "response/response.hpp"
-#include "aubb/Location.hpp"
-#include "aubb/Config.hpp"
+#include "Parsing/Location.hpp"
+#include "Parsing/Config.hpp"
 #include "cgi/Cgi.hpp"
 
 
@@ -80,7 +80,7 @@ class server{
 	// ayoub ---------mnhna ltht(private)
 	string				root;
 	string				index;
-	int					client_body_limit;
+	long long			client_body_limit;
 	bool				autoindex;
 	bool				upload;
 	vector<string>		allow_methods;

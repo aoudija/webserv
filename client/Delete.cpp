@@ -19,6 +19,10 @@ int deleteDirectory(const char* path) {
 			if (entry->d_type == DT_DIR) {
 				// Recursively delete subdirectories
 				deleteDirectory(filePath.c_str());
+				if (rmdir(path) != 0) {
+					std::cerr << "Error deleting directory: " << path << std::endl;
+					return 1;
+				}
 			} else {
 				// Delete files
 				if (unlink(filePath.c_str()) != 0) {
@@ -32,10 +36,6 @@ int deleteDirectory(const char* path) {
 	closedir(dir);
 
 	// Remove the empty directory
-	if (rmdir(path) != 0) {
-		std::cerr << "Error deleting directory: " << path << std::endl;
-		return 1;
-	}
 	return 0;
 }
 

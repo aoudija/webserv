@@ -68,7 +68,6 @@ void	Cgi::init(){
 	std::map<string, string> headerenv = MyRequest.headerFields;
 	std::map<string, string>::iterator it = headerenv.begin();
 	for(; it != headerenv.end(); it++){
-		// std::cout << RED << it->first << "=" <<it->second << RESET_TEXT << std::endl;
 		string key = toUpperCase(it->first);
 		replace_(key);
 		string value = it->second;
@@ -94,7 +93,8 @@ void	Cgi::init(){
 		mapenv["CONTENT_TYPE"] = this->MyRequest.headerFields["Content-Type"];//clien content type
 		mapenv["CONTENT_LENGTH"] = this->MyRequest.headerFields["Content-Length"];//clien content lengh
 		mapenv["REQUEST_METHOD"] = this->MyRequest.getMethod();
-		mapenv["QUERY_STRING"] = MyRequest.theBody;
+		if (MyRequest.cgi_exe.second == "php")
+			mapenv["QUERY_STRING"] = MyRequest.theBody;
 	}
 	else if (this->MyRequest.getMethod() == "GET"){
 		mapenv["QUERY_STRING"] = this->MyRequest.getQueryString();
@@ -106,24 +106,16 @@ void	Cgi::init(){
 	for(; it2 != mapenv.end(); it2++){
 		string key = toUpperCase(it2->first);
 		string value = it2->second;
-			// std::cout << RED << key << "=" <<value << RESET_TEXT << std::endl;
 	}
 	size_t len = mapenv.size();
 	this->env = new char*[len+1];
 	size_t i = 0;
 	 for (std::map<std::string, std::string>::const_iterator it = mapenv.begin(); it != mapenv.end(); ++it) {
-        // Concatenate "key+value"
-        // std::string keyValue = it->first + "+" + it->second;
-
-        // Allocate memory for the string and copy the content
         this->env[i] = strjoin(it->first + "=", it->second);
-        // std::strcpy(this->env[i], keyValue.c_str());
-
         ++i;
     }
 	
 	this->env[len] = NULL;
-
 }
 
 void	Cgi::set_arg(){
@@ -131,24 +123,6 @@ void	Cgi::set_arg(){
 	arg[0] = strdup(MyRequest.cgi_exe.first.c_str());
 	arg[1] = strdup(this->MyRequest.getFilePath().c_str());
 	arg[2] = NULL;
-}
-
-std::string generateFileName() {
-    struct timeval	tp;
-	long			time;
-
-	gettimeofday(&tp, NULL);
-	time = tp.tv_sec * 1000 + tp.tv_usec / 1000;
-    std::stringstream ss;
-    ss << time;
-
-    // Generate t'he file name using the current date and time
-    std::string fileName = "/tmp/file_" + ss.str();
-    std::ifstream file(fileName.c_str());
-    if (file.good()) {
-        fileName = generateFileName();
-    }
-    return fileName;
 }
 
 std::string trim(const std::string& str) {
@@ -159,18 +133,6 @@ std::string trim(const std::string& str) {
         return "";  // String is all whitespaces
     }
     return str.substr(start, end - start + 1);
-}
-
-std::string RandomString()
-{
-    char alpha[26] = { 'a', 'b', 'c', 'd', 'e', 'f', 'g',
-                          'h', 'i', 'j', 'k', 'l', 'm', 'n',
-                          'o', 'p', 'q', 'r', 's', 't', 'u',
-                          'v', 'w', 'x', 'y', 'z' };
-    std::string result = "";
-    for (int i = 0; i<26; i++)
-        result = result + alpha[rand() % 26];
-    return result;
 }
 
 void	Cgi::parseHeader(std::vector<std::string> header, size_t len){
@@ -206,9 +168,6 @@ void	Cgi::parseHeader(std::vector<std::string> header, size_t len){
 	std::cout << MAGENTA << head << RESET_TEXT << std::endl;
 }
 
-
-
-
 std::vector<std::string> splitString(const std::string& input) {
     std::vector<std::string> result;
     std::istringstream iss(input);
@@ -227,30 +186,32 @@ std::vector<std::string> splitString(const std::string& input) {
 void handleTimeout(int sig)
 {
 	(void)sig;
-	exit(500);
+	exit(100);
 }
 
-void Cgi::exe(){
-		// std::cout << BLUE << "dklsfkljdsklfjkldsjfkjdskljfkldjs" << std::endl;
+int Cgi::exe(){
 	init();
 	set_arg();
 	
 	pid_t	pid;
-	std::string filename= "0";
-	std::string filename2= "1";
-	int fileDescriptor1 = open(filename2.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	std::string filename= "/tmp/file_all";
+	std::string filebody= "/tmp/file_body";
+	std::string fileerr= "/tmp/file_err";
+	int fd_body = open(filebody.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 
-	write(fileDescriptor1, MyRequest.theBody.c_str(), MyRequest.theBody.length());
-	close(fileDescriptor1);
+	write(fd_body, MyRequest.theBody.c_str(), MyRequest.theBody.length());
+	close(fd_body);
 	pid = fork();
-	// std::cerr << "1" << filename << std::endl;
 	if (!pid) {
 		int	fd = open(filename.c_str(), O_CREAT | O_RDWR | O_TRUNC, 0666);
 		dup2(fd, 1); // need protection
 		close(fd);
+		int	fd2 = open(fileerr.c_str(), O_CREAT | O_RDWR | O_TRUNC, 0666);
+		dup2(fd2, 2); // need protection
+		close(fd2);
 		if (MyRequest.getMethod() == "POST"){
-			std::cerr << filename2 << std::endl;
-			int fd1 = open(filename2.c_str(), O_RDONLY);
+			std::cerr << filebody << std::endl;
+			int fd1 = open(filebody.c_str(), O_RDONLY);
 			dup2(fd1, 0);
 			close(fd1);
 		}
@@ -263,16 +224,14 @@ void Cgi::exe(){
     waitpid(pid, &status, 0);
 	if (status > 0){
 		std::cerr << status << ": errrrooo cgi" << std::endl;
-		exit(0);
+		return 1;
 	}
 
 
 	std::string body;
 	std::ifstream file(filename);
-    if (!file.is_open()) {
-        std::cerr << "Error opening file: " << filename << std::endl;
-        exit(EXIT_FAILURE);
-    }
+    if (!file.is_open()) 
+        return 1;
     std::ostringstream content;
     content << file.rdbuf();
     file.close();
@@ -291,13 +250,12 @@ void Cgi::exe(){
 	body = trim(body);
 	parseHeader(result, body.size());
 
+	std::string filebodysend = "/tmp/file_sendbody";
 
-	this->body = body;
+	int fdbodysend = open(filebodysend.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	write(fdbodysend, body.c_str(), body.length());
+	close(fdbodysend);
 
-	std::string filename3 = generateFileName()+"3";
-	int fileDescriptor = open(filename3.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
-
-	write(fileDescriptor, body.c_str(), body.length());
-	close(fileDescriptor);
-	this->body = filename3;
+	this->body = filebodysend;
+	return 0;
 }

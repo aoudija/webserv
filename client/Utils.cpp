@@ -48,7 +48,10 @@ bool	isCGI(request& requestObj, const std::string& filePath,
 			requestObj.is_CGI = 1;
 			requestObj.cgi_exe = cgi_exe[i];
 			Cgi	cgi(_server, requestObj.loc, requestObj);
-			cgi.exe();
+			if (cgi.exe()){
+                codeNpath(requestObj,"502 Bad Gateway", errorPageTamplate("502, Bad Gateway").c_str());
+				return 0;
+            }
 			requestObj.setCgiBody(cgi.body);
 			requestObj.setCgiHeader(cgi.header);
 			return 1;
@@ -106,4 +109,5 @@ void	codeNpath(request& requestObj, const char* statusCode, const char* filePath
 	requestObj.setContentType("text/html");
 	requestObj.setFilePath(filePath);
     requestObj.setmethod("GET");
+    requestObj.is_CGI = 0;
 }

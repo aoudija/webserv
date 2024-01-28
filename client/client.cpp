@@ -52,7 +52,7 @@ void	client::set_request(string r, server& _server){
 			responseObj.initialize(requestObj);
 	}
 	else {
-		if (requestObj.headersDone == 3) {
+		if (requestObj.headersDone == 3 || requestObj.headersDone == 4) {
 			requestObj.setContentLength();
 			requestObj.setContentType();
 			if (requestObj.getMethod() == "POST")

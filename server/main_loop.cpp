@@ -63,8 +63,8 @@ void readRequest(vector<struct pollfd>&	pfds,struct pollfd &pfd, server& server)
 		request[r] = '\0';
 		theRequest = string(request, r);
 
-		// cout << "Received " << r << " bytes." << endl;
-		// printf("\033[1;37m%.*s\033[0m", r, request);
+		cout << "Received " << r << " bytes." << endl;
+		printf("\033[1;37m%.*s\033[0m", r, request);
 		server.clients[pfd.fd].set_request(theRequest, server);
 		if (server.clients[pfd.fd].tookrequest == 1)
 			pfd.events = POLLOUT | POLLHUP;

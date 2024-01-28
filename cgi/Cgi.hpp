@@ -24,7 +24,7 @@ public:
 	std::string	header;
 	std::string	body;
 	void	init();
-	void	exe();
+	int		exe();
 	void	set_arg();
 };
 

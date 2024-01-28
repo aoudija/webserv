@@ -12,7 +12,7 @@
 
 #include <vector>
 #include "../server.hpp"
-#include "../aubb/Location.hpp"
+#include "../Parsing/Location.hpp"
 
 using std::string;
 using std::map;
