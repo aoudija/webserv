@@ -40,7 +40,7 @@ void	response::sendHeader(int connection_socket, request& request){
 	if (request.is_CGI){
 		header = request.getCgiHeader();
 	}
-	else if (!request.is_CGI){
+	else {
 		cout << "content type is: "<< BLUE << request.getContentType() << RESET_TEXT << endl;
 		header = "HTTP/1.1 " + request.getStatusCode()+ "\r\n"
 			"Content-Length: " + std::to_string(filesize) + "\r\n"
@@ -50,33 +50,29 @@ void	response::sendHeader(int connection_socket, request& request){
 }
 
 int	response::sendBody(int connection_socket){
-	static int sendHeader;
-	if (!sendHeader){
-		sendHeader++;
-		write(connection_socket, header.c_str(),    //header
+	if (!firstT){
+		firstT++;
+		int bytes_sent = write(connection_socket, header.c_str(),    //header
 		strlen(header.c_str()));
-		return 0;
-	}
-	else{
-		int bytes_sent;
-		size_t len = 1024;
-		if (len > filesize - totalSent)
-			len = filesize - totalSent;
-		bytes_sent = write(connection_socket, buffer + totalSent, len);
-		cout << "bytes sent: "<< bytes_sent << endl;
 		if (bytes_sent <= 0){
 			perror("write");
 			totalSent++;
 		}
-		totalSent += bytes_sent;
-		int allFileSent = 0;
-		if (totalSent >= filesize){
-			allFileSent = 1;
-			totalSent = 0;
-			sendHeader = 0;
-			free(buffer);
-		}
-		return allFileSent;
+		return 0;
 	}
+	int bytes_sent;
+	size_t len = 1024;
+	if (len > filesize - totalSent)
+		len = filesize - totalSent;
+	bytes_sent = write(connection_socket, buffer + totalSent, len);
+	totalSent += bytes_sent;
+	int allFileSent = 0;
+	if (totalSent >= filesize){
+		allFileSent = 1;
+		totalSent = 0;
+		firstT = 0;
+		free(buffer);
+	}
+	return allFileSent;
 	return 0;
 }

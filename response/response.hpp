@@ -13,6 +13,7 @@ class request;
 
 class response{
 	public:
+		int firstT;
 		std::string	header;
 		size_t	filesize;
 		size_t	totalSent;

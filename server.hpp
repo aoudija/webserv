@@ -58,6 +58,7 @@ class client
 	public:
 	bool	tookrequest;
 		client(){
+			responseObj.firstT = 0;
 			filesent = 0;
 			tookrequest = 0;
 		}
