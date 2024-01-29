@@ -64,7 +64,7 @@ void	client::set_request(string r, server& _server){
 			requestObj.matchLocation(_server);
 			requestCases(requestObj, _server);
 			responseObj.totalSent = 0;
-		if (requestObj.getMethod() != "DELETE")
+			if (requestObj.getMethod() != "DELETE")
 				responseObj.initialize(requestObj);
 		}
 	}

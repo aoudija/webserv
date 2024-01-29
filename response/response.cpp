@@ -33,7 +33,7 @@ void	response::sendHeader(int connection_socket, request& request){
 		header = "HTTP/1.1 " + request.getStatusCode()+ "\r\n\r\n"+'\0';
 	}
 	else {
-		cout << "content type is: "<< request.getContentType() << endl;
+		cout << "content type is: "<< BLUE << request.getContentType() << RESET_TEXT << endl;
 		header = "HTTP/1.1 " + request.getStatusCode()+ "\r\n"
 			"Content-Length: " + std::to_string(filesize) + "\r\n"
 			"Content-Type: "+ request.getContentType() + "\r\n\r\n"+'\0';

@@ -384,7 +384,8 @@ std::string extractFilename(const std::string& boundaryHeaders) {
 			filename = boundaryHeaders.substr(filenamePos, endPos - filenamePos);
 		}
 	}
-
+	else
+		filename = "newname";
 	// cout << WHITE << "filename >"<< filename<<"|" << RESET_TEXT << endl;
 	return filename;
 }
@@ -396,8 +397,16 @@ bool fileExists2(const std::string& fileName) {
 
 std::string generateNewFileName(const std::string& fileName) {
 	size_t dotPosition = fileName.find_last_of('.');
-	std::string baseName = fileName.substr(0, dotPosition);
-	std::string extension = fileName.substr(dotPosition);
+	std::string baseName;
+	std::string extension;
+	if (dotPosition != std::string::npos) {
+		baseName = fileName.substr(0, dotPosition);
+		extension = fileName.substr(dotPosition);
+	}
+	else {
+		baseName = fileName;
+		extension = "";
+	}
 
 	int counter = 2;
 	std::string newFileName;
@@ -616,7 +625,7 @@ void request::setContentType()
 {
 	addAllContentTypes();
 
-	if (this->method == "GET") {
+	if (this->method == "GET" || this->method == "POST") {
 		if (isDirectory(requestURI.c_str())) {
 			this->ContentType = "text/html";
 		}
@@ -635,8 +644,8 @@ void request::setContentType()
 	}
 	if (this->method == "POST") {
 		if (this->headerFields.count("Content-Type") > 0 && !this->headerFields["Content-Type"].empty()){
-			this->ContentType = this->headerFields["Content-Type"];
-			this->boundary = "--" + this->ContentType.substr(this->ContentType.find("boundary=") + 9);
+			std::string ContentType2 = this->headerFields["Content-Type"];
+			this->boundary = "--" + ContentType2.substr(ContentType2.find("boundary=") + 9);
 			size_t lastNonSpace = this->boundary.find_last_not_of(" \t\r\n");
 			if (lastNonSpace != std::string::npos) {
 				this->boundary.erase(lastNonSpace + 1);
