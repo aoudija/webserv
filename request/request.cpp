@@ -1,4 +1,4 @@
-	#include "../server.hpp"
+#include "../server.hpp"
 
 using std::cout;
 using std::cin;
@@ -18,14 +18,6 @@ request::request() : requestStatus(true) {
 	this->statusCode = "200 OK";
 	this->failHeader = false;
 }
-
-// request::request()
-// {
-//	 this->chunkSize = 0;
-//	 // this->_request = _request;
-//	 // this->_server = _server;
-//	 // parseRequest(request, _server);
-// }
 
 request::request(const request &other)
 {
@@ -184,7 +176,6 @@ int request::checkRequestLine(std::string request)
 		this->statusCode = "400 Bad Request";
 		this->filePath = errorPageTamplate("400, Bad Request");
 		return 1;
-		printError("Bad Request", 400);
 	}
 
 	this->requestURI = removeAndSetQueryString(this->requestURI);
@@ -192,34 +183,27 @@ int request::checkRequestLine(std::string request)
 		this->statusCode = "405 Method Not Allowed";
 		this->filePath = errorPageTamplate("405, Method Not Allowed.");
 		return 1;
-		printError("Method Not Allowed", 405);
 	}
 	if (this->requestURI.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%") != std::string::npos) {
 		this->statusCode = "400 Bad Request";
 		this->filePath = errorPageTamplate("400, Bad Request");
 		return 1;
-		printError("Bad Request", 400);
 	}
 	if (this->requestURI.size() > 2048)/* mazal request body larger than lbody li fl config file !!*/ {
-		cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
 		this->statusCode = "414 Bad Request";
 		this->filePath = errorPageTamplate("414, Bad Request");
 		return 1;
-		printError("Bad Request", 414);
 	}
 	if (this->httpVersion != "HTTP/1.1") {
 		this->statusCode = "505 HTTP Version Not Supported";
 		this->filePath = errorPageTamplate("505, HTTP Version Not Supported");
 		return 1;
-		printError("HTTP Version Not Supported", 505);
 	}
 	return 0;
 }
 
 int request::checkHeaderFields(std::string headerFiles)
 {
-	// std::cout << request::method << std::endl;
-
 	std::string line;
 	std::vector<std::string> lines;
 		
@@ -341,7 +325,7 @@ request::ParsingStatus request::checkBody(std::string body, server& _server)
 		// Consume the CRLF at the end of the chunk
 		std::string crlf;
 		std::getline(stream, crlf);
-		fileName = generateRandomFileName() + getTheExtensionFromContentType(this->ContentType);
+		fileName = generateRandomFileName() + getTheExtensionFromContentType(this->uploadContentType);
 		std::ofstream outputFile("upload/" + fileName, std::ios::app);
 		outputFile << chunkData;
 	}
@@ -351,13 +335,13 @@ request::ParsingStatus request::checkBody(std::string body, server& _server)
 request::ParsingStatus request::checkBody2(std::string body, server& _server)
 {
 	if ((int)body.size() > _server.getClientBodyLimit()) {
-		// this->statusCode = "413 Request Entity Too Large";
-		// this->filePath = errorPageTamplate("413, Request Entity Too Large");
-		// return ParsingFailed;
-		// printError("Request Entity Too Large", 413);
+		this->statusCode = "413 Request Entity Too Large";
+		this->filePath = errorPageTamplate("413, Request Entity Too Large");
+		return ParsingFailed;
+		printError("Request Entity Too Large", 413);
 	}
 	std::string fileName;
-	fileName = generateRandomFileName() + getTheExtensionFromContentType(this->ContentType);
+	fileName = generateRandomFileName() + getTheExtensionFromContentType(this->uploadContentType);
 	std::ofstream outputFile("upload/" + fileName, std::ios::app);
 	if (outputFile.is_open()) {
 		cout << "file is open" << endl;
@@ -372,7 +356,6 @@ request::ParsingStatus request::checkBody2(std::string body, server& _server)
 }
 
 std::string extractFilename(const std::string& boundaryHeaders) {
-	// cout << WHITE << "headers >"<< boundaryHeaders<<"|" << RESET_TEXT << endl;
 	std::string filename;
 	size_t filenamePos = boundaryHeaders.find("filename=\"");
 	
@@ -386,7 +369,6 @@ std::string extractFilename(const std::string& boundaryHeaders) {
 	}
 	else
 		filename = "newname";
-	// cout << WHITE << "filename >"<< filename<<"|" << RESET_TEXT << endl;
 	return filename;
 }
 
@@ -432,7 +414,6 @@ request::ParsingStatus request::checkBody3(std::string body, server& _server)
 		return ParsingFailed;
 		printError("Request Entity Too Large", 413);
 	}
-
 	size_t pos = 0;
 	size_t nextPos = 0;
 	while ((nextPos = body.find(boundary, pos)) != std::string::npos)
@@ -445,8 +426,10 @@ request::ParsingStatus request::checkBody3(std::string body, server& _server)
 			std::ofstream outputFile("upload/" + fileName);
 			if (outputFile.is_open())
 			{
-				// cout << '*' + part.substr(part.find("\r\n\r\n") + 4) + '*' <<endl;
 				std::string bodySent = part.substr(part.find("\r\n\r\n") + 4);
+				if (bodySent.empty() || bodySent == "\r\n") {
+					unlink(("upload/" + fileName).c_str());
+				}
 				outputFile << bodySent.substr(0, bodySent.size() - 2);
 			}
 		}
@@ -484,7 +467,6 @@ void request::setContentLength()
 		}
 	}
 	std::istringstream(result) >> this->actualContentLength;
-	// std::cout << "bytes tedtts  ; " << this->headerFields["Range"] << std::endl;
 }
 
 void generatePrefixes(const std::string& path, std::vector<std::string>& prefixes) {
@@ -544,13 +526,13 @@ int request::matchLocation(server& _server)
 		for (std::vector<Location>::iterator it = vec.begin(); it != vec.end(); it++) {
 			// std::cout << RED << "is LOCATION: " << it->getLocationName() << "\t\tequal to URI: " << paths << RESET_TEXT << std::endl;
 			if (it->getLocationName() == paths) {
-				std::cout << GREEN << "*****FOUND A MATCH*****" << RESET_TEXT << std::endl;
+				// std::cout << GREEN << "*****FOUND A MATCH*****" << RESET_TEXT << std::endl;
 				filePath = it->getRoot() + this->requestURI;
 				if (!it->getRedirection().empty()) {
 					redirectURL = it->getRedirection();
 				}
 				if (isDirectory(filePath.c_str())) {
-				std::cout << GREEN << "*****FOUND A MATCH 22 *****" << RESET_TEXT << std::endl;
+				// std::cout << GREEN << "*****FOUND A MATCH 22 *****" << RESET_TEXT << std::endl;
 					if (filePath[filePath.size() - 1] == '/')
 						filePath = filePath + it->getIndex();
 					if (!it->getRedirection().empty())
@@ -581,19 +563,21 @@ int request::parseRequest(std::string request, server& _server)
 		return 1;
 	}
 	if (headerFields.find("Transfer-Encoding") != headerFields.end()) {
+		cout << MAGENTA << "UPLOAD WITH CHuNKED <>" << RESET_TEXT << endl;
 		checkBody(request, _server);
 	}
 	else {
 		if (headerFields.find("Content-Type") != headerFields.end()
 		&& headerFields["Content-Type"].find("multipart/form-data") != std::string::npos) {
+			cout << MAGENTA << "UPLOAD WITH BOuNDARY <>" << RESET_TEXT << endl;
 			checkBody3(request, _server);
 			std::string extension = getFileExtension(this->requestURI);
 			if (!extension.empty())
 				this->ContentType = allContTypes[extension];
 		}
 		else {
+			cout << MAGENTA << "UPLOAD WITH CONTENT LENGTH <>" << RESET_TEXT << endl;
 			checkBody2(request, _server);
-			cout << BLUE << "content type in content length: " << this->ContentType << RESET_TEXT << endl;
 		}
 	}
 
@@ -644,8 +628,8 @@ void request::setContentType()
 	}
 	if (this->method == "POST") {
 		if (this->headerFields.count("Content-Type") > 0 && !this->headerFields["Content-Type"].empty()){
-			std::string ContentType2 = this->headerFields["Content-Type"];
-			this->boundary = "--" + ContentType2.substr(ContentType2.find("boundary=") + 9);
+			this->uploadContentType = this->headerFields["Content-Type"];
+			this->boundary = "--" + this->uploadContentType.substr(this->uploadContentType.find("boundary=") + 9);
 			size_t lastNonSpace = this->boundary.find_last_not_of(" \t\r\n");
 			if (lastNonSpace != std::string::npos) {
 				this->boundary.erase(lastNonSpace + 1);
@@ -778,7 +762,6 @@ int request::getBodyRequest(std::string requestPart)
 				}
 		}
 		else {
-			// cout << bodyContentLength<< " == " << this->actualContentLength << endl;
 			if ((int)this->theBody.size() >= this->actualContentLength) {
 				cout << WHITE << "HERE 2"<< RESET_TEXT << endl;
 				return 1;
@@ -788,7 +771,6 @@ int request::getBodyRequest(std::string requestPart)
 	}
 	return 0;
 }
-
 
 void	request::setCgiHeader(std::string s){
 	this->cgi_header = s;
