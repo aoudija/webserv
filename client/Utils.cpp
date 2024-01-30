@@ -37,7 +37,7 @@ std::string getFileExtension(const std::string& filePath) {
     return "";
 }
 
-bool	isCGI(request& requestObj, const std::string& filePath,
+void	isCGI(request& requestObj, const std::string& filePath,
 	server& _server){
 	std::string exe = getFileExtension(filePath);
 	vector< std::pair<string, string> > cgi_exe = _server.getCgiExe();
@@ -47,17 +47,19 @@ bool	isCGI(request& requestObj, const std::string& filePath,
 		{
 			requestObj.is_CGI = 1;
 			requestObj.cgi_exe = cgi_exe[i];
-			Cgi	cgi(_server, requestObj.loc, requestObj);
-			if (cgi.exe()){
+			Cgi	cgi(_server, requestObj);
+            int status = cgi.exe();
+			if (status == 502)
                 codeNpath(requestObj,"502 Bad Gateway", errorPageTamplate("502, Bad Gateway").c_str());
-				return 0;
+            else if (status == 504)
+                codeNpath(requestObj,"504 Gateway Timeout", errorPageTamplate("504, Gateway Timeout").c_str());
+            else{
+                requestObj.setCgiBody(cgi.body);
+                requestObj.setCgiHeader(cgi.header);
             }
-			requestObj.setCgiBody(cgi.body);
-			requestObj.setCgiHeader(cgi.header);
-			return 1;
+			break;
 		}
 	}
-	return 0;
 }
 
 void generateAutoIndex(const std::string& directoryPath, const std::string& outputFileName) {

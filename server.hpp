@@ -44,7 +44,7 @@ void	_post_(request&, server&);
 //utils
 int		checkExistance(request&);
 bool	endsWithSlash(const std::string&);
-bool	isCGI(request&, const std::string&, server&);
+void	isCGI(request&, const std::string&, server&);
 string	getFileExtension(const std::string&);
 void generateAutoIndex(const std::string&, const std::string&);
 void	codeNpath(request&, const char*, const char*);

@@ -256,6 +256,12 @@ void	Location::seter(std::string str, int line){
 	}
 	if (str[0] != '\t' || str[0] != '\t'|| std::isspace(str[2]))
 		throw std::invalid_argument(throwmessage(line, "execept two TAB at the start."));
+	if (std::isspace(str[str.length() - 1]))
+		throw std::invalid_argument(throwmessage(line, "Error: extra whitespaces at the end."));
+	for (size_t i = 1; i < str.length() - 1; ++i) {
+        if (std::isspace(str[i]) && std::isspace(str[i + 1]))
+			throw std::invalid_argument(throwmessage(line, "Error: extra whitespaces."));
+	}
 	set_value(list, token, line);
 }
 
