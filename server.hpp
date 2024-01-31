@@ -53,6 +53,7 @@ class client
 {
 	request requestObj;
 	response responseObj;
+	// cgi cgiOBJ;
 	string responsestring;
 	bool	filesent;
 	public:

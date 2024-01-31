@@ -58,8 +58,11 @@ void readRequest(vector<struct pollfd>&	pfds,struct pollfd &pfd, server& server)
 	else if (!server.clients[pfd.fd].getTookrequest())
 	{
 		int r = read(pfd.fd, request, 1024);
-		if (r <= 0)
+		if (r <= 0){
 			perror("read");
+			removefd(pfds,pfd,server);
+			return ;
+		}
 		request[r] = '\0';
 		theRequest = string(request, r);
 
