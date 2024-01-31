@@ -59,6 +59,7 @@ void	client::set_request(string r, server& _server){
 				tookrequest = requestObj.getBodyRequest(r);
 			if (requestObj.getMethod() == "GET" || requestObj.getMethod() == "DELETE")
 				tookrequest = 1;
+				
 		}
 		if (tookrequest == 1) {
 			requestObj.matchLocation(_server);

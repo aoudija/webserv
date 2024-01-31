@@ -6,8 +6,11 @@
 #include <signal.h>
 
 
-Cgi::Cgi(server &serv, Location &location, request &req): MyServer(serv), MyLocation(location), MyRequest(req){
+Cgi::Cgi(server &serv,  request &req): MyServer(serv),  MyRequest(req){
 	this->env = NULL;
+	this->arg = NULL;
+	init();
+	set_arg();
 }
 
 Cgi::~Cgi()
@@ -37,7 +40,6 @@ std::string toUpperCase(const std::string& input) {
     for (size_t i = 0; i < result.length(); ++i) {
         result[i] = std::toupper(result[i]);
     }
-
     return result;
 }
 
@@ -63,7 +65,6 @@ std::string getroot(const std::string& filepath) {
 }
 
 void	Cgi::init(){
-	(void)MyLocation;
 	std::map<string, string> mapenv;
 	std::map<string, string> headerenv = MyRequest.headerFields;
 	std::map<string, string>::iterator it = headerenv.begin();
@@ -73,13 +74,13 @@ void	Cgi::init(){
 		string value = it->second;
 		mapenv[key] = value;
 	}
-	mapenv["SERVER_PROTOCOL"] = "HTTP/1.1";//
-	mapenv["GATEWAY_INTERFACE"] = "CGI/1.1";//
-	mapenv["SERVER_SOFTWARE"] = "webserv/1.0";//
-	mapenv["REDIRECT_STATUS" ] = "0";//
-	mapenv["SERVER_NAME"] = this->MyServer.getServerName();//
-	mapenv["SERVER_PORT"] = this->MyServer.getPort();//
-	mapenv["PATH_INFO"] = this->MyRequest.getFilePath();//
+	mapenv["SERVER_PROTOCOL"] = "HTTP/1.1";
+	mapenv["GATEWAY_INTERFACE"] = "CGI/1.1";
+	mapenv["SERVER_SOFTWARE"] = "webserv/1.0";
+	mapenv["REDIRECT_STATUS" ] = "0";
+	mapenv["SERVER_NAME"] = this->MyServer.getServerName();
+	mapenv["SERVER_PORT"] = this->MyServer.getPort();
+	mapenv["PATH_INFO"] = this->MyRequest.getFilePath();
 	mapenv["PATH_TRANSLATED"] = this->MyRequest.getFilePath();
 	mapenv["SCRIPT_NAME"] = this->MyRequest.getFilePath();
 	mapenv["DOCUMENT_ROOT"] = getroot(this->MyRequest.getFilePath());
@@ -90,8 +91,8 @@ void	Cgi::init(){
 	mapenv["HTTP_COOKIE"] = this->MyRequest.headerFields["Cookie"];
 	mapenv["REQUEST_URI"] = this->MyRequest.getFilePath();;
 	if (this->MyRequest.getMethod() == "POST"){
-		mapenv["CONTENT_TYPE"] = this->MyRequest.headerFields["Content-Type"];//clien content type
-		mapenv["CONTENT_LENGTH"] = this->MyRequest.headerFields["Content-Length"];//clien content lengh
+		mapenv["CONTENT_TYPE"] = this->MyRequest.headerFields["Content-Type"];
+		mapenv["CONTENT_LENGTH"] = this->MyRequest.headerFields["Content-Length"];
 		mapenv["REQUEST_METHOD"] = this->MyRequest.getMethod();
 		if (MyRequest.cgi_exe.second == "php")
 			mapenv["QUERY_STRING"] = MyRequest.theBody;
@@ -158,14 +159,13 @@ void	Cgi::parseHeader(std::vector<std::string> header, size_t len){
 				head +=  header[i] + "\r\n";
 		}
 	}
-		head += "Content-Length: " + ss.str() + "\r\n";
+	head += "Content-Length: " + ss.str() + "\r\n";
 	head = location + head;
 	if (status.empty())
 		head = "HTTP/1.1 200 OK\r\n" + head;
 	else
 		head = status + head;
 	this->header = head + "\r\n\0";
-	std::cout << MAGENTA << head << RESET_TEXT << std::endl;
 }
 
 std::vector<std::string> splitString(const std::string& input) {
@@ -186,59 +186,21 @@ std::vector<std::string> splitString(const std::string& input) {
 void handleTimeout(int sig)
 {
 	(void)sig;
-	exit(100);
+	exit(502);
 }
 
-int Cgi::exe(){
-	init();
-	set_arg();
-	
-	pid_t	pid;
-	std::string filename= "/tmp/file_all";
-	std::string filebody= "/tmp/file_body";
-	std::string fileerr= "/tmp/file_err";
-	int fd_body = open(filebody.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 
-	write(fd_body, MyRequest.theBody.c_str(), MyRequest.theBody.length());
-	close(fd_body);
-	pid = fork();
-	if (!pid) {
-		int	fd = open(filename.c_str(), O_CREAT | O_RDWR | O_TRUNC, 0666);
-		dup2(fd, 1); // need protection
-		close(fd);
-		int	fd2 = open(fileerr.c_str(), O_CREAT | O_RDWR | O_TRUNC, 0666);
-		dup2(fd2, 2); // need protection
-		close(fd2);
-		if (MyRequest.getMethod() == "POST"){
-			std::cerr << filebody << std::endl;
-			int fd1 = open(filebody.c_str(), O_RDONLY);
-			dup2(fd1, 0);
-			close(fd1);
-		}
-		signal(SIGALRM, handleTimeout);
-		alarm(2);
-		execve(this->arg[0], this->arg, this->env);
-		exit(10);
-	}
-	int status;
-    waitpid(pid, &status, 0);
-	if (status > 0){
-		std::cerr << status << ": errrrooo cgi" << std::endl;
-		return 1;
-	}
-
-
+int Cgi::ParseAll(){
 	std::string body;
 	std::ifstream file(filename);
     if (!file.is_open()) 
-        return 1;
+        return 502;
     std::ostringstream content;
     content << file.rdbuf();
     file.close();
 	body = content.str();
 
 	std::vector<std::string> result;
-
 	std::string header;
 	bool	is_header = 0;
 	if (body.find("\r\n\r\n") != std::string::npos){
@@ -248,14 +210,65 @@ int Cgi::exe(){
 		result = splitString(header);
 	}
 	body = trim(body);
+
 	parseHeader(result, body.size());
 
 	std::string filebodysend = "/tmp/file_sendbody";
-
 	int fdbodysend = open(filebodysend.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	if (fdbodysend == -1)
+		return 502;
 	write(fdbodysend, body.c_str(), body.length());
 	close(fdbodysend);
-
 	this->body = filebodysend;
-	return 0;
+	return 1;
+}
+
+int Cgi::exe(){
+	pid_t	pid;
+	filename = "/tmp/file_all";
+	filebody = "/tmp/file_body";
+	fileerr = "/tmp/file_err";
+	int fd_body = open(filebody.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	if (fd_body == -1)
+		return 502;
+	write(fd_body, MyRequest.theBody.c_str(), MyRequest.theBody.length());
+	close(fd_body);
+	pid = fork();
+	if (pid == -1)
+		return 502;
+	if (!pid) {
+		int	fd = open(filename.c_str(), O_CREAT | O_RDWR | O_TRUNC, 0666);
+		if (fd == -1)
+			exit(502);
+		if (dup2(fd, 1) == -1)
+			exit(502);
+		close(fd);
+		int	fd2 = open(fileerr.c_str(), O_CREAT | O_RDWR | O_TRUNC, 0666);
+		if (fd2 == -1)
+			exit(502);
+		if (dup2(fd2, 2) == -1)
+			exit(502);
+		close(fd2);
+		if (MyRequest.getMethod() == "POST"){
+			int fd1 = open(filebody.c_str(), O_RDONLY);
+			if (fd1 == -1)
+				exit(502);
+			if (dup2(fd1, 0) == -1)
+				exit(502);
+			close(fd1);
+		}
+		signal(SIGALRM, handleTimeout);
+		alarm(2);
+		execve(this->arg[0], this->arg, this->env);
+		exit(502);
+	}
+	int status;
+    int	it = waitpid(pid, &status, 0);
+	if (it > 0){
+		if (WIFSIGNALED(status) && WTERMSIG(status) == SIGALRM)
+			return 504;
+		else if (WIFEXITED(status) && WEXITSTATUS(status) != 0)
+			return 502;
+	}
+	return ParseAll();
 }
