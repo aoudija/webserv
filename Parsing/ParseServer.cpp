@@ -238,7 +238,7 @@ void	server::init(){
 	set_isdefault(1);
 	set_my_default(-1);
 	setRoot("public");
-	setIndex("index.html");
+	setIndex("");
 	setErrorPage(404, "404.html");
 	setIp("localhost");
 	setPort("8080");

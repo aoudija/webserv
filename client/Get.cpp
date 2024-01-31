@@ -25,7 +25,7 @@ void	_get_(request& requestObj,server& _server){
 			codeNpath(requestObj, "301 Moved Permanently", (requestObj.getFilePath() + "/" + _server.getIndex()).c_str());
 			return ;
 		}
-		if (!_server.getIndex().empty()) {
+		if (_server.getIndex().empty()) {
 			if (!_server.getAutoindex()) {
 				codeNpath(requestObj, "403 Forbidden", errorPageTamplate("403, Forbidden.").c_str());
 				return ;
