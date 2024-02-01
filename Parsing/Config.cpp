@@ -32,7 +32,7 @@ void	Config::dublesrvcheck(){
 			if (i == j)
 				break ;
 			if (!_serverName.compare(srvcheck[j].getServerName()) && !_port.compare(srvcheck[j].getPort())
-				&& !_ip.compare(srvcheck[i].get_ip()))
+				&& !_ip.compare(srvcheck[j].get_ip()))
 				throw std::invalid_argument(throwmessage(srv[i].line, "Error: This Server already exist in the line " + intToString(srvcheck[j].line) +"."));
 		}
 		srvcheck.clear();
@@ -63,10 +63,22 @@ void	Config::defaultCheck(){
 	}
 }
 
+void    Config::smSoServersInit(){
+    std::vector<server> &srv = this->Servers;
+    for (size_t i = 0; i < srv.size(); i++){
+        if (srv[i].get_isdefault() == 0)
+        {
+            int mydefault = srv[i].get_my_default();
+            srv[mydefault].setSmSoServers(srv[i]);
+        }
+    }
+}
+
 Config::Config(std::string av): path_name(av){
     parse();
 	dublesrvcheck();
 	defaultCheck();
+    smSoServersInit();
 } 
 
 bool Config::isWhitespace(const std::string& str) {
@@ -150,6 +162,8 @@ void	Config::display(){
         std::cout << "port:\t\t["<< srv[i].getPort() << "]" << std::endl;
         std::cout << "hostname:\t["<<  srv[i].getIp() << "]" << std::endl;
         std::cout << "root path:\t["<<  srv[i].getRoot() << "]" << std::endl;
+        std::cout << "is default:\t["<<  srv[i].get_isdefault() << "]" << std::endl;
+        std::cout << "my default:\t["<<  srv[i].get_my_default() << "]" << std::endl;
         std::cout << "autoindedx:\t["<<  srv[i].getAutoindex() << "]" << std::endl;
         std::cout << "indedx:\t\t["<<  srv[i].getIndex() << "]" << std::endl;
         std::cout << "CBL:\t\t["<<  srv[i].getClientBodyLimit() << "]" << std::endl;
@@ -189,6 +203,13 @@ void	Config::display(){
         		std::cout << "\tcgi path:\t[" << cgi[i].first << "] ext[" << cgi[i].second << "]"<< std::endl;
 			}
 		}
+        std::vector<server> smsosrv = srv[i].getSmSoServers();
+         for (size_t i = 0; i < smsosrv.size(); i++){
+			std::cout << "Smsosrv: " << i + 1 << std::endl;
+            std::cout << "\tserver name:\t["<< smsosrv[i].getServerName() << "]" << std::endl;
+            std::cout << "\tport:\t\t["<< smsosrv[i].getPort() << "]" << std::endl;
+            std::cout << "\thostname:\t["<<  smsosrv[i].getIp() << "]" << std::endl;
 
+        }
     }
 }

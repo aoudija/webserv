@@ -441,44 +441,48 @@ void	server::setIp(std::string str){
 	this->ip = str;
 }
 
-void		server::setServerName(std::string str){
+void	server::setServerName(std::string str){
 	this->serverName = str;
 }
 
-void		server::setRoot(std::string str){
+void	server::setRoot(std::string str){
 	this->root = str;
 }
 
-void		server::setIndex(std::string str){
+void	server::setIndex(std::string str){
 	this->index = str;
 }
 
-void		server::setClientBodyLimit(int nbr){
+void	server::setClientBodyLimit(int nbr){
 	this->client_body_limit = nbr;
 }
 
-void		server::setAutoindex(bool b){
+void	server::setAutoindex(bool b){
 	this->autoindex = b;
 }
 
-void		server::setAllowMethods(std::string method){
+void	server::setAllowMethods(std::string method){
 	this->allow_methods.push_back(method);
 }
 
-void		server::setErrorPage(int error, std::string path){
+void	server::setErrorPage(int error, std::string path){
 	this->error_page[error] = path; 
 }
 
-void		server::setLocations(Location& obj){
+void	server::setLocations(Location& obj){
 	this->locations.push_back(obj);
 }
 
-void		server::setUpload(bool b){
+void	server::setUpload(bool b){
 	this->upload = b;
 }
 
-void		server::setCgiExe(std::vector< std::pair<std::string, std::string> > cgi){
+void	server::setCgiExe(std::vector< std::pair<std::string, std::string> > cgi){
 	this->cgi_exe = cgi;
+}
+
+void	server::setSmSoServers(server& srv){
+	this->smSoServers.push_back(srv);
 }
 
 //=============== geters ===================//
@@ -528,4 +532,8 @@ bool	server::getUpload(void) const{
 
 std::vector< std::pair<std::string, std::string> > server::getCgiExe(void) const{
 	return this->cgi_exe;
+}
+
+std::vector< server > server::getSmSoServers(void) const{
+	return this->smSoServers;
 }

@@ -88,6 +88,7 @@ class server{
 	vector<string>		allow_methods;
 	map<int,string>		error_page;
 	vector< std::pair<string, string> >	cgi_exe;
+	vector<server>		smSoServers;
 	//===============
 	void	checkfirstline(std::string str, int line);
 	void	checklastline(std::string str, int line, int firstline);
@@ -147,6 +148,7 @@ class server{
 		void	setLocations(Location&);
 		void	setUpload(bool);
 		void	setCgiExe(std::vector< std::pair<std::string, std::string> >);
+		void	setSmSoServers(server &srv);
 
 		std::string	getServerName(void) const;
 		std::string	getPort(void) const;
@@ -160,6 +162,7 @@ class server{
 		std::map<int, std::string>		getErrorPage(void) const;
 		std::vector<Location>			getLocations(void) const;
 		std::vector< std::pair<std::string, std::string> > getCgiExe(void) const;
+		std::vector<server>				getSmSoServers(void) const;
 		void	parse(std::map<int, std::string>&);
 		void	init();
 };
