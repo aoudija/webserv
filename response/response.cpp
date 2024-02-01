@@ -16,6 +16,11 @@ void	response::initialize(request& request){
 		fd = open(request.getFilePath().c_str(), O_RDONLY);
 	filesize = lseek(fd, 0, SEEK_END);
 	lseek(fd, 0, SEEK_SET);
+	if (buffer != NULL)
+	{
+		delete buffer;
+		buffer = NULL;
+	}
 	buffer = new char[filesize];
 	int c = read(fd, buffer, filesize);
 	cout <<"read file int: " << c << endl;
@@ -71,7 +76,8 @@ int	response::sendBody(int connection_socket){
 		allFileSent = 1;
 		totalSent = 0;
 		firstT = 0;
-		free(buffer);
+		delete buffer;
+		buffer = NULL;
 	}
 	return allFileSent;
 	return 0;
