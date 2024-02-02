@@ -23,6 +23,7 @@ class Config {
         bool    check_ext();
         void    defaultCheck();
         void    dublesrvcheck();
+        void    smSoServersInit();
     public:
         std::vector<server> Servers;
         Config(std::string av);
