@@ -13,7 +13,9 @@ class request;
 
 class response{
 	public:
+		time_t resTime;
 		response(){
+			resTime = -1;
 			buffer = NULL;
 		}
 		int firstT;

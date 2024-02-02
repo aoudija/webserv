@@ -30,6 +30,7 @@
 #include "Parsing/Location.hpp"
 #include "Parsing/Config.hpp"
 #include "cgi/Cgi.hpp"
+#include <ctime>
 
 
 using std::map;
@@ -57,11 +58,15 @@ class client
 	string responsestring;
 	bool	filesent;
 	public:
-	bool	tookrequest;
+		bool keepAlive;
+		bool	tookrequest;
+		time_t resTime;
 		client(){
-			responseObj.firstT = 0;
+			keepAlive = 0;
 			filesent = 0;
 			tookrequest = 0;
+			responseObj.firstT = 0;
+			resTime = -1;
 		}
 		void	set_request(std::string, server&);
 		void	set_response(int);
@@ -71,6 +76,7 @@ class client
 			tookrequest = t;
 		}
 		string getresponse();
+		void	reset();
 	// ayoub
 	void	requestCases(request &requestObj, server& _server);
 };

@@ -16,11 +16,6 @@ void	response::initialize(request& request){
 		fd = open(request.getFilePath().c_str(), O_RDONLY);
 	filesize = lseek(fd, 0, SEEK_END);
 	lseek(fd, 0, SEEK_SET);
-	if (buffer != NULL)
-	{
-		delete buffer;
-		buffer = NULL;
-	}
 	buffer = new char[filesize];
 	int c = read(fd, buffer, filesize);
 	cout <<"read file int: " << c << endl;
@@ -33,9 +28,9 @@ void	response::sendHeader(int connection_socket, request& request){
 			"Location: "+ request.getredirectURL() +'\0';
 		int bytes_sent = write(connection_socket, header.c_str(),    //header
 		strlen(header.c_str()));
-		if (bytes_sent <= 0){
+		if (bytes_sent <= 0)
 			perror("write");//!remove fd
-		}
+		resTime = time(0);
 		return ;
 	}
 	else if (request.getMethod() == "DELETE")
@@ -43,9 +38,9 @@ void	response::sendHeader(int connection_socket, request& request){
 		header = "HTTP/1.1 " + request.getStatusCode()+ "\r\n\r\n"+'\0';
 		int bytes_sent = write(connection_socket, header.c_str(),    //header
 		strlen(header.c_str()));
-		if (bytes_sent <= 0){
+		if (bytes_sent <= 0)
 			perror("write");//!remove fd
-		}
+		resTime = time(0);
 		return ;
 	}
 	if (request.is_CGI){
@@ -63,28 +58,27 @@ void	response::sendHeader(int connection_socket, request& request){
 int	response::sendBody(int connection_socket){
 	if (!firstT){
 		firstT++;
-		int bytes_sent = write(connection_socket, header.c_str(),    //header
+		int bytes_sent = write(connection_socket, header.c_str(),//header
 		strlen(header.c_str()));
-		if (bytes_sent <= 0){
+		if (bytes_sent <= 0)
 			perror("write");//!remove fd
-			totalSent++;
-		}
+		resTime = time(0);
 		return 0;
 	}
 	int bytes_sent;
 	size_t len = 1024;
 	if (len > filesize - totalSent)
 		len = filesize - totalSent;
-	bytes_sent = write(connection_socket, buffer + totalSent, len);//!remove fd
+	bytes_sent = write(connection_socket, buffer + totalSent, len);
+	if (bytes_sent <= 0)
+		perror("write");//!remove fd
+	resTime = time(0);
 	totalSent += bytes_sent;
-	int allFileSent = 0;
 	if (totalSent >= filesize){
-		allFileSent = 1;
 		totalSent = 0;
 		firstT = 0;
-		delete buffer;
-		buffer = NULL;
+		free(buffer);
+		return 1;
 	}
-	return allFileSent;
 	return 0;
 }

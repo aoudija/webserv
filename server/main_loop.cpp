@@ -11,6 +11,7 @@ void removefd(vector<struct pollfd>& pfds, struct pollfd& pfd, server& server){
 	server.clients.erase(fd);
 	for(vector<pollfd>::iterator it = pfds.begin();it != pfds.end();it++){
 		if (!memcmp(&(*it), &pfd, sizeof(struct pollfd))){
+			cout << "removing this bitch!: " << it->fd <<endl;
 			pfds.erase(it);
 			break;
 		}
@@ -81,25 +82,55 @@ void	sendResponse(vector<struct pollfd>&	pfds, struct pollfd &pfd, server& serve
 	if (server.clients[pfd.fd].getTookrequest())
 	{
 		server.clients[pfd.fd].set_response(pfd.fd);
-		if (server.clients[pfd.fd].getfilesent() || pfd.revents & POLLHUP)
+		//server.clients[pfd.fd].getfilesent() || 
+		if (pfd.revents & POLLHUP)
 			removefd(pfds, pfd, server);
 	}
 }
 
 void	accept_read_write(vector<struct pollfd>&	pfds, struct pollfd &pfd,
-	vector<server>& servers){
+	vector<server>& servers)
+{
 	for (size_t i = 0;i < servers.size();i++){
 		if (std::find(servers[i].mysockets.begin(),
 			servers[i].mysockets.end(), pfd.fd) != servers[i].mysockets.end())
 		{
-			if (pfd.revents & POLLIN){
-				if (pfd.fd == servers[i].get_slistener())
-					accept_connection(pfds, pfd, servers[i]);
-				else
-					readRequest(pfds, pfd, servers[i]);
+			if (pfd.revents & POLLHUP)
+				removefd(pfds, pfd, servers[i]);
+			else {
+				if (pfd.revents & POLLIN){
+					if (pfd.fd == servers[i].get_slistener())
+						accept_connection(pfds, pfd, servers[i]);
+					else
+						readRequest(pfds, pfd, servers[i]);
+				}
+				else if ((pfd.revents & POLLOUT))
+					sendResponse(pfds, pfd, servers[i]);
 			}
-			else if ((pfd.revents & POLLOUT))
-				sendResponse(pfds, pfd, servers[i]);
+		}
+	}
+}
+
+void	checkTimeout(vector<struct pollfd>&	pfds, vector<server>& servers)
+{
+	cout << "checking timeouts\n";
+	for (size_t j = 0;j < pfds.size();j++){
+		for (size_t i = 0;i < servers.size();i++){
+			if (std::find(servers[i].mysockets.begin(),
+			servers[i].mysockets.end(), pfds[j].fd) != servers[i].mysockets.end()
+			&& pfds[j].fd != servers[i].get_slistener())
+			{
+				cout<<"fd: "<<pfds[j].fd << endl;
+				time_t t = servers[i].clients[pfds[j].fd].resTime;
+				cout<<"t: "<<t << endl;
+				time_t diff = time(0) - t;
+				if (diff >= 10){
+					cout<<YELLOW<<"time's Up,removing client.. "<<pfds[j].fd<<RESET_TEXT<< endl;
+					removefd(pfds, pfds[j], servers[i]);
+				}
+				else
+					cout << "Not Yet!\n";
+			}
 		}
 	}
 }
@@ -116,9 +147,14 @@ void	main_loop(vector<server> Confservers){
 
 	while(1){
 		p = pfds.data();
-		if (poll(p, pfds.size(), -1) < 0){
+		for (size_t j = 0;j < pfds.size();j++)
+			cout<<"@fd: " << pfds[j].fd << endl;
+		int r = poll(p, pfds.size(), 10000);
+		cout << "r: "<<r << endl;
+		if (r < 0)
 			perror("poll");
-		}
+		else if (r == 0)
+			checkTimeout(pfds, servers);
 		for (size_t i = 0;i < pfds.size();i++)
 			accept_read_write(pfds, pfds[i], servers);
 	}
