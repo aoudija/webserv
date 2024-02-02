@@ -20,6 +20,21 @@ request::request() : requestStatus(true) {
 	this->keepAlive = false;
 }
 
+void	request::reset() {
+	this->requestStatus = true;
+	this->chunkSize = 0;
+	this->bodyContentLength = 0;
+	this->bodyDone = 0;
+	this->headersDone = 0;
+	this->flag = 0;
+	this->gg = 0;
+	this->is_CGI = 0;
+	this->redirectURL = "";
+	this->statusCode = "200 OK";
+	this->failHeader = false;
+	this->keepAlive = false;
+}
+
 request::request(const request &other)
 {
 	*this = other;

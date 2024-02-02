@@ -13,12 +13,9 @@ class request;
 
 class response{
 	public:
+		response();
+		int		firstT;
 		time_t resTime;
-		response(){
-			resTime = -1;
-			buffer = NULL;
-		}
-		int firstT;
 		std::string	header;
 		size_t	filesize;
 		size_t	totalSent;
@@ -26,6 +23,7 @@ class response{
 		void	initialize(request& request);
 		void	sendHeader(int connection_socket, request& request);
 		int		sendBody(int connection_socket);
+		void	reset();
 };
 
 #endif

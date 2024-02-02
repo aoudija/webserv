@@ -5,9 +5,8 @@ using std::cout;
 using std::endl;
 using std::string;
 using std::vector;
-void l(){system("leaks webserv");}
+
 int main(int ac, char **av){
-	// atexit(l);
 	if (ac != 2)
 		return 0;
 	try{

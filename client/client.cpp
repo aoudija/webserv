@@ -12,16 +12,16 @@ void	client::requestCases(request &requestObj, server& _server)
 		_get_(requestObj,_server);
 //!if uri in get has "?" take until ?
 	}
-	else if (requestObj.getMethod() == "POST") {
+	else if (requestObj.getMethod() == "POST") 
 		_post_(requestObj,_server);
-	}
 	else if (requestObj.getMethod() == "DELETE")
 		_delete_(requestObj);
 }
 
 void	client::set_request(string r, server& _server){
-
+	cout << "in set_request bash tban \n";
 	if (!requestObj.headersDone) {
+		cout << "lmra tania?\n";
 		if (!requestObj.getHeadersRequest(r)) {
 			// requestObj.failHeader = true;
 			// tookrequest = 1;
@@ -56,6 +56,7 @@ void	client::set_request(string r, server& _server){
 			requestObj.setContentLength();
 			requestObj.setContentType();
 			requestObj.setConnection();
+			keepAlive = requestObj.getConnection();
 			if (requestObj.getMethod() == "POST")
 				tookrequest = requestObj.getBodyRequest(r);
 			if (requestObj.getMethod() == "GET" || requestObj.getMethod() == "DELETE")
@@ -83,7 +84,6 @@ void	client::set_response(int connection_socket){
 	else{
 		filesent = responseObj.sendBody(connection_socket);
 		resTime = responseObj.resTime;
-		cout << "reseTime in client: " << resTime << endl;
 	}
 	if (filesent == 1){
 	    tookrequest = 0;
@@ -107,8 +107,9 @@ bool	client::getTookrequest(){
 }
 
 void client::reset(){
+	responseObj.reset();
+	requestObj.reset();
 	keepAlive = 0;
 	filesent = 0;
 	tookrequest = 0;
-	responseObj.firstT = 0;
 }

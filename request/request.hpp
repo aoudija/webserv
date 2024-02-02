@@ -85,6 +85,9 @@ public:
 	request& operator=(const request& other);
 	// ~request();
 
+
+	void	reset();
+
 	int getBodyRequest(std::string requestPart);
 	int getHeadersRequest(std::string requestPart);
 

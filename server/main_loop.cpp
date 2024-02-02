@@ -69,8 +69,8 @@ void readRequest(vector<struct pollfd>&	pfds,struct pollfd &pfd, server& server)
 		request[r] = '\0';
 		theRequest = string(request, r);
 
-		// cout << "Received " << r << " bytes." << endl;
-		// printf("\033[1;37m%.*s\033[0m", r, request);
+		cout << "Received " << r << " bytes." << endl;
+		printf("\033[1;37m%.*s\033[0m", r, request);
 		server.clients[pfd.fd].set_request(theRequest, server);
 		if (server.clients[pfd.fd].tookrequest == 1)
 			pfd.events = POLLOUT | POLLHUP;
@@ -82,9 +82,14 @@ void	sendResponse(vector<struct pollfd>&	pfds, struct pollfd &pfd, server& serve
 	if (server.clients[pfd.fd].getTookrequest())
 	{
 		server.clients[pfd.fd].set_response(pfd.fd);
-		//server.clients[pfd.fd].getfilesent() || 
-		if (pfd.revents & POLLHUP)
+		if (pfd.revents & POLLHUP ||
+			(server.clients[pfd.fd].getfilesent()&& !server.clients[pfd.fd].keepAlive))
 			removefd(pfds, pfd, server);
+		else if (server.clients[pfd.fd].getfilesent() && server.clients[pfd.fd].keepAlive){
+			server.clients[pfd.fd].reset();
+			pfd.events = POLLIN | POLLHUP;
+			cout << "should be reset\n";
+		}
 	}
 }
 
@@ -104,7 +109,7 @@ void	accept_read_write(vector<struct pollfd>&	pfds, struct pollfd &pfd,
 					else
 						readRequest(pfds, pfd, servers[i]);
 				}
-				else if ((pfd.revents & POLLOUT))
+				else if (pfd.revents & POLLOUT)
 					sendResponse(pfds, pfd, servers[i]);
 			}
 		}
@@ -120,11 +125,9 @@ void	checkTimeout(vector<struct pollfd>&	pfds, vector<server>& servers)
 			servers[i].mysockets.end(), pfds[j].fd) != servers[i].mysockets.end()
 			&& pfds[j].fd != servers[i].get_slistener())
 			{
-				cout<<"fd: "<<pfds[j].fd << endl;
 				time_t t = servers[i].clients[pfds[j].fd].resTime;
-				cout<<"t: "<<t << endl;
 				time_t diff = time(0) - t;
-				if (diff >= 10){
+				if (diff >= 60){
 					cout<<YELLOW<<"time's Up,removing client.. "<<pfds[j].fd<<RESET_TEXT<< endl;
 					removefd(pfds, pfds[j], servers[i]);
 				}
@@ -147,8 +150,7 @@ void	main_loop(vector<server> Confservers){
 
 	while(1){
 		p = pfds.data();
-		int r = poll(p, pfds.size(), 10000);
-		cout << "r: "<<r << endl;
+		int r = poll(p, pfds.size(), 60000);
 		if (r < 0)
 			perror("poll");
 		else if (r == 0)

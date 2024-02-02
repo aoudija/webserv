@@ -100,8 +100,10 @@ void serversInfos::SetListener(){
 			exit(EXIT_FAILURE);
 		}
 		
-		if (!it->get_isdefault())
+		if (!it->get_isdefault()){
 			it->set_slistener(servers[it->get_my_default()].get_slistener());
+			freeaddrinfo(cn);
+		}
 		else {
 			it->set_slistener(socket(cn->ai_family,
 				cn->ai_socktype, cn->ai_protocol));

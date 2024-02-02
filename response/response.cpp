@@ -7,9 +7,15 @@ using std::string;
 using std::vector;
 //
 
-// response::response(){
-// 	buffer = NULL;
-// }
+response::response()
+{
+	firstT = 0;
+	totalSent = 0;
+	filesize = 0;
+	header = "";
+	resTime = -1;
+	buffer = NULL;
+}
 
 void	response::initialize(request& request){
 	int fd;
@@ -85,9 +91,17 @@ int	response::sendBody(int connection_socket){
 	if (totalSent >= filesize){
 		totalSent = 0;
 		firstT = 0;
-		free(buffer);
+		delete buffer;
 		buffer = NULL;
 		return 1;
 	}
 	return 0;
+}
+
+void	response::reset(){
+	firstT = 0;
+	totalSent = 0;
+	filesize = 0;
+	header = "";
+	buffer = NULL;
 }

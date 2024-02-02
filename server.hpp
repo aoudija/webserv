@@ -65,7 +65,6 @@ class client
 			keepAlive = 0;
 			filesent = 0;
 			tookrequest = 0;
-			responseObj.firstT = 0;
 			resTime = -1;
 		}
 		void	set_request(std::string, server&);
