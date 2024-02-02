@@ -65,15 +65,17 @@ void	client::set_request(string r, server& _server){
 			requestObj.matchLocation(_server);
 			requestCases(requestObj, _server);
 			responseObj.totalSent = 0;
-			if (requestObj.getMethod() != "DELETE")
-				responseObj.initialize(requestObj);
 		}
 	}
 }
 
 void	client::set_response(int connection_socket){
 	if (!responseObj.totalSent)
+	{
+		if (requestObj.getMethod() != "DELETE")
+			responseObj.initialize(requestObj);
 		responseObj.sendHeader(connection_socket, requestObj);
+	}
 	if (!requestObj.getredirectURL().empty() || requestObj.getMethod() == "DELETE")
 		filesent = 1;
 	else
