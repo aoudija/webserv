@@ -147,8 +147,6 @@ void	main_loop(vector<server> Confservers){
 
 	while(1){
 		p = pfds.data();
-		for (size_t j = 0;j < pfds.size();j++)
-			cout<<"@fd: " << pfds[j].fd << endl;
 		int r = poll(p, pfds.size(), 10000);
 		cout << "r: "<<r << endl;
 		if (r < 0)

@@ -7,9 +7,9 @@ using std::string;
 using std::vector;
 //
 
-response::response(){
-	buffer = NULL;
-}
+// response::response(){
+// 	buffer = NULL;
+// }
 
 void	response::initialize(request& request){
 	int fd;

@@ -85,7 +85,6 @@ string request::getQueryString() {
 std::string errorPageTamplate(std::string errorMessage)
 {
 	std::string filePath = "errorpage.html";
-	std::string filePath = "errorpage.html";
 	if (fileExists(filePath.c_str()))
 		unlink(filePath.c_str());
 	std::ofstream outputFile(filePath, std::ios::trunc);
@@ -654,16 +653,6 @@ std::string removewhites(const std::string& str) {
 	return str.substr(start, end - start + 1);
 }
 
-std::string removewhites(const std::string& str) {
-    size_t start = str.find_first_not_of(" \t\r\n");
-    size_t end = str.find_last_not_of(" \t\r\n");
-
-    if (start == std::string::npos || end == std::string::npos) {
-        return "";  // String is all whitespaces
-    }
-    return str.substr(start, end - start + 1);
-}
-
 int request::matchLocation(server& _server)
 {
 	std::vector<Location> vec;
@@ -680,21 +669,6 @@ int request::matchLocation(server& _server)
 	// 		filePath = filePath.substr(1);
 	// 	return 0;
 	// }
-	
-	std::vector<server> srvrs = _server.getSmSoServers();//? servers li wst servers
-	// //? lopping throught a vector of servers
-	for (std::vector<server>::iterator it = srvrs.begin(); it != srvrs.end(); it++) {
-		// cout<< MAGENTA << "server name is: " << it->getServerName() << RESET_TEXT << endl;
-
-		// cout<< MAGENTA << "Host is: " << removewhites(this->headerFields["Host"]) << "|" << RESET_TEXT << endl;
-		if (it->getServerName() == removewhites(this->headerFields["Host"]))
-		{
-			vec = it->getLocations();
-			// cout << BLUE << "YES WE FOUND A MATCH: " << it->getServerName() << RESET_TEXT << endl;
-			//location tbedel ldak dyal server lakhor
-		}
-		// ila la khliha dyal default
-	}
 	
 	std::vector<server> srvrs = _server.getSmSoServers();//? servers li wst servers
 	// //? lopping throught a vector of servers
