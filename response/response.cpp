@@ -34,15 +34,21 @@ void	response::sendHeader(int connection_socket, request& request){
 	if (!request.getredirectURL().empty()){
 		header = "HTTP/1.1 301 Moved Permanently\r\n"
 			"Location: "+ request.getredirectURL() +'\0';
-		write(connection_socket, header.c_str(),    //header
+		int bytes_sent = write(connection_socket, header.c_str(),    //header
 		strlen(header.c_str()));
+		if (bytes_sent <= 0)
+			perror("write");//!remove fd
+		resTime = time(0);
 		return ;
 	}
 	else if (request.getMethod() == "DELETE")
 	{
 		header = "HTTP/1.1 " + request.getStatusCode()+ "\r\n\r\n"+'\0';
-		write(connection_socket, header.c_str(),    //header
+		int bytes_sent = write(connection_socket, header.c_str(),    //header
 		strlen(header.c_str()));
+		if (bytes_sent <= 0)
+			perror("write");//!remove fd
+		resTime = time(0);
 		return ;
 	}
 	if (request.is_CGI){
@@ -60,12 +66,11 @@ void	response::sendHeader(int connection_socket, request& request){
 int	response::sendBody(int connection_socket){
 	if (!firstT){
 		firstT++;
-		int bytes_sent = write(connection_socket, header.c_str(),    //header
+		int bytes_sent = write(connection_socket, header.c_str(),//header
 		strlen(header.c_str()));
-		if (bytes_sent <= 0){
-			perror("write");
-			totalSent++;
-		}
+		if (bytes_sent <= 0)
+			perror("write");//!remove fd
+		resTime = time(0);
 		return 0;
 	}
 	int bytes_sent;
@@ -73,15 +78,16 @@ int	response::sendBody(int connection_socket){
 	if (len > filesize - totalSent)
 		len = filesize - totalSent;
 	bytes_sent = write(connection_socket, buffer + totalSent, len);
+	if (bytes_sent <= 0)
+		perror("write");//!remove fd
+	resTime = time(0);
 	totalSent += bytes_sent;
-	int allFileSent = 0;
 	if (totalSent >= filesize){
-		allFileSent = 1;
 		totalSent = 0;
 		firstT = 0;
-		delete buffer;
+		free(buffer);
 		buffer = NULL;
+		return 1;
 	}
-	return allFileSent;
 	return 0;
 }

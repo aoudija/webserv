@@ -13,7 +13,11 @@ class request;
 
 class response{
 	public:
-		response();
+		time_t resTime;
+		response(){
+			resTime = -1;
+			buffer = NULL;
+		}
 		int firstT;
 		std::string	header;
 		size_t	filesize;

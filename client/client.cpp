@@ -76,11 +76,15 @@ void	client::set_response(int connection_socket){
 		if (requestObj.getMethod() != "DELETE")
 			responseObj.initialize(requestObj);
 		responseObj.sendHeader(connection_socket, requestObj);
+		resTime = responseObj.resTime;
 	}
 	if (!requestObj.getredirectURL().empty() || requestObj.getMethod() == "DELETE")
 		filesent = 1;
-	else
+	else{
 		filesent = responseObj.sendBody(connection_socket);
+		resTime = responseObj.resTime;
+		cout << "reseTime in client: " << resTime << endl;
+	}
 	if (filesent == 1){
 	    tookrequest = 0;
 		if (requestObj.getFilePath() == "autoindex.html"
@@ -100,4 +104,11 @@ bool	client::getfilesent(){
 
 bool	client::getTookrequest(){
     return tookrequest;
+}
+
+void client::reset(){
+	keepAlive = 0;
+	filesent = 0;
+	tookrequest = 0;
+	responseObj.firstT = 0;
 }

@@ -85,10 +85,17 @@ string request::getQueryString() {
 std::string errorPageTamplate(std::string errorMessage)
 {
 	std::string filePath = "errorpage.html";
+	std::string filePath = "errorpage.html";
 	if (fileExists(filePath.c_str()))
 		unlink(filePath.c_str());
 	std::ofstream outputFile(filePath, std::ios::trunc);
 
+	if (outputFile.is_open())
+	{
+		outputFile << "<!DOCTYPE html>\n";
+		outputFile << "<html>\n";
+			outputFile << "<head>\n";
+				outputFile << "<style>\n";
 	if (outputFile.is_open())
 	{
 		outputFile << "<!DOCTYPE html>\n";
@@ -124,6 +131,59 @@ std::string errorPageTamplate(std::string errorMessage)
 						"setTimeout(typeWriter, 0);\n";
 				outputFile << "</script>\n";
 			outputFile << "</body>\n";
+		outputFile << "</html>\n";
+	
+		outputFile.close();
+		return filePath;
+	}
+	else
+	{
+		std::cout << "error" << std::endl;
+		std::string filePath = "/Users/zbouayya/goinfre/errorpage.html";
+		if (fileExists(filePath.c_str()))
+			unlink(filePath.c_str());
+		std::ofstream outputFile(filePath, std::ios::trunc);
+		if (outputFile.is_open())
+		{
+			outputFile << "<!DOCTYPE html>\n";
+			outputFile << "<html>\n";
+				outputFile << "<head>\n";
+					outputFile << "<style>\n";
+						outputFile << "html, body {font-family: 'Roboto Mono', monospace;font-size: 16px;}\n";
+						outputFile << "body {background-color: black;margin: 0;padding: 0;}\n";
+						outputFile << "p {color: white;font-size: 25px;letter-spacing: 0.2px;margin: 0;display: inline;}\n";
+						outputFile << ".center-xy {text-align: center;top: 50%;left: 50%;transform: translate(-50%, -50%);position: absolute;}\n";
+					outputFile << "</style>\n";
+				outputFile << "</head>\n";
+
+				outputFile << "<body>\n";
+					outputFile << "<div class='center-xy'>\n";
+						outputFile << "<p id='myP'>\n";
+							outputFile << errorMessage + "\n";
+						outputFile << "</p>\n";
+					outputFile << "</div>\n";
+					outputFile << "<script>\n";
+
+					outputFile <<
+							"let divElement = document.getElementById(\"myP\");"
+							"let textContent = divElement.innerText.toString();"
+							"let i = 1;"
+							"function typeWriter() {"
+							"	divElement.innerText = textContent.slice(0, i);"
+							"	console.log(divElement.innerText);"
+							"	i++;"
+							"	if (i <= textContent.length)"
+							"		setTimeout(typeWriter, 100);"
+							"}"
+							"setTimeout(typeWriter, 0);\n";
+					outputFile << "</script>\n";
+				outputFile << "</body>\n";
+			outputFile << "</html>\n";
+
+			outputFile.close();
+		}
+		return filePath;
+	}
 		outputFile << "</html>\n";
 	
 		outputFile.close();
@@ -366,6 +426,15 @@ request::ParsingStatus request::checkBody(std::string body, server& _server)
 			return ParsingFailed;
 		}
 		outputFile.close();
+		if (outputFile.fail()) {
+			std::cerr << RED << "uploading failed !!!!!!!!!!" << RESET_TEXT << endl;
+			outputFile.close();
+			this->statusCode = "507 Insufficient Storage";
+			this->filePath = errorPageTamplate("507, Insufficient Storage.");
+			this->ContentType = "text/html";
+			return ParsingFailed;
+		}
+		outputFile.close();
 	}
 	return ParsingDone;
 }
@@ -384,6 +453,14 @@ request::ParsingStatus request::checkBody2(std::string body, server& _server)
 	if (outputFile.is_open()) {
 		cout << "file is open" << endl;
 		outputFile << body;
+		if (outputFile.fail()) {
+			std::cerr << RED << "uploading failed !!!!!!!!!!" << RESET_TEXT << endl;
+			outputFile.close();
+			this->statusCode = "507 Insufficient Storage";
+			this->filePath = errorPageTamplate("507, Insufficient Storage.");
+			this->ContentType = "text/html";
+			return ParsingFailed;
+		}
 		if (outputFile.fail()) {
 			std::cerr << RED << "uploading failed !!!!!!!!!!" << RESET_TEXT << endl;
 			outputFile.close();
@@ -486,6 +563,15 @@ request::ParsingStatus request::checkBody3(std::string body, server& _server)
 					return ParsingFailed;
 				}
 				outputFile.close();
+				if (outputFile.fail()) {
+					std::cerr << RED << "uploading failed !!!!!!!!!!" << RESET_TEXT << endl;
+					outputFile.close();
+					this->statusCode = "507 Insufficient Storage";
+					this->filePath = errorPageTamplate("507, Insufficient Storage.");
+					this->ContentType = "text/html";
+					return ParsingFailed;
+				}
+				outputFile.close();
 			}
 		}
 		pos = nextPos + boundary.length();
@@ -568,6 +654,16 @@ std::string removewhites(const std::string& str) {
 	return str.substr(start, end - start + 1);
 }
 
+std::string removewhites(const std::string& str) {
+    size_t start = str.find_first_not_of(" \t\r\n");
+    size_t end = str.find_last_not_of(" \t\r\n");
+
+    if (start == std::string::npos || end == std::string::npos) {
+        return "";  // String is all whitespaces
+    }
+    return str.substr(start, end - start + 1);
+}
+
 int request::matchLocation(server& _server)
 {
 	std::vector<Location> vec;
@@ -584,6 +680,21 @@ int request::matchLocation(server& _server)
 	// 		filePath = filePath.substr(1);
 	// 	return 0;
 	// }
+	
+	std::vector<server> srvrs = _server.getSmSoServers();//? servers li wst servers
+	// //? lopping throught a vector of servers
+	for (std::vector<server>::iterator it = srvrs.begin(); it != srvrs.end(); it++) {
+		// cout<< MAGENTA << "server name is: " << it->getServerName() << RESET_TEXT << endl;
+
+		// cout<< MAGENTA << "Host is: " << removewhites(this->headerFields["Host"]) << "|" << RESET_TEXT << endl;
+		if (it->getServerName() == removewhites(this->headerFields["Host"]))
+		{
+			vec = it->getLocations();
+			// cout << BLUE << "YES WE FOUND A MATCH: " << it->getServerName() << RESET_TEXT << endl;
+			//location tbedel ldak dyal server lakhor
+		}
+		// ila la khliha dyal default
+	}
 	
 	std::vector<server> srvrs = _server.getSmSoServers();//? servers li wst servers
 	// //? lopping throught a vector of servers
