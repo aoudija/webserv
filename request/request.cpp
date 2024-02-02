@@ -17,6 +17,7 @@ request::request() : requestStatus(true) {
 	this->redirectURL = "";
 	this->statusCode = "200 OK";
 	this->failHeader = false;
+	this->keepAlive = false;
 }
 
 request::request(const request &other)
@@ -83,17 +84,17 @@ string request::getQueryString() {
 
 std::string errorPageTamplate(std::string errorMessage)
 {
-    std::string filePath = "errorpage.html";
+	std::string filePath = "errorpage.html";
 	if (fileExists(filePath.c_str()))
 		unlink(filePath.c_str());
-    std::ofstream outputFile(filePath, std::ios::trunc);
+	std::ofstream outputFile(filePath, std::ios::trunc);
 
-    if (outputFile.is_open())
-    {
-        outputFile << "<!DOCTYPE html>\n";
-        outputFile << "<html>\n";
-        	outputFile << "<head>\n";
-        		outputFile << "<style>\n";
+	if (outputFile.is_open())
+	{
+		outputFile << "<!DOCTYPE html>\n";
+		outputFile << "<html>\n";
+			outputFile << "<head>\n";
+				outputFile << "<style>\n";
 					outputFile << "html, body {font-family: 'Roboto Mono', monospace;font-size: 16px;}\n";
 					outputFile << "body {background-color: black;margin: 0;padding: 0;}\n";
 					outputFile << "p {color: white;font-size: 25px;letter-spacing: 0.2px;margin: 0;display: inline;}\n";
@@ -123,31 +124,59 @@ std::string errorPageTamplate(std::string errorMessage)
 						"setTimeout(typeWriter, 0);\n";
 				outputFile << "</script>\n";
 			outputFile << "</body>\n";
-        outputFile << "</html>\n";
+		outputFile << "</html>\n";
+	
+		outputFile.close();
+		return filePath;
+	}
+	else
+	{
+		std::cout << "error" << std::endl;
+		std::string filePath = "/Users/zbouayya/goinfre/errorpage.html";
+		if (fileExists(filePath.c_str()))
+			unlink(filePath.c_str());
+		std::ofstream outputFile(filePath, std::ios::trunc);
+		if (outputFile.is_open())
+		{
+			outputFile << "<!DOCTYPE html>\n";
+			outputFile << "<html>\n";
+				outputFile << "<head>\n";
+					outputFile << "<style>\n";
+						outputFile << "html, body {font-family: 'Roboto Mono', monospace;font-size: 16px;}\n";
+						outputFile << "body {background-color: black;margin: 0;padding: 0;}\n";
+						outputFile << "p {color: white;font-size: 25px;letter-spacing: 0.2px;margin: 0;display: inline;}\n";
+						outputFile << ".center-xy {text-align: center;top: 50%;left: 50%;transform: translate(-50%, -50%);position: absolute;}\n";
+					outputFile << "</style>\n";
+				outputFile << "</head>\n";
 
+				outputFile << "<body>\n";
+					outputFile << "<div class='center-xy'>\n";
+						outputFile << "<p id='myP'>\n";
+							outputFile << errorMessage + "\n";
+						outputFile << "</p>\n";
+					outputFile << "</div>\n";
+					outputFile << "<script>\n";
 
+					outputFile <<
+							"let divElement = document.getElementById(\"myP\");"
+							"let textContent = divElement.innerText.toString();"
+							"let i = 1;"
+							"function typeWriter() {"
+							"	divElement.innerText = textContent.slice(0, i);"
+							"	console.log(divElement.innerText);"
+							"	i++;"
+							"	if (i <= textContent.length)"
+							"		setTimeout(typeWriter, 100);"
+							"}"
+							"setTimeout(typeWriter, 0);\n";
+					outputFile << "</script>\n";
+				outputFile << "</body>\n";
+			outputFile << "</html>\n";
 
-        // writeToFile(".container { width: 100%;}\n");
-
-
-        
-
-        // outputFile << "<div class='container'>\n";
-        // outputFile << "<div class='copy-container center-xy'>\n";
-        // outputFile << "<p>\n";
-        // outputFile << errorMessage + "\n";
-
-        // outputFile << "</div>\n";
-        // writeToFile("</div>\n");
-
-        outputFile.close();
-        return filePath;
-    }
-    else
-    {
-        std::cout << "error" << std::endl;
-        return "";
-    }
+			outputFile.close();
+		}
+		return filePath;
+	}
 }
 
 std::string request::removeAndSetQueryString(const std::string& uri) {
@@ -328,6 +357,15 @@ request::ParsingStatus request::checkBody(std::string body, server& _server)
 		fileName = generateRandomFileName() + getTheExtensionFromContentType(this->uploadContentType);
 		std::ofstream outputFile("upload/" + fileName, std::ios::app);
 		outputFile << chunkData;
+		if (outputFile.fail()) {
+			std::cerr << RED << "uploading failed !!!!!!!!!!" << RESET_TEXT << endl;
+			outputFile.close();
+			this->statusCode = "507 Insufficient Storage";
+			this->filePath = errorPageTamplate("507, Insufficient Storage.");
+			this->ContentType = "text/html";
+			return ParsingFailed;
+		}
+		outputFile.close();
 	}
 	return ParsingDone;
 }
@@ -346,6 +384,14 @@ request::ParsingStatus request::checkBody2(std::string body, server& _server)
 	if (outputFile.is_open()) {
 		cout << "file is open" << endl;
 		outputFile << body;
+		if (outputFile.fail()) {
+			std::cerr << RED << "uploading failed !!!!!!!!!!" << RESET_TEXT << endl;
+			outputFile.close();
+			this->statusCode = "507 Insufficient Storage";
+			this->filePath = errorPageTamplate("507, Insufficient Storage.");
+			this->ContentType = "text/html";
+			return ParsingFailed;
+		}
 	}
 	if (!outputFile.is_open()) {
 		cout << "file not open" << endl;
@@ -431,6 +477,15 @@ request::ParsingStatus request::checkBody3(std::string body, server& _server)
 					unlink(("upload/" + fileName).c_str());
 				}
 				outputFile << bodySent.substr(0, bodySent.size() - 2);
+				if (outputFile.fail()) {
+					std::cerr << RED << "uploading failed !!!!!!!!!!" << RESET_TEXT << endl;
+					outputFile.close();
+					this->statusCode = "507 Insufficient Storage";
+					this->filePath = errorPageTamplate("507, Insufficient Storage.");
+					this->ContentType = "text/html";
+					return ParsingFailed;
+				}
+				outputFile.close();
 			}
 		}
 		pos = nextPos + boundary.length();
@@ -503,6 +558,16 @@ bool fileExists(const char* path) {
 	return (S_ISREG(fileInfo.st_mode) || S_ISDIR(fileInfo.st_mode));
 }
 
+std::string removewhites(const std::string& str) {
+	size_t start = str.find_first_not_of(" \t\r\n");
+	size_t end = str.find_last_not_of(" \t\r\n");
+//!leaks here??
+	if (start == std::string::npos || end == std::string::npos) {
+		return "";  // String is all whitespaces
+	}
+	return str.substr(start, end - start + 1);
+}
+
 int request::matchLocation(server& _server)
 {
 	std::vector<Location> vec;
@@ -519,6 +584,21 @@ int request::matchLocation(server& _server)
 	// 		filePath = filePath.substr(1);
 	// 	return 0;
 	// }
+	
+	std::vector<server> srvrs = _server.getSmSoServers();//? servers li wst servers
+	// //? lopping throught a vector of servers
+	for (std::vector<server>::iterator it = srvrs.begin(); it != srvrs.end(); it++) {
+		// cout<< MAGENTA << "server name is: " << it->getServerName() << RESET_TEXT << endl;
+
+		// cout<< MAGENTA << "Host is: " << removewhites(this->headerFields["Host"]) << "|" << RESET_TEXT << endl;
+		if (it->getServerName() == removewhites(this->headerFields["Host"]))
+		{
+			vec = it->getLocations();
+			// cout << BLUE << "YES WE FOUND A MATCH: " << it->getServerName() << RESET_TEXT << endl;
+			//location tbedel ldak dyal server lakhor
+		}
+		// ila la khliha dyal default
+	}
 
 	while (!paths.empty())
 	{
@@ -602,6 +682,25 @@ int request::parseRequest(std::string request, server& _server)
 		}
 	else {
 		return 1;
+	}
+}
+
+
+bool	request::getConnection()
+{
+	return this->keepAlive;
+}
+
+void	request::setConnection()
+{
+	if (headerFields.find("Connection") != headerFields.end())
+	{
+		if (headerFields["Connection"].find("keep-alive") != std::string::npos) {
+			this->keepAlive = true;
+		}
+		else {
+			this->keepAlive = false;
+		}
 	}
 }
 

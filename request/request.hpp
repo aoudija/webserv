@@ -36,6 +36,8 @@ class request
 
 	int bodyContentLength;
 
+	bool	keepAlive;
+
 	bool requestStatus;
 
 	std::string statusCode;
@@ -101,9 +103,11 @@ public:
 
 	void setStatusCode(std::string statusCode);
 
-	void    setContentType();
-	void    setContentType(std::string contentType);
-	void    addAllContentTypes();
+	bool	getConnection();
+	void	setConnection();
+	void	setContentType();
+	void	setContentType(std::string contentType);
+	void	addAllContentTypes();
 
 	int checkRequestLine(std::string request);
 	int checkHeaderFields(std::string headerFiles);

@@ -55,6 +55,7 @@ void	client::set_request(string r, server& _server){
 		if (requestObj.headersDone == 3 || requestObj.headersDone == 4) {
 			requestObj.setContentLength();
 			requestObj.setContentType();
+			requestObj.setConnection();
 			if (requestObj.getMethod() == "POST")
 				tookrequest = requestObj.getBodyRequest(r);
 			if (requestObj.getMethod() == "GET" || requestObj.getMethod() == "DELETE")

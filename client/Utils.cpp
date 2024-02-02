@@ -113,3 +113,44 @@ void	codeNpath(request& requestObj, const char* statusCode, const char* filePath
     requestObj.setmethod("GET");
     requestObj.is_CGI = 0;
 }
+
+void internalServerError(int connection_socket){
+	std::string __response = "HTTP/1.1 500 Internal Server Error\r\n\r\n"
+					"Content-Length: 809\n"
+					"Content-Type: text/html\n"
+		 "<!DOCTYPE html>\n"
+		 "<html>\n"
+			 "<head>\n"
+				 "<style>\n"
+					 "html, body {font-family: 'Roboto Mono', monospace;font-size: 16px;}\n"
+					 "body {background-color: black;margin: 0;padding: 0;}\n"
+					 "p {color: white;font-size: 25px;letter-spacing: 0.2px;margin: 0;display: inline;}\n"
+					 ".center-xy {text-align: center;top: 50%;left: 50%;transform: translate(-50%, -50%);position: absolute;}\n"
+				 "</style>\n"
+			 "</head>\n"
+			 "<body>\n"
+				 "<div class='center-xy'>\n"
+					 "<p id='myP'>\n"
+						 "500 Internal Server Error\n"
+					 "</p>\n"
+				 "</div>\n"
+				 "<script>\n"
+
+				
+			"let divElement = document.getElementById(\"myP\");"
+			"let textContent = divElement.innerText.toString();"
+			"let i = 1;"
+			"function typeWriter() {"
+			"divElement.innerText = textContent.slice(0, i);"
+			"console.log(divElement.innerText);"
+			"i++;"
+			"if (i <= textContent.length)"
+			"setTimeout(typeWriter, 100);"
+			"}"
+			"setTimeout(typeWriter, 0);\n"
+				 "</script>\n"
+			 "</body>\n"
+		 "</html>\n";
+	write(connection_socket, __response.c_str(),    //header
+		strlen(__response.c_str()));
+}
