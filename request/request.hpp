@@ -13,11 +13,13 @@
 #include <vector>
 #include "../server.hpp"
 #include "../Parsing/Location.hpp"
+#include "../cgi/Cgi.hpp"
 
 using std::string;
 using std::map;
 using std::vector;
 class server;
+class Cgi;
 class request
 {
 	std::string method;
@@ -55,6 +57,8 @@ class request
 	string cgi_header;
 	string cgi_body;
 public:
+	Cgi *CgiObj;
+	int	Cgisdone;
 	int bodyDone;
 	int headersDone;
 	bool failHeader;

@@ -72,24 +72,55 @@ void	client::set_request(string r, server& _server){
 }
 
 void	client::set_response(int connection_socket){
-	if (!responseObj.totalSent)
+	if (requestObj.Cgisdone)
 	{
-		if (requestObj.getMethod() != "DELETE")
-			responseObj.initialize(requestObj);
-		responseObj.sendHeader(connection_socket, requestObj);
-		resTime = responseObj.resTime;
+		int status = requestObj.CgiObj->waitcheck();
+		if (status == 502){
+			codeNpath(requestObj,"502 Bad Gateway", errorPageTamplate("502, Bad Gateway").c_str());
+			requestObj.Cgisdone = 0;
+		}
+		else if (status == 504){
+			codeNpath(requestObj,"504 Gateway Timeout", errorPageTamplate("504, Gateway Timeout").c_str());
+			requestObj.Cgisdone = 0;
+		}
+		else if (status == 500){
+			codeNpath(requestObj,"500 Internal Server Error", errorPageTamplate("500, Internal Server Error").c_str());
+			requestObj.Cgisdone = 0;
+		}
+		else if (status == 1){
+			int status2 = requestObj.CgiObj->ParseAll();
+			if (status2 == 502){
+				codeNpath(requestObj,"502 Bad Gateway", errorPageTamplate("502, Bad Gateway").c_str());
+			}
+			else{
+				requestObj.setCgiBody(requestObj.CgiObj->body);
+				requestObj.setCgiHeader(requestObj.CgiObj->header);
+			}
+			requestObj.Cgisdone = 0;
+		}
+		if (requestObj.Cgisdone == 0)
+			delete requestObj.CgiObj;
 	}
-	if (!requestObj.getredirectURL().empty() || requestObj.getMethod() == "DELETE")
-		filesent = 1;
-	else{
-		filesent = responseObj.sendBody(connection_socket);
-		resTime = responseObj.resTime;
-	}
-	if (filesent == 1){
-	    tookrequest = 0;
-		if (requestObj.getFilePath() == "autoindex.html"
-			|| requestObj.getFilePath() == "errorpage.html") {
-			unlink(requestObj.getFilePath().c_str());
+	else {
+		if (!responseObj.totalSent)
+		{
+			if (requestObj.getMethod() != "DELETE")
+				responseObj.initialize(requestObj);
+			responseObj.sendHeader(connection_socket, requestObj);
+			resTime = responseObj.resTime;
+		}
+		if (!requestObj.getredirectURL().empty() || requestObj.getMethod() == "DELETE")
+			filesent = 1;
+		else{
+			filesent = responseObj.sendBody(connection_socket);
+			resTime = responseObj.resTime;
+		}
+		if (filesent == 1){
+			tookrequest = 0;
+			if (requestObj.getFilePath() == "autoindex.html"
+				|| requestObj.getFilePath() == "errorpage.html") {
+				unlink(requestObj.getFilePath().c_str());
+			}
 		}
 	}
 }

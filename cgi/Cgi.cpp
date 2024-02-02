@@ -6,9 +6,10 @@
 #include <signal.h>
 
 
-Cgi::Cgi(server &serv,  request &req): MyServer(serv),  MyRequest(req){
+Cgi::Cgi(server *serv,  request *req): MyServer(serv),  MyRequest(req){
 	this->env = NULL;
 	this->arg = NULL;
+	this->status = 0;
 	init();
 	set_arg();
 }
@@ -66,7 +67,7 @@ std::string getroot(const std::string& filepath) {
 
 void	Cgi::init(){
 	std::map<string, string> mapenv;
-	std::map<string, string> headerenv = MyRequest.headerFields;
+	std::map<string, string> headerenv = MyRequest->headerFields;
 	std::map<string, string>::iterator it = headerenv.begin();
 	for(; it != headerenv.end(); it++){
 		string key = toUpperCase(it->first);
@@ -78,30 +79,30 @@ void	Cgi::init(){
 	mapenv["GATEWAY_INTERFACE"] = "CGI/1.1";
 	mapenv["SERVER_SOFTWARE"] = "webserv/1.0";
 	mapenv["REDIRECT_STATUS" ] = "0";
-	mapenv["SERVER_NAME"] = this->MyServer.getServerName();
-	mapenv["SERVER_PORT"] = this->MyServer.getPort();
-	mapenv["PATH_INFO"] = this->MyRequest.getFilePath();
-	mapenv["PATH_TRANSLATED"] = this->MyRequest.getFilePath();
-	mapenv["SCRIPT_NAME"] = this->MyRequest.getFilePath();
-	mapenv["DOCUMENT_ROOT"] = getroot(this->MyRequest.getFilePath());
-	mapenv["HTTP_HOST"] = this->MyServer.get_ip();
-	mapenv["HTTP_CONNECTION"] = this->MyRequest.headerFields["Connection"];
-	mapenv["HTTP_ACCEPT"] = this->MyRequest.headerFields["Accept"];
-	mapenv["HTTP_USER-AGENT"] = this->MyRequest.headerFields["User-Agent"];
-	mapenv["HTTP_COOKIE"] = this->MyRequest.headerFields["Cookie"];
-	mapenv["REQUEST_URI"] = this->MyRequest.getFilePath();;
-	if (this->MyRequest.getMethod() == "POST"){
-		mapenv["CONTENT_TYPE"] = this->MyRequest.headerFields["Content-Type"];
-		mapenv["CONTENT_LENGTH"] = this->MyRequest.headerFields["Content-Length"];
-		mapenv["REQUEST_METHOD"] = this->MyRequest.getMethod();
-		if (MyRequest.cgi_exe.second == "php")
-			mapenv["QUERY_STRING"] = MyRequest.theBody;
+	mapenv["SERVER_NAME"] = this->MyServer->getServerName();
+	mapenv["SERVER_PORT"] = this->MyServer->getPort();
+	mapenv["PATH_INFO"] = this->MyRequest->getFilePath();
+	mapenv["PATH_TRANSLATED"] = this->MyRequest->getFilePath();
+	mapenv["SCRIPT_NAME"] = this->MyRequest->getFilePath();
+	mapenv["DOCUMENT_ROOT"] = getroot(this->MyRequest->getFilePath());
+	mapenv["HTTP_HOST"] = this->MyServer->get_ip();
+	mapenv["HTTP_CONNECTION"] = this->MyRequest->headerFields["Connection"];
+	mapenv["HTTP_ACCEPT"] = this->MyRequest->headerFields["Accept"];
+	mapenv["HTTP_USER-AGENT"] = this->MyRequest->headerFields["User-Agent"];
+	mapenv["HTTP_COOKIE"] = this->MyRequest->headerFields["Cookie"];
+	mapenv["REQUEST_URI"] = this->MyRequest->getFilePath();;
+	if (this->MyRequest->getMethod() == "POST"){
+		mapenv["CONTENT_TYPE"] = this->MyRequest->headerFields["Content-Type"];
+		mapenv["CONTENT_LENGTH"] = this->MyRequest->headerFields["Content-Length"];
+		mapenv["REQUEST_METHOD"] = this->MyRequest->getMethod();
+		if (MyRequest->cgi_exe.second == "php")
+			mapenv["QUERY_STRING"] = MyRequest->theBody;
 	}
-	else if (this->MyRequest.getMethod() == "GET"){
-		mapenv["QUERY_STRING"] = this->MyRequest.getQueryString();
-		mapenv["CONTENT_TYPE"] = this->MyRequest.headerFields["Content-Type"];
+	else if (this->MyRequest->getMethod() == "GET"){
+		mapenv["QUERY_STRING"] = this->MyRequest->getQueryString();
+		mapenv["CONTENT_TYPE"] = this->MyRequest->headerFields["Content-Type"];
 		mapenv["CONTENT_LENGTH"] = "";
-		mapenv["REQUEST_METHOD"] = this->MyRequest.getMethod();
+		mapenv["REQUEST_METHOD"] = this->MyRequest->getMethod();
 	}
 	std::map<string, string>::iterator it2 = mapenv.begin();
 	for(; it2 != mapenv.end(); it2++){
@@ -121,8 +122,8 @@ void	Cgi::init(){
 
 void	Cgi::set_arg(){
 	this->arg = new char*[3];
-	arg[0] = strdup(MyRequest.cgi_exe.first.c_str());
-	arg[1] = strdup(this->MyRequest.getFilePath().c_str());
+	arg[0] = strdup(MyRequest->cgi_exe.first.c_str());
+	arg[1] = strdup(this->MyRequest->getFilePath().c_str());
 	arg[2] = NULL;
 }
 
@@ -134,6 +135,21 @@ std::string trim(const std::string& str) {
         return "";  // String is all whitespaces
     }
     return str.substr(start, end - start + 1);
+}
+
+static std::string generateRandomFileName() {
+	std::string characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+	const int length = 8;  // Adjust the length as needed
+
+	std::string randomFileName;
+	srand(static_cast<unsigned>(time(0)));
+
+	for (int i = 0; i < length; ++i) {
+		int randomIndex = rand() % characters.length();
+		randomFileName += characters[randomIndex];
+	}
+
+	return randomFileName;
 }
 
 void	Cgi::parseHeader(std::vector<std::string> header, size_t len){
@@ -165,7 +181,8 @@ void	Cgi::parseHeader(std::vector<std::string> header, size_t len){
 		head = "HTTP/1.1 200 OK\r\n" + head;
 	else
 		head = status + head;
-	this->header = head + "\r\n\0";
+	std::cout << RED << head << std::endl;
+	this->header = head + "\r\n";
 }
 
 std::vector<std::string> splitString(const std::string& input) {
@@ -192,7 +209,7 @@ void handleTimeout(int sig)
 
 int Cgi::ParseAll(){
 	std::string body;
-	std::ifstream file(filename);
+	std::ifstream file(this->filename);
     if (!file.is_open()) 
         return 502;
     std::ostringstream content;
@@ -212,7 +229,6 @@ int Cgi::ParseAll(){
 	body = trim(body);
 
 	parseHeader(result, body.size());
-
 	std::string filebodysend = "/tmp/file_sendbody";
 	int fdbodysend = open(filebodysend.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	if (fdbodysend == -1)
@@ -223,19 +239,22 @@ int Cgi::ParseAll(){
 	return 1;
 }
 
-int Cgi::exe(){
-	pid_t	pid;
-	filename = "/tmp/file_all";
-	filebody = "/tmp/file_body";
-	fileerr = "/tmp/file_err";
+void Cgi::exe(){
+	this->filename = "/tmp/file_all" + generateRandomFileName();
+	this->filebody = "/tmp/file_body" + generateRandomFileName();
+	this->fileerr = "/tmp/file_err" + generateRandomFileName();
 	int fd_body = open(filebody.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
-	if (fd_body == -1)
-		return 502;
-	write(fd_body, MyRequest.theBody.c_str(), MyRequest.theBody.length());
+	if (fd_body == -1){
+		this->status = 502;
+		return ;
+	}
+	write(fd_body, MyRequest->theBody.c_str(), MyRequest->theBody.length());
 	close(fd_body);
 	pid = fork();
-	if (pid == -1)
-		return 502;
+	if (pid == -1){
+		this->status = 500;
+		return ;
+	}
 	if (!pid) {
 		int	fd = open(filename.c_str(), O_CREAT | O_RDWR | O_TRUNC, 0666);
 		if (fd == -1)
@@ -249,7 +268,7 @@ int Cgi::exe(){
 		if (dup2(fd2, 2) == -1)
 			exit(502);
 		close(fd2);
-		if (MyRequest.getMethod() == "POST"){
+		if (MyRequest->getMethod() == "POST"){
 			int fd1 = open(filebody.c_str(), O_RDONLY);
 			if (fd1 == -1)
 				exit(502);
@@ -258,17 +277,27 @@ int Cgi::exe(){
 			close(fd1);
 		}
 		signal(SIGALRM, handleTimeout);
-		alarm(2);
+		alarm(20);
 		execve(this->arg[0], this->arg, this->env);
 		exit(502);
 	}
-	int status;
-    int	it = waitpid(pid, &status, 0);
+}
+
+
+int	Cgi::waitcheck(){
+	if (this->status == 502 || this->status == 504 || this->status == 500)
+		return this->status;
+	int sts;
+    int	it = waitpid(pid, &sts, WNOHANG);
+	if (it == -1)
+		return 500;
 	if (it > 0){
-		if (WIFSIGNALED(status) && WTERMSIG(status) == SIGALRM)
+		if (WIFSIGNALED(sts) && WTERMSIG(sts) == SIGALRM)
 			return 504;
-		else if (WIFEXITED(status) && WEXITSTATUS(status) != 0)
+		else if (WIFEXITED(sts) && WEXITSTATUS(sts) != 0)
 			return 502;
+		else
+			return 1;
 	}
-	return ParseAll();
+	return 0;
 }

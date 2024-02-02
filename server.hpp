@@ -78,6 +78,7 @@ class client
 		void	reset();
 	// ayoub
 	void	requestCases(request &requestObj, server& _server);
+	int		cgisdone;
 };
 //
 class server{

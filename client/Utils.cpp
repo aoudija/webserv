@@ -47,16 +47,9 @@ void	isCGI(request& requestObj, const std::string& filePath,
 		{
 			requestObj.is_CGI = 1;
 			requestObj.cgi_exe = cgi_exe[i];
-			Cgi	cgi(_server, requestObj);
-            int status = cgi.exe();
-			if (status == 502)
-                codeNpath(requestObj,"502 Bad Gateway", errorPageTamplate("502, Bad Gateway").c_str());
-            else if (status == 504)
-                codeNpath(requestObj,"504 Gateway Timeout", errorPageTamplate("504, Gateway Timeout").c_str());
-            else{
-                requestObj.setCgiBody(cgi.body);
-                requestObj.setCgiHeader(cgi.header);
-            }
+            requestObj.CgiObj = new Cgi(&_server, &requestObj);
+			requestObj.CgiObj->exe();
+            requestObj.Cgisdone = 1;
 			break;
 		}
 	}

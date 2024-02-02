@@ -18,6 +18,7 @@ request::request() : requestStatus(true) {
 	this->statusCode = "200 OK";
 	this->failHeader = false;
 	this->keepAlive = false;
+	this->Cgisdone = 0;
 }
 
 void	request::reset() {

@@ -32,7 +32,8 @@ void	Config::dublesrvcheck(){
 			if (i == j)
 				break ;
 			if (!_serverName.compare(srvcheck[j].getServerName()) && !_port.compare(srvcheck[j].getPort())
-				&& !_ip.compare(srvcheck[j].get_ip()))
+				&& (!_ip.compare(srvcheck[j].get_ip()) || (_ip == "localhost" && srvcheck[j].get_ip() == "127.0.0.1")
+                || (_ip == "127.0.0.1" && srvcheck[j].get_ip() == "localhost")))
 				throw std::invalid_argument(throwmessage(srv[i].line, "Error: This Server already exist in the line " + intToString(srvcheck[j].line) +"."));
 		}
 		srvcheck.clear();
@@ -52,8 +53,8 @@ void	Config::defaultCheck(){
 		for (size_t j = 0; j < srvcheck.size(); j++){
 			if (i == j)
 				break ;
-			if (_serverName.compare(srvcheck[j].getServerName()) && !_port.compare(srvcheck[j].getPort())
-				&& !_ip.compare(srvcheck[i].get_ip())){
+			if (!_port.compare(srvcheck[j].getPort()) && (!_ip.compare(srvcheck[j].get_ip()) || (_ip == "localhost" && srvcheck[j].get_ip() == "127.0.0.1")
+                || (_ip == "127.0.0.1" && srvcheck[j].get_ip() == "localhost"))){
 				srv[i].set_isdefault(0);
 				srv[i].set_my_default(j);
 				break ;

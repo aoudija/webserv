@@ -7,28 +7,34 @@
 #include "../server.hpp"
 #include "../request/request.hpp"
 
-class	client;
+class	server;
+class	request;
 class Cgi
 {
 private:
 	char		**env;
-	server		&MyServer;
-	request		&MyRequest;
+	server		*MyServer;
+	request		*MyRequest;
 	char		**arg;
 	std::string filename;
 	std::string filebody;
 	std::string fileerr;
+	pid_t		pid;
 	void	parseHeader(std::vector<std::string> header, size_t len);
 public:
-	// Cgi(server &serv, Location &location, client &cln);
-	Cgi(server &serv, request &req);
+	Cgi(server *serv, request *req);
+	// Cgi(const Cgi& other);
+    // Cgi& operator=(const Cgi& other);
 	~Cgi();
+	// Cgi();
 	std::string	header;
 	std::string	body;
+	int		status;
 	void	init();
-	int		exe();
+	void	exe();
 	void	set_arg();
 	int ParseAll();
+	int	waitcheck();
 };
 
 #endif
