@@ -17,12 +17,13 @@ void	_get_(request& requestObj,server& _server){
 					codeNpath(requestObj, "403 Forbidden", errorPageTamplate("403, Forbidden.").c_str());
 					return ;
 				}
+				else {
+					generateAutoIndex(requestObj.getFilePath(), "autoindex.html");//?need to do lmsa l file d index
+					codeNpath(requestObj,"301 Moved Permanently", "autoindex.html");
+					return ;
+				}
 			}
-			else {
-				generateAutoIndex(requestObj.getFilePath(), "autoindex.html");//?need to do lmsa l file d index
-				codeNpath(requestObj,"301 Moved Permanently", "autoindex.html");
-				return ;
-			}
+			
 			codeNpath(requestObj, "301 Moved Permanently", (requestObj.getFilePath() + "/" + _server.getIndex()).c_str());
 			return ;
 		}

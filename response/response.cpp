@@ -68,7 +68,7 @@ void	response::sendHeader(int connection_socket, request& request){
 		cout<<RED<<"statuscode: " << request.getStatusCode() << RESET_TEXT<<endl;
 	}
 }
-
+//!add tobe removed fd in client to remove it in mainloop after internal server error
 int	response::sendBody(int connection_socket){
 	if (!firstT){
 		firstT++;
