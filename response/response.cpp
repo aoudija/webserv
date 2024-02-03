@@ -112,5 +112,7 @@ void	response::reset(){
 	totalSent = 0;
 	filesize = 0;
 	header = "";
+	if (buffer)
+		delete buffer;
 	buffer = NULL;
 }

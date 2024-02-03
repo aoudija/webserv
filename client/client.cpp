@@ -8,10 +8,8 @@ using std::vector;
 
 void	client::requestCases(request &requestObj, server& _server)
 {
-	if (requestObj.getMethod() == "GET") {
+	if (requestObj.getMethod() == "GET")
 		_get_(requestObj,_server);
-//!if uri in get has "?" take until ?
-	}
 	else if (requestObj.getMethod() == "POST") 
 		_post_(requestObj,_server);
 	else if (requestObj.getMethod() == "DELETE")
@@ -19,13 +17,11 @@ void	client::requestCases(request &requestObj, server& _server)
 }
 
 void	client::set_request(string r, server& _server){
-	cout << "in set_request bash tban \n";
 	if (!requestObj.headersDone) {
-		cout << "lmra tania?\n";
 		if (!requestObj.getHeadersRequest(r)) {
 			// requestObj.failHeader = true;
 			// tookrequest = 1;
-			cout <<RED<< "ERROR1" <<RESET_TEXT << endl;//! chi hmaq na9s maybe ??
+			cout <<RED<< "ERROR1" <<RESET_TEXT << endl;
 		}
 	}
 	if (requestObj.headersDone == 1 || requestObj.failHeader) {
@@ -102,9 +98,9 @@ int		client::set_response(int connection_socket){
 			delete requestObj.CgiObj;
 	}
 	else {
-		if (!responseObj.totalSent)
+		if (!responseObj.firstT)
 		{
-			if (requestObj.getMethod() != "DELETE")
+			if (requestObj.getMethod() != "DELETE" && requestObj.getredirectURL().empty())
 				responseObj.initialize(requestObj);
 			if (responseObj.sendHeader(connection_socket, requestObj) == 0)
 				return 0;

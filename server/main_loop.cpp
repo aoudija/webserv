@@ -7,11 +7,12 @@ using std::vector;
 
 void removefd(vector<struct pollfd>& pfds, struct pollfd& pfd, server& server){
 	int fd = pfd.fd;
+	server.clients[fd].reset();
 	close(fd);
 	server.clients.erase(fd);
 	for(vector<pollfd>::iterator it = pfds.begin();it != pfds.end();it++){
 		if (!memcmp(&(*it), &pfd, sizeof(struct pollfd))){
-			cout << "removing this bitch!: " << it->fd <<endl;
+			cout << "removing this fd!: " << it->fd <<endl;
 			pfds.erase(it);
 			break;
 		}
@@ -117,7 +118,6 @@ void	accept_read_write(vector<struct pollfd>&	pfds, struct pollfd &pfd,
 
 void	checkTimeout(vector<struct pollfd>&	pfds, vector<server>& servers)
 {
-	cout << "checking timeouts\n";
 	for (size_t j = 0;j < pfds.size();j++){
 		for (size_t i = 0;i < servers.size();i++){
 			if (std::find(servers[i].mysockets.begin(),
