@@ -8,8 +8,45 @@ void	_post_(request& requestObj, server& _server){
 	if (_server.getUpload()) {
 		requestObj.setStatusCode("201 Created");
 		requestObj.parseRequest(requestObj.theBody, _server);
+		// isCGI(requestObj, requestObj.getFilePath(), _server);
+		// if (requestObj.is_CGI == 0){
+		// 		codeNpath(requestObj, "403 Forbidden", errorPageTamplate("403, Forbidden.").c_str());
+		// 		return ;
+		// 	}
+		if (checkExistance(requestObj))
+			return ;
+		if (isDirectory(requestObj.getFilePath().c_str()))
+		{
+			if (!endsWithSlash(requestObj.getFilePath()))
+			{
+				if (!_server.getAutoindex()) {
+					codeNpath(requestObj, "403 Forbidden", errorPageTamplate("403, Forbidden.").c_str());
+					return ;
+				}
+				else {
+					generateAutoIndex(requestObj.getFilePath(), "autoindex.html");//?need to do lmsa l file d index
+					codeNpath(requestObj,"301 Moved Permanently", "autoindex.html");
+					return ;
+				}
+				codeNpath(requestObj,"301 Moved Permanently",
+					string(requestObj.getFilePath() + "/").c_str());
+				return ;
+			}
+			else {
+				if (_server.getIndex().empty()) {
+					codeNpath(requestObj, "403 Forbidden", errorPageTamplate("403, Forbidden.").c_str());
+					return ;
+				}
+				else{
+					isCGI(requestObj, requestObj.getFilePath(), _server);
+				}
+			}
+		}
+		else{
+			isCGI(requestObj, requestObj.getFilePath(), _server);
+		}
 	}
-	if (!_server.getUpload()){
+	else if (!_server.getUpload()){
 		if (checkExistance(requestObj))
 			return ;
 		if (isDirectory(requestObj.getFilePath().c_str()))
@@ -25,11 +62,21 @@ void	_post_(request& requestObj, server& _server){
 					codeNpath(requestObj, "403 Forbidden", errorPageTamplate("403, Forbidden.").c_str());
 					return ;
 				}
-				else 
+				else{
 					isCGI(requestObj, requestObj.getFilePath(), _server);
+					if (requestObj.is_CGI == 0){
+						codeNpath(requestObj, "403 Forbidden", errorPageTamplate("403, Forbidden.").c_str());
+						return ;
+					}
+				}
 			}
 		}
-		else 
+		else{
 			isCGI(requestObj, requestObj.getFilePath(), _server);
+			if (requestObj.is_CGI == 0){
+				codeNpath(requestObj, "403 Forbidden", errorPageTamplate("403, Forbidden.").c_str());
+				return ;
+			}
+		}
 	}
 }

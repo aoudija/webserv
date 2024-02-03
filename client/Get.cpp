@@ -11,7 +11,6 @@ void	_get_(request& requestObj,server& _server){
 	{
 		if (!endsWithSlash(requestObj.getFilePath()))
 		{
-			cout << MAGENTA << requestObj.getFilePath() << RESET_TEXT << endl;
 			if (requestObj.loc.getIndex().empty()) {
 				if (!_server.getAutoindex()) {
 					codeNpath(requestObj, "403 Forbidden", errorPageTamplate("403, Forbidden.").c_str());
@@ -23,8 +22,7 @@ void	_get_(request& requestObj,server& _server){
 					return ;
 				}
 			}
-			
-			codeNpath(requestObj, "301 Moved Permanently", (requestObj.getFilePath() + "/" + _server.getIndex()).c_str());
+			codeNpath(requestObj, "301 Moved Permanently", (requestObj.getFilePath() + "/" + requestObj.loc.getIndex()).c_str());
 			return ;
 		}
 		if (_server.getIndex().empty()) {
