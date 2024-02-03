@@ -36,26 +36,30 @@ void	response::initialize(request& request){
 	close(fd);
 }
 
-void	response::sendHeader(int connection_socket, request& request){
+int	response::sendHeader(int connection_socket, request& request){
 	if (!request.getredirectURL().empty()){
 		header = "HTTP/1.1 301 Moved Permanently\r\n"
 			"Location: "+ request.getredirectURL() +'\0';
 		int bytes_sent = write(connection_socket, header.c_str(),    //header
 		strlen(header.c_str()));
-		if (bytes_sent <= 0)
+		if (bytes_sent <= 0){
 			perror("write");//!remove fd
+			return 0;
+		}
 		resTime = time(0);
-		return ;
+		return 1;
 	}
 	else if (request.getMethod() == "DELETE")
 	{
 		header = "HTTP/1.1 " + request.getStatusCode()+ "\r\n\r\n"+'\0';
 		int bytes_sent = write(connection_socket, header.c_str(),    //header
 		strlen(header.c_str()));
-		if (bytes_sent <= 0)
+		if (bytes_sent <= 0){
 			perror("write");//!remove fd
+			return 0;
+		}
 		resTime = time(0);
-		return ;
+		return 1;
 	}
 	if (request.is_CGI){
 		header = request.getCgiHeader();
@@ -67,15 +71,18 @@ void	response::sendHeader(int connection_socket, request& request){
 			"Content-Type: "+ request.getContentType() + "\r\n\r\n"+'\0';
 		cout<<RED<<"statuscode: " << request.getStatusCode() << RESET_TEXT<<endl;
 	}
+	return 1;
 }
-//!add tobe removed fd in client to remove it in mainloop after internal server error
+
 int	response::sendBody(int connection_socket){
 	if (!firstT){
 		firstT++;
 		int bytes_sent = write(connection_socket, header.c_str(),//header
 		strlen(header.c_str()));
-		if (bytes_sent <= 0)
+		if (bytes_sent <= 0){
 			perror("write");//!remove fd
+			return -1;
+		}
 		resTime = time(0);
 		return 0;
 	}
@@ -84,8 +91,10 @@ int	response::sendBody(int connection_socket){
 	if (len > filesize - totalSent)
 		len = filesize - totalSent;
 	bytes_sent = write(connection_socket, buffer + totalSent, len);
-	if (bytes_sent <= 0)
+	if (bytes_sent <= 0){
 		perror("write");//!remove fd
+		return -1;
+	}
 	resTime = time(0);
 	totalSent += bytes_sent;
 	if (totalSent >= filesize){

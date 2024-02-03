@@ -21,7 +21,7 @@ class response{
 		size_t	totalSent;
 		char*	buffer;
 		void	initialize(request& request);
-		void	sendHeader(int connection_socket, request& request);
+		int		sendHeader(int connection_socket, request& request);
 		int		sendBody(int connection_socket);
 		void	reset();
 };

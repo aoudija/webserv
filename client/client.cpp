@@ -71,7 +71,7 @@ void	client::set_request(string r, server& _server){
 	}
 }
 
-void	client::set_response(int connection_socket){
+int		client::set_response(int connection_socket){
 	if (requestObj.Cgisdone)
 	{
 		int status = requestObj.CgiObj->waitcheck();
@@ -106,13 +106,16 @@ void	client::set_response(int connection_socket){
 		{
 			if (requestObj.getMethod() != "DELETE")
 				responseObj.initialize(requestObj);
-			responseObj.sendHeader(connection_socket, requestObj);
+			if (responseObj.sendHeader(connection_socket, requestObj) == 0)
+				return 0;
 			resTime = responseObj.resTime;
 		}
 		if (!requestObj.getredirectURL().empty() || requestObj.getMethod() == "DELETE")
 			filesent = 1;
 		else{
 			filesent = responseObj.sendBody(connection_socket);
+			if (filesent == -1)
+				return 0;
 			resTime = responseObj.resTime;
 		}
 		if (filesent == 1){
@@ -123,6 +126,7 @@ void	client::set_response(int connection_socket){
 			}
 		}
 	}
+	return 1;
 }
 
 string client::getresponse(){

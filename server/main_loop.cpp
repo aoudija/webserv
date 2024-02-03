@@ -81,9 +81,8 @@ void	sendResponse(vector<struct pollfd>&	pfds, struct pollfd &pfd, server& serve
 {
 	if (server.clients[pfd.fd].getTookrequest())
 	{
-		server.clients[pfd.fd].set_response(pfd.fd);
-		if (pfd.revents & POLLHUP ||
-			(server.clients[pfd.fd].getfilesent()&& !server.clients[pfd.fd].keepAlive))
+		if (!server.clients[pfd.fd].set_response(pfd.fd) || pfd.revents & POLLHUP ||
+			(server.clients[pfd.fd].getfilesent() && !server.clients[pfd.fd].keepAlive))
 			removefd(pfds, pfd, server);
 		else if (server.clients[pfd.fd].getfilesent() && server.clients[pfd.fd].keepAlive){
 			server.clients[pfd.fd].reset();
@@ -143,7 +142,7 @@ void	main_loop(vector<server> Confservers){
 	_si.SetListener();
 	vector<server> servers = _si.get_servers();
 
-	//multiplexing v6.01 ~
+	//multiplexing v9 ~
 	vector<struct pollfd>	pfds;
 	fillpoll_listen(pfds, _si);
 	struct pollfd*			p;
@@ -151,8 +150,10 @@ void	main_loop(vector<server> Confservers){
 	while(1){
 		p = pfds.data();
 		int r = poll(p, pfds.size(), 60000);
-		if (r < 0)
+		if (r < 0){
 			perror("poll");
+			exit(EXIT_FAILURE);
+		}
 		else if (r == 0)
 			checkTimeout(pfds, servers);
 		for (size_t i = 0;i < pfds.size();i++)

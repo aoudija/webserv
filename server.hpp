@@ -56,7 +56,7 @@ class client
 	response responseObj;
 	// cgi cgiOBJ;
 	string responsestring;
-	bool	filesent;
+	int		filesent;
 	public:
 		bool keepAlive;
 		bool	tookrequest;
@@ -68,7 +68,7 @@ class client
 			resTime = -1;
 		}
 		void	set_request(std::string, server&);
-		void	set_response(int);
+		int		set_response(int);
 		bool	getfilesent();
 		bool	getTookrequest();
 		void	setTookrequest(bool t){
