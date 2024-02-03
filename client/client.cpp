@@ -44,7 +44,7 @@ void	client::set_request(string r, server& _server){
 	}
 	if (requestObj.failHeader && tookrequest) {
 		responseObj.totalSent = 0;
-		if (requestObj.getMethod() != "DELETE")
+		if (requestObj.getMethod() != "DELETE" && requestObj.getredirectURL().empty())
 			responseObj.initialize(requestObj);
 	}
 	else {
@@ -100,8 +100,11 @@ int		client::set_response(int connection_socket){
 	else {
 		if (!responseObj.firstT)
 		{
-			if (requestObj.getMethod() != "DELETE" && requestObj.getredirectURL().empty())
+			if (requestObj.getMethod() != "DELETE" && requestObj.getredirectURL().empty()){
 				responseObj.initialize(requestObj);
+			}
+			if (!requestObj.getredirectURL().empty())
+				keepAlive = 0;
 			if (responseObj.sendHeader(connection_socket, requestObj) == 0)
 				return 0;
 			resTime = responseObj.resTime;

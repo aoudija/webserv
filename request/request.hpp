@@ -102,6 +102,7 @@ public:
 	std::string getHttpVersion();
 	string getrequestURI();
 	string getredirectURL();
+	void setredirectURL(string);
 	string getContentType();
 	string getFilePath();
 	void setFilePath(std::string filePath);

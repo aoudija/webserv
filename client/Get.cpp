@@ -17,12 +17,12 @@ void	_get_(request& requestObj,server& _server){
 					return ;
 				}
 				else {
-					generateAutoIndex(requestObj.getFilePath(), "autoindex.html");//?need to do lmsa l file d index
-					codeNpath(requestObj,"301 Moved Permanently", "autoindex.html");
+					requestObj.setredirectURL(requestObj.getrequestURI() + "/");
 					return ;
 				}
 			}
-			codeNpath(requestObj, "301 Moved Permanently", (requestObj.getFilePath() + "/" + requestObj.loc.getIndex()).c_str());
+			else
+				requestObj.setredirectURL(requestObj.getrequestURI() + "/" + requestObj.loc.getIndex());
 			return ;
 		}
 		if (_server.getIndex().empty()) {
@@ -40,6 +40,7 @@ void	_get_(request& requestObj,server& _server){
 			isCGI(requestObj, requestObj.getFilePath(), _server);
 		}
 	}
-	else 
+	else {
 		isCGI(requestObj, requestObj.getFilePath(), _server);
+	}
 }

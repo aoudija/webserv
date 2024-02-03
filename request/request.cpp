@@ -34,6 +34,24 @@ void	request::reset() {
 	this->statusCode = "200 OK";
 	this->failHeader = false;
 	this->keepAlive = false;
+
+	this->method = "";
+	this->requestURI = "";
+	this->httpVersion = "";
+	this->body = "";
+	this->ContentType = "";
+	this->uploadContentType = "";
+	this->filePath = "";
+	this->redirectURL = "";
+	this->queryString = "";
+	this->boundary = "";
+	this->filename = "";
+	this->cgi_header = "";
+	this->cgi_body = "";
+	this->headers = "";
+	this->theBody = "";
+	allContTypes.clear();
+	headerFields.clear();
 }
 
 request::request(const request &other)
@@ -96,6 +114,11 @@ void request::setStatusCode(std::string statusCode) {
 
 string request::getQueryString() {
 	return this->queryString;
+}
+
+void request::setredirectURL(string redir)
+{
+	this->redirectURL = redir;
 }
 
 std::string errorPageTamplate(std::string errorMessage)
@@ -257,7 +280,7 @@ std::string errorPageTamplate(std::string errorMessage)
 std::string removewhites(const std::string& str) {
 	size_t start = str.find_first_not_of(" \t\r\n");
 	size_t end = str.find_last_not_of(" \t\r\n");
-//!leaks here??
+
 	if (start == std::string::npos || end == std::string::npos) {
 		return "";  // String is all whitespaces
 	}
@@ -333,7 +356,7 @@ int request::checkHeaderFields(std::string headerFiles)
 		}
 	}
 	if (headerFields.find("Transfer-Encoding") != headerFields.end()
-		&& headerFields["Transfer-Encoding"] == "chunked") {
+		&& headerFields["Transfer-Encoding"] != "chunked") {
 		this->statusCode = "501 Not implemented";
 		this->filePath = errorPageTamplate("501, Not implemented");
 		return 1;
@@ -345,10 +368,6 @@ int request::checkHeaderFields(std::string headerFiles)
 		this->filePath = errorPageTamplate("400, Bad Request");
 		return 1;
 	}
-	// if (getMethod() == "GET") {
-	// 	cout << "ra dart mn hna" << endl;
-	// 	return 1;
-	// }
 	return 0;
 }
 

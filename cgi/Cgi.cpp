@@ -95,8 +95,6 @@ void	Cgi::init(){
 		mapenv["CONTENT_TYPE"] = this->MyRequest->headerFields["Content-Type"];
 		mapenv["CONTENT_LENGTH"] = this->MyRequest->headerFields["Content-Length"];
 		mapenv["REQUEST_METHOD"] = this->MyRequest->getMethod();
-		if (MyRequest->cgi_exe.second == "php")
-			mapenv["QUERY_STRING"] = MyRequest->theBody;
 	}
 	else if (this->MyRequest->getMethod() == "GET"){
 		mapenv["QUERY_STRING"] = this->MyRequest->getQueryString();

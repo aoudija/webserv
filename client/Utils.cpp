@@ -62,8 +62,10 @@ void generateAutoIndex(const std::string& directoryPath, const std::string& outp
         std::cerr << "Error opening directory: " << strerror(errno) << std::endl;
         return;
     }
-	if (fileExists(outputFileName.c_str()))
-		unlink(outputFileName.c_str());
+
+    if (fileExists(outputFileName.c_str()))
+        unlink(outputFileName.c_str());
+
     std::ofstream outputFile(outputFileName.c_str());
 
     if (!outputFile.is_open()) {
@@ -73,9 +75,17 @@ void generateAutoIndex(const std::string& directoryPath, const std::string& outp
     }
 
     // Write HTML header
-    outputFile << "<html><head><title>Index of " << directoryPath << "</title></head><body>\n";
-    outputFile << "<h2>Index of " << directoryPath << "</h2>\n";
-    outputFile << "<ul>\n";
+    outputFile << "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Index Page</title>\n\t<style>\n";
+    outputFile << "\t\tbody {\n\t\t\tfont-family: Arial, sans-serif;\n\t\t\tbackground-color: #f2f2f2;\n";
+    outputFile << "\t\t\tmargin: 0;\n\t\t\tpadding: 0;\n\t\t}\n\t\t.container {\n\t\t\tmax-width: 600px;\n";
+    outputFile << "\t\t\tmargin: 0 auto;\n\t\t\tpadding: 20px;\n\t\t}\n\t\t.title {\n";
+    outputFile << "\t\t\tfont-family: Georgia;\n\t\t\tfont-size: 1.0rem;\n\t\t\tcolor: #0e2431;\n";
+    outputFile << "\t\t\tborder-bottom: 1px solid #ccc;\n\t\t}\n\t\th1 {\n\t\t\ttext-align: center;\n";
+    outputFile << "\t\t\tcolor: #333;\n\t\t}\n\t\tul {\n\t\t\ttext-align: center;\n\t\t\tlist-style-type: none;\n";
+    outputFile << "\t\t\tpadding: 0;\n\t\t}\n\t\tli {\n\t\t\tmargin-bottom: 15px;\n\t\t}\n\t\ta {\n";
+    outputFile << "\t\t\ttext-decoration: none;\n\t\t\tcolor: #333;\n\t\t}\n\t\ta:hover {\n";
+    outputFile << "\t\t\tfont-weight: bold;\n\t\t}\n\t</style>\n</head>\n<body>\n\t<div class=\"title\">\n";
+    outputFile << "\t\t<h1>Index Page</h1>\n\t</div>\n\t<div class=\"container\">\n\t\t<ul>\n";
 
     // Read directory contents
     struct dirent* entry;
@@ -86,12 +96,12 @@ void generateAutoIndex(const std::string& directoryPath, const std::string& outp
         // Skip current and parent directory entries
         if (entryName != "." && entryName != "..") {
             // Create links for each entry
-            outputFile << "<li><a href=\"" << entryName << "\">" << entryName << "</a></li>\n";
+            outputFile << "\t\t\t<li><a href=\"" << entryName << "\">" << entryName << "</a></li>\n";
         }
     }
 
     // Write HTML footer
-    outputFile << "</ul></body></html>\n";
+    outputFile << "\t\t</ul>\n\t</div>\n</body>\n</html>\n";
 
     outputFile.close();
     closedir(dir);
