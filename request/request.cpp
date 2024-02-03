@@ -837,9 +837,6 @@ void request::setContentType()
 			if (dotPosition != std::string::npos) {
 				fileExtension = requestURI.substr(dotPosition);
 			}
-			else {
-				std::cerr << "Error: No dot found in requestURI\n";
-			}
 			this->ContentType = allContTypes[fileExtension];
 		}
 	}

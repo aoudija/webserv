@@ -39,13 +39,15 @@ void	response::initialize(request& request){
 int	response::sendHeader(int connection_socket, request& request){
 	if (!request.getredirectURL().empty()){
 		header = "HTTP/1.1 301 Moved Permanently\r\n"
-			"Location: "+ request.getredirectURL() +'\0';
+			"Location: "+ request.getredirectURL() + "\r\n\r\n"+'\0';
 		int bytes_sent = write(connection_socket, header.c_str(),    //header
 		strlen(header.c_str()));
 		if (bytes_sent <= 0){
 			perror("write");//!remove fd
 			return 0;
 		}
+		cout << header <<endl;
+		cout << bytes_sent << endl;
 		resTime = time(0);
 		return 1;
 	}

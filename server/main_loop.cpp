@@ -149,7 +149,7 @@ void	main_loop(vector<server> Confservers){
 
 	while(1){
 		p = pfds.data();
-		int r = poll(p, pfds.size(), 60000);
+		int r = poll(p, pfds.size(), -1);
 		if (r < 0){
 			perror("poll");
 			exit(EXIT_FAILURE);

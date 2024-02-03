@@ -103,8 +103,8 @@ int		client::set_response(int connection_socket){
 			if (requestObj.getMethod() != "DELETE" && requestObj.getredirectURL().empty()){
 				responseObj.initialize(requestObj);
 			}
-			if (!requestObj.getredirectURL().empty())
-				keepAlive = 0;
+			// if (!requestObj.getredirectURL().empty())
+			// 	keepAlive = 0;
 			if (responseObj.sendHeader(connection_socket, requestObj) == 0)
 				return 0;
 			resTime = responseObj.resTime;
