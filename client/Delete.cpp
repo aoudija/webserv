@@ -38,7 +38,7 @@ int  deleteDirectory(const char* path) {
 	return 0;
 }
 
-void	_delete_(request& requestObj){
+void	client::_delete_(request& requestObj){
 	requestObj.setStatusCode("204 No Content");
 	string path = requestObj.loc.getRoot() + requestObj.getrequestURI();
 	if (checkExistance(requestObj))
@@ -47,7 +47,7 @@ void	_delete_(request& requestObj){
 		if (!endsWithSlash(path)){//no slash
 			cout << "slash makaynash\n";
 			codeNpath(requestObj,"409 Conflict",
-				errorPageTamplate("409, Conflict.").c_str());
+				errorPageTamplate("409, Conflict.").c_str(), errorpages);
 			return ;
 		}
 		else {//with slash
@@ -56,13 +56,13 @@ void	_delete_(request& requestObj){
 				if (access(path.c_str(), W_OK) == 0)//has write access
 				{
 					codeNpath(requestObj,"403 Forbidden",
-						errorPageTamplate("403, Forbidden.").c_str());
+						errorPageTamplate("403, Forbidden.").c_str(), errorpages);
 						return ;
 				}
 				else
 				{//doesnt have write access
 					codeNpath(requestObj,"503 Internal Server Error",
-						errorPageTamplate("503 , Internal Server Error.").c_str());
+						errorPageTamplate("503 , Internal Server Error.").c_str(), errorpages);
 						return ;
 				}
 			}
@@ -71,7 +71,7 @@ void	_delete_(request& requestObj){
 	else {//is file
 		if (unlink(requestObj.getFilePath().c_str()) != 0) {
 			codeNpath(requestObj,"403 Forbidden",
-			errorPageTamplate("403, Forbidden.").c_str());
+			errorPageTamplate("403, Forbidden.").c_str(), errorpages);
 			return ;
 		}
 	}

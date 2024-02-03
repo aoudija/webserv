@@ -17,6 +17,8 @@ void	client::requestCases(request &requestObj, server& _server)
 }
 
 void	client::set_request(string r, server& _server){
+	errorpages = _server.getErrorPage();
+	requestObj.errorpages = _server.getErrorPage();
 	if (!requestObj.headersDone) {
 		if (!requestObj.getHeadersRequest(r)) {
 			// requestObj.failHeader = true;
@@ -72,21 +74,21 @@ int		client::set_response(int connection_socket){
 	{
 		int status = requestObj.CgiObj->waitcheck();
 		if (status == 502){
-			codeNpath(requestObj,"502 Bad Gateway", errorPageTamplate("502, Bad Gateway").c_str());
+			codeNpath(requestObj,"502 Bad Gateway", errorPageTamplate("502, Bad Gateway").c_str(), errorpages);
 			requestObj.Cgisdone = 0;
 		}
 		else if (status == 504){
-			codeNpath(requestObj,"504 Gateway Timeout", errorPageTamplate("504, Gateway Timeout").c_str());
+			codeNpath(requestObj,"504 Gateway Timeout", errorPageTamplate("504, Gateway Timeout").c_str(), errorpages);
 			requestObj.Cgisdone = 0;
 		}
 		else if (status == 500){
-			codeNpath(requestObj,"500 Internal Server Error", errorPageTamplate("500, Internal Server Error").c_str());
+			codeNpath(requestObj,"500 Internal Server Error", errorPageTamplate("500, Internal Server Error").c_str(), errorpages);
 			requestObj.Cgisdone = 0;
 		}
 		else if (status == 1){
 			int status2 = requestObj.CgiObj->ParseAll();
 			if (status2 == 502){
-				codeNpath(requestObj,"502 Bad Gateway", errorPageTamplate("502, Bad Gateway").c_str());
+				codeNpath(requestObj,"502 Bad Gateway", errorPageTamplate("502, Bad Gateway").c_str(), errorpages);
 			}
 			else{
 				requestObj.setCgiBody(requestObj.CgiObj->body);

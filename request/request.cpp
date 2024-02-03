@@ -134,12 +134,6 @@ std::string errorPageTamplate(std::string errorMessage)
 		outputFile << "<html>\n";
 			outputFile << "<head>\n";
 				outputFile << "<style>\n";
-	if (outputFile.is_open())
-	{
-		outputFile << "<!DOCTYPE html>\n";
-		outputFile << "<html>\n";
-			outputFile << "<head>\n";
-				outputFile << "<style>\n";
 					outputFile << "html, body {font-family: 'Roboto Mono', monospace;font-size: 16px;}\n";
 					outputFile << "body {background-color: black;margin: 0;padding: 0;}\n";
 					outputFile << "p {color: white;font-size: 25px;letter-spacing: 0.2px;margin: 0;display: inline;}\n";
@@ -172,9 +166,8 @@ std::string errorPageTamplate(std::string errorMessage)
 		outputFile << "</html>\n";
 	
 		outputFile.close();
-		return filePath;
 	}
-	else
+	if (outputFile.fail())
 	{
 		std::cout << "error" << std::endl;
 		std::string filePath = "/Users/zbouayya/goinfre/errorpage.html";
@@ -220,61 +213,8 @@ std::string errorPageTamplate(std::string errorMessage)
 
 			outputFile.close();
 		}
-		return filePath;
 	}
-		outputFile << "</html>\n";
-	
-		outputFile.close();
-		return filePath;
-	}
-	else
-	{
-		std::cout << "error" << std::endl;
-		std::string filePath = "/Users/zbouayya/goinfre/errorpage.html";
-		if (fileExists(filePath.c_str()))
-			unlink(filePath.c_str());
-		std::ofstream outputFile(filePath, std::ios::trunc);
-		if (outputFile.is_open())
-		{
-			outputFile << "<!DOCTYPE html>\n";
-			outputFile << "<html>\n";
-				outputFile << "<head>\n";
-					outputFile << "<style>\n";
-						outputFile << "html, body {font-family: 'Roboto Mono', monospace;font-size: 16px;}\n";
-						outputFile << "body {background-color: black;margin: 0;padding: 0;}\n";
-						outputFile << "p {color: white;font-size: 25px;letter-spacing: 0.2px;margin: 0;display: inline;}\n";
-						outputFile << ".center-xy {text-align: center;top: 50%;left: 50%;transform: translate(-50%, -50%);position: absolute;}\n";
-					outputFile << "</style>\n";
-				outputFile << "</head>\n";
-
-				outputFile << "<body>\n";
-					outputFile << "<div class='center-xy'>\n";
-						outputFile << "<p id='myP'>\n";
-							outputFile << errorMessage + "\n";
-						outputFile << "</p>\n";
-					outputFile << "</div>\n";
-					outputFile << "<script>\n";
-
-					outputFile <<
-							"let divElement = document.getElementById(\"myP\");"
-							"let textContent = divElement.innerText.toString();"
-							"let i = 1;"
-							"function typeWriter() {"
-							"	divElement.innerText = textContent.slice(0, i);"
-							"	console.log(divElement.innerText);"
-							"	i++;"
-							"	if (i <= textContent.length)"
-							"		setTimeout(typeWriter, 100);"
-							"}"
-							"setTimeout(typeWriter, 0);\n";
-					outputFile << "</script>\n";
-				outputFile << "</body>\n";
-			outputFile << "</html>\n";
-
-			outputFile.close();
-		}
-		return filePath;
-	}
+	return filePath;
 }
 
 std::string removewhites(const std::string& str) {
@@ -299,6 +239,27 @@ std::string request::removeAndSetQueryString(const std::string& uri) {
 	return uri;
 }
 
+void request::setErrorPage(std::string statusCode, std::string errorMsg)
+{
+	int key = extractStatusCode(statusCode);
+
+	this->statusCode = statusCode;
+	this->ContentType = "text/html";
+
+	if (errorpages.find(key) != errorpages.end()) {
+
+		if (access(errorpages[key].c_str(), R_OK) == 0) {
+			setFilePath(errorpages[key]);
+		}
+		else {
+			this->filePath = errorPageTamplate(errorMsg);
+		}
+	}
+	else {
+		this->filePath = errorPageTamplate(errorMsg);
+	}
+}
+
 int request::checkRequestLine(std::string request)
 {
 	std::istringstream stream(request);
@@ -310,30 +271,25 @@ int request::checkRequestLine(std::string request)
 	stream2 >> this->method >> this->requestURI >> this->httpVersion;
 
 	if (this->method.empty() || this->requestURI.empty() || this->httpVersion.empty()) {
-		this->statusCode = "400 Bad Request";
-		this->filePath = errorPageTamplate("400, Bad Request");
+		setErrorPage("400 Bad Request", "400, Bad Request");
 		return 1;
 	}
 
 	this->requestURI = removeAndSetQueryString(this->requestURI);
 	if (this->method != "GET" && this->method != "POST" && this->method != "DELETE") {
-		this->statusCode = "405 Method Not Allowed";
-		this->filePath = errorPageTamplate("405, Method Not Allowed.");
+		setErrorPage("405 Method Not Allowed", "405, Method Not Allowed.");
 		return 1;
 	}
 	if (this->requestURI.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%") != std::string::npos) {
-		this->statusCode = "400 Bad Request";
-		this->filePath = errorPageTamplate("400, Bad Request");
+		setErrorPage("400 Bad Request", "400, Bad Request");
 		return 1;
 	}
 	if (this->requestURI.size() > 2048)/* mazal request body larger than lbody li fl config file !!*/ {
-		this->statusCode = "414 Bad Request";
-		this->filePath = errorPageTamplate("414, Bad Request");
+		setErrorPage("414 Bad Request", "414, Bad Request");
 		return 1;
 	}
 	if (this->httpVersion != "HTTP/1.1") {
-		this->statusCode = "505 HTTP Version Not Supported";
-		this->filePath = errorPageTamplate("505, HTTP Version Not Supported");
+		setErrorPage("505 HTTP Version Not Supported", "505, HTTP Version Not Supported");
 		return 1;
 	}
 	return 0;
@@ -357,15 +313,13 @@ int request::checkHeaderFields(std::string headerFiles)
 	}
 	if (headerFields.find("Transfer-Encoding") != headerFields.end()
 		&& headerFields["Transfer-Encoding"] != "chunked") {
-		this->statusCode = "501 Not implemented";
-		this->filePath = errorPageTamplate("501, Not implemented");
+		setErrorPage("501 Not implemented", "501, Not implemented");
 		return 1;
 	}
 	if (headerFields.find("Transfer-Encoding") == headerFields.end()
 		&& headerFields.find("Content-Length") == headerFields.end()
 		&& this->method == "POST") {
-		this->statusCode = "400 Bad Request";
-		this->filePath = errorPageTamplate("400, Bad Request");
+		setErrorPage("400 Bad Request", "400, Bad Request");
 		return 1;
 	}
 	return 0;
@@ -423,8 +377,7 @@ request::ParsingStatus request::checkBody(std::string body, server& _server)
 {
 	std::string fileName;
 	if ((int)body.size() > _server.getClientBodyLimit()) {
-		this->statusCode = "413 Request Entity Too Large";
-		this->filePath = errorPageTamplate("413, Request Entity Too Large");
+		setErrorPage("413 Request Entity Too Large", "413, Request Entity Too Large");
 		return ParsingFailed;
 		printError("Request Entity Too Large", 413);
 	}
@@ -434,7 +387,6 @@ request::ParsingStatus request::checkBody(std::string body, server& _server)
 		std::getline(stream, chunkSizeHex);
 
 		// Convert hex string to integer
-		// std::size_t chunkSize = std::stoul(chunkSizeHex, nullptr, 16);
 		std::istringstream iss(chunkSizeHex);
 		std::size_t chunkSize;
 		
@@ -460,20 +412,14 @@ request::ParsingStatus request::checkBody(std::string body, server& _server)
 		std::ofstream outputFile("upload/" + fileName, std::ios::app);
 		outputFile << chunkData;
 		if (outputFile.fail()) {
-			std::cerr << RED << "uploading failed !!!!!!!!!!" << RESET_TEXT << endl;
 			outputFile.close();
-			this->statusCode = "507 Insufficient Storage";
-			this->filePath = errorPageTamplate("507, Insufficient Storage.");
-			this->ContentType = "text/html";
+			setErrorPage("507 Insufficient Storage", "507, Insufficient Storage.");
 			return ParsingFailed;
 		}
 		outputFile.close();
 		if (outputFile.fail()) {
-			std::cerr << RED << "uploading failed !!!!!!!!!!" << RESET_TEXT << endl;
 			outputFile.close();
-			this->statusCode = "507 Insufficient Storage";
-			this->filePath = errorPageTamplate("507, Insufficient Storage.");
-			this->ContentType = "text/html";
+			setErrorPage("507 Insufficient Storage", "507, Insufficient Storage.");
 			return ParsingFailed;
 		}
 		outputFile.close();
@@ -484,10 +430,11 @@ request::ParsingStatus request::checkBody(std::string body, server& _server)
 request::ParsingStatus request::checkBody2(std::string body, server& _server)
 {
 	if ((int)body.size() > _server.getClientBodyLimit()) {
-		this->statusCode = "413 Request Entity Too Large";
-		this->filePath = errorPageTamplate("413, Request Entity Too Large");
+		setErrorPage("413 Request Entity Too Large", "413, Request Entity Too Large");
+		// this->statusCode = "413 Request Entity Too Large";
+		// this->filePath = errorPageTamplate("413, Request Entity Too Large");
 		return ParsingFailed;
-		printError("Request Entity Too Large", 413);
+		// printError("Request Entity Too Large", 413);
 	}
 	std::string fileName;
 	fileName = generateRandomFileName() + getTheExtensionFromContentType(this->uploadContentType);
@@ -498,17 +445,19 @@ request::ParsingStatus request::checkBody2(std::string body, server& _server)
 		if (outputFile.fail()) {
 			std::cerr << RED << "uploading failed !!!!!!!!!!" << RESET_TEXT << endl;
 			outputFile.close();
-			this->statusCode = "507 Insufficient Storage";
-			this->filePath = errorPageTamplate("507, Insufficient Storage.");
-			this->ContentType = "text/html";
+			setErrorPage("507 Insufficient Storage", "507, Insufficient Storage.");
+			// this->statusCode = "507 Insufficient Storage";
+			// this->filePath = errorPageTamplate("507, Insufficient Storage.");
+			// this->ContentType = "text/html";
 			return ParsingFailed;
 		}
 		if (outputFile.fail()) {
 			std::cerr << RED << "uploading failed !!!!!!!!!!" << RESET_TEXT << endl;
 			outputFile.close();
-			this->statusCode = "507 Insufficient Storage";
-			this->filePath = errorPageTamplate("507, Insufficient Storage.");
-			this->ContentType = "text/html";
+			setErrorPage("507 Insufficient Storage", "507, Insufficient Storage.");
+			// this->statusCode = "507 Insufficient Storage";
+			// this->filePath = errorPageTamplate("507, Insufficient Storage.");
+			// this->ContentType = "text/html";
 			return ParsingFailed;
 		}
 	}
@@ -574,10 +523,12 @@ std::string generateNewFileName(const std::string& fileName) {
 request::ParsingStatus request::checkBody3(std::string body, server& _server)
 {
 	if ((int)body.size() > _server.getClientBodyLimit()) {
-		this->statusCode = "413 Request Entity Too Large";
-		this->filePath = errorPageTamplate("413, Request Entity Too Large");
+		setErrorPage("413 Request Entity Too Large", "413, Request Entity Too Large");
+
+		// this->statusCode = "413 Request Entity Too Large";
+		// this->filePath = errorPageTamplate("413, Request Entity Too Large");
 		return ParsingFailed;
-		printError("Request Entity Too Large", 413);
+		// printError("Request Entity Too Large", 413);
 	}
 	size_t pos = 0;
 	size_t nextPos = 0;
@@ -599,18 +550,20 @@ request::ParsingStatus request::checkBody3(std::string body, server& _server)
 				if (outputFile.fail()) {
 					std::cerr << RED << "uploading failed !!!!!!!!!!" << RESET_TEXT << endl;
 					outputFile.close();
-					this->statusCode = "507 Insufficient Storage";
-					this->filePath = errorPageTamplate("507, Insufficient Storage.");
-					this->ContentType = "text/html";
+					setErrorPage("507 Insufficient Storage", "507, Insufficient Storage.");
+					// this->statusCode = "507 Insufficient Storage";
+					// this->filePath = errorPageTamplate("507, Insufficient Storage.");
+					// this->ContentType = "text/html";
 					return ParsingFailed;
 				}
 				outputFile.close();
 				if (outputFile.fail()) {
 					std::cerr << RED << "uploading failed !!!!!!!!!!" << RESET_TEXT << endl;
 					outputFile.close();
-					this->statusCode = "507 Insufficient Storage";
-					this->filePath = errorPageTamplate("507, Insufficient Storage.");
-					this->ContentType = "text/html";
+					setErrorPage("507 Insufficient Storage", "507, Insufficient Storage.");
+					// this->statusCode = "507 Insufficient Storage";
+					// this->filePath = errorPageTamplate("507, Insufficient Storage.");
+					// this->ContentType = "text/html";
 					return ParsingFailed;
 				}
 				outputFile.close();

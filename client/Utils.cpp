@@ -109,12 +109,33 @@ void generateAutoIndex(const std::string& directoryPath, const std::string& outp
     std::cout << "Autoindexing completed. Output file: " << outputFileName << std::endl;
 }
 
-void	codeNpath(request& requestObj, const char* statusCode, const char* filePath){
+int extractStatusCode(const std::string& response) {
+	std::istringstream iss(response);
+
+	int statusCode;
+	iss >> statusCode;
+
+	return statusCode;
+}
+
+void	codeNpath(request& requestObj, string statusCode, string filePath, map<int, string> errPages){
+	int key = extractStatusCode(statusCode);
+
 	requestObj.setStatusCode(statusCode);
 	requestObj.setContentType("text/html");
-	requestObj.setFilePath(filePath);
     requestObj.setmethod("GET");
     requestObj.is_CGI = 0;
+	if (errPages.find(key) != errPages.end()) {
+		if (access(errPages[key].c_str(), R_OK) == 0) {
+			requestObj.setFilePath(errPages[key]);
+		}
+		else {
+			requestObj.setFilePath(filePath);
+		}
+	}
+	else {
+		requestObj.setFilePath(filePath);
+	}
 }
 
 void internalServerError(int connection_socket){

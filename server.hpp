@@ -38,17 +38,14 @@ using std::vector;
 using std::string;
 using std::pair;
 class request;
-//Client class
-void	_delete_(request&);
-void	_get_(request&, server&);
-void	_post_(request&, server&);
 //utils
 int		checkExistance(request&);
 bool	endsWithSlash(const std::string&);
 void	isCGI(request&, const std::string&, server&);
 string	getFileExtension(const std::string&);
 void generateAutoIndex(const std::string&, const std::string&);
-void	codeNpath(request&, const char*, const char*);
+void	codeNpath(request&, string, string, map<int, string>);
+int extractStatusCode(const std::string& response);
 //
 class client
 {
@@ -58,6 +55,7 @@ class client
 	string responsestring;
 	int		filesent;
 	public:
+		map<int, string> errorpages;
 		bool keepAlive;
 		bool	tookrequest;
 		time_t resTime;
@@ -76,8 +74,11 @@ class client
 		}
 		string getresponse();
 		void	reset();
-	// ayoub
-	void	requestCases(request &requestObj, server& _server);
+		//Client class
+		void	_delete_(request&);
+		void	_get_(request&, server&);
+		void	_post_(request&, server&);
+		void	requestCases(request &requestObj, server& _server);
 	int		cgisdone;
 };
 //

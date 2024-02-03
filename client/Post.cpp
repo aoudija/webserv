@@ -4,7 +4,7 @@ using std::endl;
 using std::string;
 using std::vector;
 
-void	_post_(request& requestObj, server& _server){
+void	client::_post_(request& requestObj, server& _server){
 	if (_server.getUpload()) {
 		requestObj.setStatusCode("201 Created");
 		requestObj.parseRequest(requestObj.theBody, _server);
@@ -15,7 +15,7 @@ void	_post_(request& requestObj, server& _server){
 			if (!endsWithSlash(requestObj.getFilePath()))
 			{
 				if (!_server.getAutoindex()) {
-					codeNpath(requestObj, "403 Forbidden", errorPageTamplate("403, Forbidden.").c_str());
+					codeNpath(requestObj, "403 Forbidden", errorPageTamplate("403, Forbidden."), errorpages);
 					return ;
 				}
 				else {
@@ -26,7 +26,7 @@ void	_post_(request& requestObj, server& _server){
 			}
 			else {
 				if (_server.getIndex().empty()) {
-					codeNpath(requestObj, "403 Forbidden", errorPageTamplate("403, Forbidden.").c_str());
+					codeNpath(requestObj, "403 Forbidden", errorPageTamplate("403, Forbidden."), errorpages);
 					return ;
 				}
 				else{
@@ -50,13 +50,13 @@ void	_post_(request& requestObj, server& _server){
 			}
 			else {
 				if (!_server.getIndex().empty()) {
-					codeNpath(requestObj, "403 Forbidden", errorPageTamplate("403, Forbidden.").c_str());
+					codeNpath(requestObj, "403 Forbidden", errorPageTamplate("403, Forbidden."), errorpages);
 					return ;
 				}
 				else {
 					isCGI(requestObj, requestObj.getFilePath(), _server);
 					if (requestObj.is_CGI == 0){
-						codeNpath(requestObj, "403 Forbidden", errorPageTamplate("403, Forbidden.").c_str());
+						codeNpath(requestObj, "403 Forbidden", errorPageTamplate("403, Forbidden."), errorpages);
 						return ;
 					}
 				}
@@ -65,7 +65,7 @@ void	_post_(request& requestObj, server& _server){
 		else {
 			isCGI(requestObj, requestObj.getFilePath(), _server);
 			if (requestObj.is_CGI == 0) {
-				codeNpath(requestObj, "403 Forbidden", errorPageTamplate("403, Forbidden.").c_str());
+				codeNpath(requestObj, "403 Forbidden", errorPageTamplate("403, Forbidden."), errorpages);
 				return ;
 			}
 		}

@@ -57,6 +57,7 @@ class request
 	string cgi_header;
 	string cgi_body;
 public:
+	map<int, string> errorpages;
 	Cgi *CgiObj;
 	int	Cgisdone;
 	int bodyDone;
@@ -134,6 +135,7 @@ public:
 
 
 	ParsingStatus parsChunked(char c, std::string fileName);
+	void	setErrorPage(std::string statusCode, std::string errorMsg);
 //  ayoub
 	bool    is_CGI;
 	std::pair<string, string> cgi_exe;
