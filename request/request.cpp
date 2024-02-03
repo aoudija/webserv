@@ -254,6 +254,16 @@ std::string errorPageTamplate(std::string errorMessage)
 	}
 }
 
+std::string removewhites(const std::string& str) {
+	size_t start = str.find_first_not_of(" \t\r\n");
+	size_t end = str.find_last_not_of(" \t\r\n");
+//!leaks here??
+	if (start == std::string::npos || end == std::string::npos) {
+		return "";  // String is all whitespaces
+	}
+	return str.substr(start, end - start + 1);
+}
+
 std::string request::removeAndSetQueryString(const std::string& uri) {
 
 	std::string::size_type queryStringPos = uri.find('?');
@@ -319,15 +329,14 @@ int request::checkHeaderFields(std::string headerFiles)
 
 	for (std::vector<std::string>::iterator i = lines.begin(); i != lines.end(); i++) {
 		if (i->find(":") != std::string::npos) {
-			this->headerFields[i->substr(0, i->find(":"))] = i->substr(i->find(":") + 2);
+			this->headerFields[removewhites(i->substr(0, i->find(":")))] = removewhites(i->substr(i->find(":") + 2));
 		}
 	}
 	if (headerFields.find("Transfer-Encoding") != headerFields.end()
-		&& headerFields["Transfer-Encoding"].find("chunked") == std::string::npos) {
+		&& headerFields["Transfer-Encoding"] == "chunked") {
 		this->statusCode = "501 Not implemented";
 		this->filePath = errorPageTamplate("501, Not implemented");
 		return 1;
-		printError("Not implemented", 501);
 	}
 	if (headerFields.find("Transfer-Encoding") == headerFields.end()
 		&& headerFields.find("Content-Length") == headerFields.end()
@@ -335,7 +344,6 @@ int request::checkHeaderFields(std::string headerFiles)
 		this->statusCode = "400 Bad Request";
 		this->filePath = errorPageTamplate("400, Bad Request");
 		return 1;
-		printError("Bad Request", 400);
 	}
 	// if (getMethod() == "GET") {
 	// 	cout << "ra dart mn hna" << endl;
@@ -657,16 +665,6 @@ bool fileExists(const char* path) {
 		return false;
 	}
 	return (S_ISREG(fileInfo.st_mode) || S_ISDIR(fileInfo.st_mode));
-}
-
-std::string removewhites(const std::string& str) {
-	size_t start = str.find_first_not_of(" \t\r\n");
-	size_t end = str.find_last_not_of(" \t\r\n");
-//!leaks here??
-	if (start == std::string::npos || end == std::string::npos) {
-		return "";  // String is all whitespaces
-	}
-	return str.substr(start, end - start + 1);
 }
 
 int request::matchLocation(server& _server)
