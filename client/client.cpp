@@ -8,6 +8,19 @@ using std::vector;
 
 void	client::requestCases(request &requestObj, server& _server)
 {
+	int methodExist = 0;
+	std::vector<std::string> methods = requestObj.loc.getAllowMethods();
+	std::vector<std::string>::iterator it = methods.begin();
+	for (;it != methods.end();it++) {
+		if (*it == requestObj.getMethod()){
+			methodExist = 1;
+			break;
+		}
+	}	
+	if (!methodExist) {
+		codeNpath(requestObj,"405 Method Not Allowed", errorPageTamplate("405, Method Not Allowed.").c_str(), errorpages);
+		return ;
+	}
 	if (requestObj.getMethod() == "GET")
 		_get_(requestObj,_server);
 	else if (requestObj.getMethod() == "POST") 
@@ -21,8 +34,6 @@ void	client::set_request(string r, server& _server){
 	requestObj.errorpages = _server.getErrorPage();
 	if (!requestObj.headersDone) {
 		if (!requestObj.getHeadersRequest(r)) {
-			// requestObj.failHeader = true;
-			// tookrequest = 1;
 			cout <<RED<< "ERROR1" <<RESET_TEXT << endl;
 		}
 	}
