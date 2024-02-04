@@ -72,7 +72,6 @@ void generateAutoIndex(const std::string& directoryPath, const std::string& outp
         return;
     }
 
-    // Write HTML header
     outputFile << "<!DOCTYPE html>\n<html>\n<head>\n\t<title>Index Page</title>\n\t<style>\n";
     outputFile << "\t\tbody {\n\t\t\tfont-family: Arial, sans-serif;\n\t\t\tbackground-color: #f2f2f2;\n";
     outputFile << "\t\t\tmargin: 0;\n\t\t\tpadding: 0;\n\t\t}\n\t\t.container {\n\t\t\tmax-width: 600px;\n";
@@ -98,7 +97,6 @@ void generateAutoIndex(const std::string& directoryPath, const std::string& outp
         }
     }
 
-    // Write HTML footer
     outputFile << "\t\t</ul>\n\t</div>\n</body>\n</html>\n";
 
     outputFile.close();
@@ -171,6 +169,5 @@ void internalServerError(int connection_socket){
 				 "</script>\n"
 			 "</body>\n"
 		 "</html>";
-	write(connection_socket, __response.c_str(),    //header
-		strlen(__response.c_str()));
+	write(connection_socket, __response.c_str(), strlen(__response.c_str()));
 }

@@ -53,14 +53,14 @@ void	client::_delete_(request& requestObj){
 		else {//with slash
 			if (deleteDirectory(path.c_str()))
 			{
-				if (access(path.c_str(), W_OK) == 0)//has write access
+				if (access(path.c_str(), W_OK) == 0)
 				{
 					codeNpath(requestObj,"403 Forbidden",
 						errorPageTamplate("403, Forbidden.").c_str(), errorpages);
 						return ;
 				}
 				else
-				{//doesnt have write access
+				{
 					codeNpath(requestObj,"503 Internal Server Error",
 						errorPageTamplate("503 , Internal Server Error.").c_str(), errorpages);
 						return ;

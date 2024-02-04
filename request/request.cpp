@@ -66,12 +66,6 @@ request& request::operator=(const request& other)
 	return *this;
 }
 
-void printError(std::string errorMsg, int status)
-{
-	std::cerr << RED << errorMsg << RESET_TEXT << std::endl;
-	exit(status);
-}
-
 std::string request::getMethod() {
 	return this->method;
 }
@@ -344,7 +338,7 @@ std::string getTheExtensionFromContentType(std::string daContentType)
 		// Extract the substring after the '/'
 		std::string fileType = daContentType.substr(slashPos + 1);
 
-		// Replace any '+' characters with '_' (e.g., image/jpeg -> jpeg)
+		// Replace any '+' characters with '_' (e.g., image/jpeg -> jpeg)//!
 		size_t plusPos = fileType.find('+');
 		while (plusPos != std::string::npos) {
 			fileType[plusPos] = '_';
@@ -360,7 +354,7 @@ std::string getTheExtensionFromContentType(std::string daContentType)
 
 std::string generateRandomFileName() {
 	std::string characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-	const int length = 8;  // Adjust the length as needed
+	const int length = 8;
 
 	std::string randomFileName;
 	srand(static_cast<unsigned>(time(0)));
@@ -373,13 +367,12 @@ std::string generateRandomFileName() {
 	return randomFileName;
 }
 
-request::ParsingStatus request::checkBody(std::string body, server& _server)
+request::ParsingStatus request::parseChunked(std::string body, server& _server)
 {
 	std::string fileName;
 	if ((int)body.size() > _server.getClientBodyLimit()) {
 		setErrorPage("413 Request Entity Too Large", "413, Request Entity Too Large");
 		return ParsingFailed;
-		printError("Request Entity Too Large", 413);
 	}
 	std::istringstream stream(body);
 	while (true) {
@@ -393,8 +386,8 @@ request::ParsingStatus request::checkBody(std::string body, server& _server)
 		iss >> std::hex >> chunkSize;
 
 		if (iss.fail()) {
-			std::cerr << "Conversion failed.\n";//! dir chi haja
-			// return 1;
+			setErrorPage("500 Internal Server Error", "500, Internal Server Error.");
+			return ParsingFailed;
 		}
 		// Check for the end of chunks
 		if (chunkSize == 0) {
@@ -427,45 +420,30 @@ request::ParsingStatus request::checkBody(std::string body, server& _server)
 	return ParsingDone;
 }
 
-request::ParsingStatus request::checkBody2(std::string body, server& _server)
+request::ParsingStatus request::parseContentLength(std::string body, server& _server)
 {
 	if ((int)body.size() > _server.getClientBodyLimit()) {
 		setErrorPage("413 Request Entity Too Large", "413, Request Entity Too Large");
-		// this->statusCode = "413 Request Entity Too Large";
-		// this->filePath = errorPageTamplate("413, Request Entity Too Large");
 		return ParsingFailed;
-		// printError("Request Entity Too Large", 413);
 	}
 	std::string fileName;
 	fileName = generateRandomFileName() + getTheExtensionFromContentType(this->uploadContentType);
 	std::ofstream outputFile("upload/" + fileName, std::ios::app);
 	if (outputFile.is_open()) {
-		cout << "file is open" << endl;
 		outputFile << body;
 		if (outputFile.fail()) {
-			std::cerr << RED << "uploading failed !!!!!!!!!!" << RESET_TEXT << endl;
 			outputFile.close();
 			setErrorPage("507 Insufficient Storage", "507, Insufficient Storage.");
-			// this->statusCode = "507 Insufficient Storage";
-			// this->filePath = errorPageTamplate("507, Insufficient Storage.");
-			// this->ContentType = "text/html";
-			return ParsingFailed;
-		}
-		if (outputFile.fail()) {
-			std::cerr << RED << "uploading failed !!!!!!!!!!" << RESET_TEXT << endl;
-			outputFile.close();
-			setErrorPage("507 Insufficient Storage", "507, Insufficient Storage.");
-			// this->statusCode = "507 Insufficient Storage";
-			// this->filePath = errorPageTamplate("507, Insufficient Storage.");
-			// this->ContentType = "text/html";
 			return ParsingFailed;
 		}
 	}
-	if (!outputFile.is_open()) {
-		cout << "file not open" << endl;
+	if (outputFile.fail()) {
+		outputFile.close();
+		setErrorPage("507 Insufficient Storage", "507, Insufficient Storage.");
+		return ParsingFailed;
 	}
-	outputFile.close();
 	bodyContentLength += body.size();
+	outputFile.close();
 	return ParsingDone;
 }
 
@@ -520,15 +498,11 @@ std::string generateNewFileName(const std::string& fileName) {
 	return newFileName;
 }
 
-request::ParsingStatus request::checkBody3(std::string body, server& _server)
+request::ParsingStatus request::parseBoundary(std::string body, server& _server)
 {
 	if ((int)body.size() > _server.getClientBodyLimit()) {
 		setErrorPage("413 Request Entity Too Large", "413, Request Entity Too Large");
-
-		// this->statusCode = "413 Request Entity Too Large";
-		// this->filePath = errorPageTamplate("413, Request Entity Too Large");
 		return ParsingFailed;
-		// printError("Request Entity Too Large", 413);
 	}
 	size_t pos = 0;
 	size_t nextPos = 0;
@@ -551,9 +525,6 @@ request::ParsingStatus request::checkBody3(std::string body, server& _server)
 					std::cerr << RED << "uploading failed !!!!!!!!!!" << RESET_TEXT << endl;
 					outputFile.close();
 					setErrorPage("507 Insufficient Storage", "507, Insufficient Storage.");
-					// this->statusCode = "507 Insufficient Storage";
-					// this->filePath = errorPageTamplate("507, Insufficient Storage.");
-					// this->ContentType = "text/html";
 					return ParsingFailed;
 				}
 				outputFile.close();
@@ -561,9 +532,6 @@ request::ParsingStatus request::checkBody3(std::string body, server& _server)
 					std::cerr << RED << "uploading failed !!!!!!!!!!" << RESET_TEXT << endl;
 					outputFile.close();
 					setErrorPage("507 Insufficient Storage", "507, Insufficient Storage.");
-					// this->statusCode = "507 Insufficient Storage";
-					// this->filePath = errorPageTamplate("507, Insufficient Storage.");
-					// this->ContentType = "text/html";
 					return ParsingFailed;
 				}
 				outputFile.close();
@@ -715,20 +683,20 @@ int request::parseRequest(std::string request, server& _server)
 	}
 	if (headerFields.find("Transfer-Encoding") != headerFields.end()) {
 		cout << MAGENTA << "UPLOAD WITH CHuNKED <>" << RESET_TEXT << endl;
-		checkBody(request, _server);
+		parseChunked(request, _server);
 	}
 	else {
 		if (headerFields.find("Content-Type") != headerFields.end()
 		&& headerFields["Content-Type"].find("multipart/form-data") != std::string::npos) {
 			cout << MAGENTA << "UPLOAD WITH BOuNDARY <>" << RESET_TEXT << endl;
-			checkBody3(request, _server);
+			parseBoundary(request, _server);
 			std::string extension = getFileExtension(this->requestURI);
 			if (!extension.empty())
 				this->ContentType = allContTypes[extension];
 		}
 		else {
 			cout << MAGENTA << "UPLOAD WITH CONTENT LENGTH <>" << RESET_TEXT << endl;
-			checkBody2(request, _server);
+			parseContentLength(request, _server);
 		}
 	}
 
@@ -918,23 +886,19 @@ int request::getBodyRequest(std::string requestPart)
 		if (headerFields.find("Content-Type") != headerFields.end()
 			&& headerFields["Content-Type"].find("multipart/form-data") != std::string::npos) {
 				if (requestPart.find(boundary + "--") != std::string::npos) {
-					cout << WHITE << "out HERE  +++"<< RESET_TEXT << endl;
 					return 1;
 				}
 		}
 		if (headerFields.find("Transfer-Encoding") != headerFields.end()
 			&& headerFields["Transfer-Encoding"].find("chunked") != std::string::npos) {
 				if (requestPart.find("\r\n0\r\n\r\n") != std::string::npos) {
-					cout << WHITE << "HERE 1"<< RESET_TEXT << endl;
 					return 1;
 				}
 		}
 		else {
 			if ((int)this->theBody.size() >= this->actualContentLength) {
-				cout << WHITE << "HERE 2"<< RESET_TEXT << endl;
 				return 1;
 			}
-			// bodyContentLength += requestPart.size();
 		}
 	}
 	return 0;

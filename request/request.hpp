@@ -121,9 +121,9 @@ public:
 	int checkRequestLine(std::string request);
 	int checkHeaderFields(std::string headerFiles);
 	int parseRequest(std::string request, server& _server);
-	request::ParsingStatus checkBody(std::string body, server& _server);
-	request::ParsingStatus checkBody2(std::string body, server& _server);
-	request::ParsingStatus checkBody3(std::string body, server& _server);
+	request::ParsingStatus parseChunked(std::string body, server& _server);
+	request::ParsingStatus parseContentLength(std::string body, server& _server);
+	request::ParsingStatus parseBoundary(std::string body, server& _server);
 
 	int matchLocation(server& _server);
 	std::string removeAndSetQueryString(const std::string& uri);
