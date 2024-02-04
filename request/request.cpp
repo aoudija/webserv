@@ -319,16 +319,6 @@ int request::checkHeaderFields(std::string headerFiles)
 	return 0;
 }
 
-void printChar(char c)
-{
-	if (c == '\n')
-		std::cout << CYAN << "/n" << RESET_TEXT << std::endl;
-	else if (c == '\r')
-		std::cout << CYAN << "/r" << RESET_TEXT << std::endl;
-	else
-		std::cout << CYAN << c << RESET_TEXT << std::endl;
-}
-
 std::string getTheExtensionFromContentType(std::string daContentType)
 {
 	// Find the position of the '/'
@@ -403,13 +393,21 @@ request::ParsingStatus request::parseChunked(std::string body, server& _server)
 		std::getline(stream, crlf);
 		fileName = generateRandomFileName() + getTheExtensionFromContentType(this->uploadContentType);
 		std::ofstream outputFile("upload/" + fileName, std::ios::app);
-		outputFile << chunkData;
-		if (outputFile.fail()) {
-			outputFile.close();
-			setErrorPage("507 Insufficient Storage", "507, Insufficient Storage.");
+		if(!outputFile.is_open())
+		{
+			setErrorPage("500 Internal Server Error", "500, Internal Server Error.");
 			return ParsingFailed;
 		}
-		outputFile.close();
+		if(outputFile.is_open())
+		{
+			outputFile << chunkData;
+			if (outputFile.fail()) {
+				outputFile.close();
+				setErrorPage("507 Insufficient Storage", "507, Insufficient Storage.");
+				return ParsingFailed;
+			}
+			outputFile.close();
+		}
 		if (outputFile.fail()) {
 			outputFile.close();
 			setErrorPage("507 Insufficient Storage", "507, Insufficient Storage.");
@@ -429,6 +427,11 @@ request::ParsingStatus request::parseContentLength(std::string body, server& _se
 	std::string fileName;
 	fileName = generateRandomFileName() + getTheExtensionFromContentType(this->uploadContentType);
 	std::ofstream outputFile("upload/" + fileName, std::ios::app);
+	if(!outputFile.is_open())
+	{
+		setErrorPage("500 Internal Server Error", "500, Internal Server Error.");
+		return ParsingFailed;
+	}
 	if (outputFile.is_open()) {
 		outputFile << body;
 		if (outputFile.fail()) {
@@ -514,6 +517,11 @@ request::ParsingStatus request::parseBoundary(std::string body, server& _server)
 			std::string fileName = extractFilename(part.substr(0, part.find("\r\n\r\n")));
 			fileName = generateNewFileName(fileName);
 			std::ofstream outputFile("upload/" + fileName);
+			if(!outputFile.is_open())
+			{
+				setErrorPage("500 Internal Server Error", "500, Internal Server Error.");
+				return ParsingFailed;
+			}
 			if (outputFile.is_open())
 			{
 				std::string bodySent = part.substr(part.find("\r\n\r\n") + 4);
@@ -612,53 +620,29 @@ int request::matchLocation(server& _server)
 	std::vector<Location> vec;
 	vec = _server.getLocations();
 	std::string paths = this->requestURI;
-
-	// std::cout << MAGENTA << "***** the path *****" << paths << RESET_TEXT << std::endl;
-
-	// if (fileExists(paths.c_str()))
-	// {
-	// 	std::cout << GREEN << "***** flbla *****" << RESET_TEXT << std::endl;
-	// 	filePath = this->requestURI;
-	// 	if (filePath[0] == '/')
-	// 		filePath = filePath.substr(1);
-	// 	return 0;
-	// }
 	
-	std::vector<server> srvrs = _server.getSmSoServers();//? servers li wst servers
-	// //? lopping throught a vector of servers
+	std::vector<server> srvrs = _server.getSmSoServers();
 	for (std::vector<server>::iterator it = srvrs.begin(); it != srvrs.end(); it++) {
-		// cout<< MAGENTA << "server name is: " << it->getServerName() << RESET_TEXT << endl;
-
-		// cout<< MAGENTA << "Host is: " << removewhites(this->headerFields["Host"]) << "|" << RESET_TEXT << endl;
-		if (it->getServerName() == removewhites(this->headerFields["Host"]))
-		{
+		if (it->getServerName() == removewhites(this->headerFields["Host"])) {
 			vec = it->getLocations();
-			// cout << BLUE << "YES WE FOUND A MATCH: " << it->getServerName() << RESET_TEXT << endl;
-			//location tbedel ldak dyal server lakhor
 		}
-		// ila la khliha dyal default
 	}
 
 	while (!paths.empty())
 	{
-		// std::cout << GREEN << "***** looping *****" << RESET_TEXT << std::endl;
 		for (std::vector<Location>::iterator it = vec.begin(); it != vec.end(); it++) {
-			// std::cout << RED << "is LOCATION: " << it->getLocationName() << "\t\tequal to URI: " << paths << RESET_TEXT << std::endl;
 			if (it->getLocationName() == paths) {
-				// std::cout << GREEN << "*****FOUND A MATCH*****" << RESET_TEXT << std::endl;
 				filePath = it->getRoot() + this->requestURI;
 				if (!it->getRedirection().empty()) {
 					redirectURL = it->getRedirection();
 				}
 				if (isDirectory(filePath.c_str())) {
-				// std::cout << GREEN << "*****FOUND A MATCH 22 *****" << RESET_TEXT << std::endl;
 					if (filePath[filePath.size() - 1] == '/')
 						filePath = filePath + it->getIndex();
 					if (!it->getRedirection().empty())
 						redirectURL = it->getRedirection();
 				}
 				loc = *it;
-				// cout << BLUE <<loc.getCgiPath()<< RESET_TEXT << endl;
 				if (filePath[0] == '/')
 					filePath = filePath.substr(1);
 				return 0;
@@ -678,7 +662,7 @@ int request::matchLocation(server& _server)
 
 int request::parseRequest(std::string request, server& _server)
 {
-	if (request.empty()) {//???????? useless maybe ?
+	if (request.empty()) {
 		return 1;
 	}
 	if (headerFields.find("Transfer-Encoding") != headerFields.end()) {
