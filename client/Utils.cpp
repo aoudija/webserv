@@ -11,9 +11,7 @@ int checkExistance(request& requestObj){
 	else
         path = requestObj.getFilePath();
     if (!fileExists(path.c_str())) {
-		requestObj.setStatusCode("404 not found");
-		requestObj.setContentType("text/html");
-		requestObj.setFilePath(errorPageTamplate("404, Not Found."));
+		codeNpath(requestObj,"404 not found", errorPageTamplate("404, Not Found.").c_str(), requestObj.errorpages);
 		return 1;
 	}
 	return 0;
@@ -123,8 +121,6 @@ void	codeNpath(request& requestObj, string statusCode, string filePath, map<int,
 
 	requestObj.setStatusCode(statusCode);
 	requestObj.setContentType("text/html");
-    requestObj.setmethod("GET");
-    requestObj.is_CGI = 0;
 	if (errPages.find(key) != errPages.end()) {
 		if (access(errPages[key].c_str(), R_OK) == 0) {
 			requestObj.setFilePath(errPages[key]);
@@ -136,6 +132,8 @@ void	codeNpath(request& requestObj, string statusCode, string filePath, map<int,
 	else {
 		requestObj.setFilePath(filePath);
 	}
+    requestObj.setmethod("GET");
+    requestObj.is_CGI = 0;
 }
 
 void internalServerError(int connection_socket){

@@ -791,6 +791,8 @@ void request::setContentType()
 				fileExtension = requestURI.substr(dotPosition);
 			}
 			this->ContentType = allContTypes[fileExtension];
+			if (fileExtension == ".php" || fileExtension == ".py")
+				this->ContentType = "";
 		}
 	}
 	if (this->method == "POST") {
@@ -818,7 +820,6 @@ void	request::addAllContentTypes()
 	allContTypes[".avif"] = "image/avif";
 	allContTypes[".avi"] = "video/x-msvideo";
 	allContTypes[".azw"] = "application/vnd.amazon.ebook";
-	allContTypes[".bin"] = "application/octet-stream";
 	allContTypes[".bmp"] = "image/bmp";
 	allContTypes[".bz"] = "application/x-bzip";
 	allContTypes[".bz2"] = "application/x-bzip2";
