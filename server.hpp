@@ -43,9 +43,10 @@ int		checkExistance(request&);
 bool	endsWithSlash(const std::string&);
 void	isCGI(request&, const std::string&, server&);
 string	getFileExtension(const std::string&);
-void generateAutoIndex(const std::string&, const std::string&);
+void	generateAutoIndex(const std::string&, const std::string&);
 void	codeNpath(request&, string, string, map<int, string>);
-int extractStatusCode(const std::string& response);
+int		extractStatusCode(const std::string& response);
+void	internalServerError(int connection_socket);
 //
 class client
 {

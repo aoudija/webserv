@@ -32,6 +32,8 @@ void	response::initialize(request& request){
 	}
 	buffer = new char[filesize];
 	int c = read(fd, buffer, filesize);
+	if (c <= 0)
+		throw(std::runtime_error("read error"));
 	cout <<"read file int: " << c << endl;
 	close(fd);
 }

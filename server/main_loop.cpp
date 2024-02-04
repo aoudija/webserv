@@ -27,7 +27,7 @@ void	fillpoll_listen(vector<struct pollfd>&	pfds, serversInfos _si){
 	struct pollfd p;
 	for (size_t i = 0;i < _si.allSockets.size();i++){
 		p.fd = _si.allSockets[i];
-		p.events = POLLIN | POLLHUP;
+		p.events = POLLIN;
 		pfds.push_back(p);
 	}
 }
@@ -55,9 +55,7 @@ void readRequest(vector<struct pollfd>&	pfds,struct pollfd &pfd, server& server)
 	char request[1025];
 	string theRequest;
 
-	if (pfd.revents & POLLHUP)
-		removefd(pfds,pfd,server);
-	else if (!server.clients[pfd.fd].getTookrequest())
+	if (!server.clients[pfd.fd].getTookrequest())
 	{
 		int r = read(pfd.fd, request, 1024);
 		if (r <= 0){
@@ -74,7 +72,7 @@ void readRequest(vector<struct pollfd>&	pfds,struct pollfd &pfd, server& server)
 		printf("\033[1;37m%.*s\033[0m", r, request);
 		server.clients[pfd.fd].set_request(theRequest, server);
 		if (server.clients[pfd.fd].tookrequest == 1)
-			pfd.events = POLLOUT | POLLHUP;
+			pfd.events = POLLOUT;
 	}
 }
 
@@ -82,12 +80,12 @@ void	sendResponse(vector<struct pollfd>&	pfds, struct pollfd &pfd, server& serve
 {
 	if (server.clients[pfd.fd].getTookrequest())
 	{
-		if (!server.clients[pfd.fd].set_response(pfd.fd) || pfd.revents & POLLHUP ||
+		if (!server.clients[pfd.fd].set_response(pfd.fd) ||
 			(server.clients[pfd.fd].getfilesent() && !server.clients[pfd.fd].keepAlive))
 			removefd(pfds, pfd, server);
 		else if (server.clients[pfd.fd].getfilesent() && server.clients[pfd.fd].keepAlive){
 			server.clients[pfd.fd].reset();
-			pfd.events = POLLIN | POLLHUP;
+			pfd.events = POLLIN;
 			cout << "should be reset\n";
 		}
 	}
@@ -100,28 +98,28 @@ void	accept_read_write(vector<struct pollfd>&	pfds, struct pollfd &pfd,
 		if (std::find(servers[i].mysockets.begin(),
 			servers[i].mysockets.end(), pfd.fd) != servers[i].mysockets.end())
 		{
-			if (pfd.revents & POLLHUP)
-				removefd(pfds, pfd, servers[i]);
-			else {
-				if (pfd.revents & POLLIN){
-					if (pfd.fd == servers[i].get_slistener())
-						accept_connection(pfds, pfd, servers[i]);
-					else
-						readRequest(pfds, pfd, servers[i]);
-				}
-				else if (pfd.revents & POLLOUT){
-					try
-					{
-						sendResponse(pfds, pfd, servers[i]);
-					}
-					catch(const std::exception& e)
-					{
-						std::cerr << e.what() << '\n';
-						removefd(pfds, pfd, servers[i]);
-					}
-					
-				}
+			if (pfd.revents & POLLIN)
+			{
+				if (pfd.fd == servers[i].get_slistener())
+					accept_connection(pfds, pfd, servers[i]);
+				else
+					readRequest(pfds, pfd, servers[i]);
 			}
+			else if (pfd.revents & POLLOUT)
+			{
+				try
+				{
+					sendResponse(pfds, pfd, servers[i]);
+				}
+				catch(const std::exception& e)
+				{
+					std::cerr << e.what() << endl;
+					internalServerError(pfd.fd);
+				}
+				
+			}
+			else if (pfd.revents & POLLHUP)
+				removefd(pfds, pfd, servers[i]);
 		}
 	}
 }
@@ -152,14 +150,14 @@ void	main_loop(vector<server> Confservers){
 	_si.SetListener();
 	vector<server> servers = _si.get_servers();
 
-	//multiplexing v9 ~
+	//multiplexing v10.01 ~
 	vector<struct pollfd>	pfds;
 	fillpoll_listen(pfds, _si);
 	struct pollfd*			p;
 
 	while(1){
 		p = pfds.data();
-		int r = poll(p, pfds.size(), -1);
+		int r = poll(p, pfds.size(), 60000);
 		if (r < 0){
 			perror("poll");
 			exit(EXIT_FAILURE);

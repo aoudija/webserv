@@ -137,9 +137,9 @@ void	codeNpath(request& requestObj, string statusCode, string filePath, map<int,
 }
 
 void internalServerError(int connection_socket){
-	std::string __response = "HTTP/1.1 500 Internal Server Error\r\n\r\n"
-					"Content-Length: 809\n"
-					"Content-Type: text/html\n"
+	std::string __response = "HTTP/1.1 500 Internal Server Error\n"
+					"Content-Length: 788\n"
+					"Content-Type: text/html\r\n\r\n"
 		 "<!DOCTYPE html>\n"
 		 "<html>\n"
 			 "<head>\n"
@@ -157,8 +157,6 @@ void internalServerError(int connection_socket){
 					 "</p>\n"
 				 "</div>\n"
 				 "<script>\n"
-
-				
 			"let divElement = document.getElementById(\"myP\");"
 			"let textContent = divElement.innerText.toString();"
 			"let i = 1;"
@@ -172,7 +170,7 @@ void internalServerError(int connection_socket){
 			"setTimeout(typeWriter, 0);\n"
 				 "</script>\n"
 			 "</body>\n"
-		 "</html>\n";
+		 "</html>";
 	write(connection_socket, __response.c_str(),    //header
 		strlen(__response.c_str()));
 }
