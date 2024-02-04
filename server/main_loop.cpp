@@ -109,8 +109,18 @@ void	accept_read_write(vector<struct pollfd>&	pfds, struct pollfd &pfd,
 					else
 						readRequest(pfds, pfd, servers[i]);
 				}
-				else if (pfd.revents & POLLOUT)
-					sendResponse(pfds, pfd, servers[i]);
+				else if (pfd.revents & POLLOUT){
+					try
+					{
+						sendResponse(pfds, pfd, servers[i]);
+					}
+					catch(const std::exception& e)
+					{
+						std::cerr << e.what() << '\n';
+						removefd(pfds, pfd, servers[i]);
+					}
+					
+				}
 			}
 		}
 	}
@@ -157,6 +167,6 @@ void	main_loop(vector<server> Confservers){
 		else if (r == 0)
 			checkTimeout(pfds, servers);
 		for (size_t i = 0;i < pfds.size();i++)
-			accept_read_write(pfds, pfds[i], servers);
+				accept_read_write(pfds, pfds[i], servers);
 	}
 }
