@@ -75,12 +75,19 @@ void    Config::smSoServersInit(){
     }
 }
 
-Config::Config(std::string av): path_name(av){
+Config::Config(int ac, char **av){
+    string  path;
+    if (ac > 2)
+        throw std::invalid_argument("Invalid Argument.");
+    else if (ac == 1)
+        path_name = "config.conf";
+    else
+        path_name = av[1];
     parse();
 	dublesrvcheck();
 	defaultCheck();
     smSoServersInit();
-} 
+}
 
 bool Config::isWhitespace(const std::string& str) {
     for (std::string::const_iterator it = str.begin(); it != str.end(); ++it) {

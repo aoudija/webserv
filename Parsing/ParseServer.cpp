@@ -239,7 +239,7 @@ void	server::init(){
 	set_my_default(-1);
 	setRoot("public");
 	setIndex("");
-	setErrorPage(404, "404.html");
+	setErrorPage(404, "errorPages/err404.html");
 	setIp("localhost");
 	setPort("8080");
 	setServerName("wal7amaq");
@@ -265,7 +265,8 @@ void	server::parse(std::map<int, std::string> &server){
 	for (; it != server.end(); it++)
     {
 		if (it->second.find("}") == std::string::npos){
-			if (it->second.find("(") != std::string::npos){
+			if (it->second.find("(") != std::string::npos 
+				&& it->second.find("#") == std::string::npos){
 				setmylocation(it, server);
 			}
 			else
@@ -298,9 +299,26 @@ void	server::parse(std::map<int, std::string> &server){
 		setLocations(loc);
 	}
 	std::sort(this->locations.begin(), this->locations.end(), comparePath);
+	doublelocationcheck();
 }
 
-
+void	server::doublelocationcheck(){
+	vector<Location> loc = this->locations;
+	std::string locationName;
+	for (size_t i = 0; i < loc.size(); i++)
+	{
+		locationName = loc[i].getLocationName();
+		vector<Location> loccheck = this->locations;
+		for (size_t j = 0; j < loc.size(); j++)
+		{
+			if (i == j)
+				break ;
+			if (!locationName.compare(loccheck[j].getLocationName()))
+				throw std::invalid_argument(throwmessage(loccheck[i].line, "Error: This Location already exist in the line " + intToString(loccheck[i].line) +"."));
+		}
+		loccheck.clear();
+	}
+}
 
 
 
@@ -418,9 +436,10 @@ void	server::Myerror_page(std::vector<std::string> list, int line){
 	if (list.size() != 3 || list.empty())
 		throw std::invalid_argument(throwmessage(line, "Error: Invalide Input in Error_Page."));
 	char* endPtr;
-    long errornbr = std::strtol(withoutsemicolon(list[1]).c_str(), &endPtr, 10);
-	std::string str = withoutsemicolon(list[1]).c_str();
-	if (endPtr == str.c_str() + strlen(str.c_str()) || errornbr > static_cast<long>(INT_MAX))
+	string s = withoutsemicolon(list[1]);
+	const char* str = s.c_str();
+    long errornbr = std::strtol(str, &endPtr, 10);
+	if (*endPtr != '\0' || errornbr > static_cast<long>(INT_MAX))
 		throw std::invalid_argument(throwmessage(line, "Error: Invalide Error Code."));
 	std::string path = withoutsemicolon(list[2]);
 	this->error_page[errornbr] = path;

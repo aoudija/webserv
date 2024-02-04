@@ -56,6 +56,7 @@ void	Location::checkfirstline(std::string str, int line){
 	setLocationName(list[1]);
 	if (this->locationName[0] != '/')
 		throw std::invalid_argument(throwmessage(line, "Error: Location name have to start with '/'."));
+	this->line = line;
 }
 
 void	Location::checklastline(std::string str, int line, int firstline){

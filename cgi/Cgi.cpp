@@ -12,6 +12,8 @@ Cgi::Cgi(server *serv,  request *req): MyServer(serv),  MyRequest(req){
 	this->status = 0;
 	init();
 	set_arg();
+	this->filename = "/tmp/file_all" + generateRandomFileName();
+	this->filebody = "/tmp/file_body" + generateRandomFileName();
 }
 
 Cgi::~Cgi()
@@ -54,15 +56,11 @@ void replace_(std::string &input) {
 
 
 std::string getroot(const std::string& filepath) {
-    // Find the position of the last directory separator
     size_t lastSeparator = filepath.find_last_of("/\\");
-
-    // If a separator is found, extract the substring up to that position
     if (lastSeparator != std::string::npos)
         return filepath.substr(0, lastSeparator);
 	else
         return filepath;
-        // If no separator is found, assume the root is the entire path
 }
 
 void	Cgi::init(){
@@ -135,7 +133,7 @@ std::string trim(const std::string& str) {
     return str.substr(start, end - start + 1);
 }
 
-static std::string generateRandomFileName() {
+std::string Cgi::generateRandomFileName() {
 	std::string characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 	const int length = 8;  // Adjust the length as needed
 
@@ -198,7 +196,7 @@ std::vector<std::string> splitString(const std::string& input) {
     return result;
 }
 
-void handleTimeout(int sig)
+void sighandle(int sig)
 {
 	(void)sig;
 	exit(502);
@@ -231,22 +229,30 @@ int Cgi::ParseAll(){
 	int fdbodysend = open(filebodysend.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	if (fdbodysend == -1)
 		return 502;
-	write(fdbodysend, body.c_str(), body.length());
-	close(fdbodysend);
-	this->body = filebodysend;
+	int	writecheck = write(fdbodysend, body.c_str(), body.length());
+	if (writecheck == -1){
+		close(fdbodysend);
+		return 502;
+	}
+	else if (writecheck >= 0){
+		close(fdbodysend);
+		this->body = filebodysend;
+	}
 	return 1;
 }
 
-void Cgi::exe(){
-	this->filename = "/tmp/file_all" + generateRandomFileName();
-	this->filebody = "/tmp/file_body" + generateRandomFileName();
-	this->fileerr = "/tmp/file_err" + generateRandomFileName();
+void Cgi::exe(){;
 	int fd_body = open(filebody.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	if (fd_body == -1){
 		this->status = 502;
 		return ;
 	}
-	write(fd_body, MyRequest->theBody.c_str(), MyRequest->theBody.length());
+	int	writecheck = write(fd_body, MyRequest->theBody.c_str(), MyRequest->theBody.length());
+	if (writecheck == -1){
+		close(fd_body);
+		this->status = 502;
+		return ;
+	}
 	close(fd_body);
 	pid = fork();
 	if (pid == -1){
@@ -257,25 +263,23 @@ void Cgi::exe(){
 		int	fd = open(filename.c_str(), O_CREAT | O_RDWR | O_TRUNC, 0666);
 		if (fd == -1)
 			exit(502);
-		if (dup2(fd, 1) == -1)
+		if (dup2(fd, 1) == -1) {
+			close(fd);
 			exit(502);
+		}
 		close(fd);
-		int	fd2 = open(fileerr.c_str(), O_CREAT | O_RDWR | O_TRUNC, 0666);
-		if (fd2 == -1)
-			exit(502);
-		if (dup2(fd2, 2) == -1)
-			exit(502);
-		close(fd2);
 		if (MyRequest->getMethod() == "POST"){
 			int fd1 = open(filebody.c_str(), O_RDONLY);
 			if (fd1 == -1)
 				exit(502);
-			if (dup2(fd1, 0) == -1)
+			if (dup2(fd1, 0) == -1){
+				close(fd1);
 				exit(502);
+			}
 			close(fd1);
 		}
-		signal(SIGALRM, handleTimeout);
-		alarm(20);
+		signal(SIGALRM, sighandle);
+		alarm(5);
 		execve(this->arg[0], this->arg, this->env);
 		exit(502);
 	}
@@ -290,10 +294,10 @@ int	Cgi::waitcheck(){
 	if (it == -1)
 		return 500;
 	if (it > 0){
-		if (WIFSIGNALED(sts) && WTERMSIG(sts) == SIGALRM)
-			return 504;
-		else if (WIFEXITED(sts) && WEXITSTATUS(sts) != 0)
+		if ( WIFEXITED(sts) && WEXITSTATUS(sts) != 0 )
 			return 502;
+		else if ( WIFSIGNALED(sts) && WTERMSIG(sts) == SIGALRM )
+			return 504;
 		else
 			return 1;
 	}

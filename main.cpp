@@ -7,10 +7,8 @@ using std::string;
 using std::vector;
 
 int main(int ac, char **av){
-	if (ac != 2)
-		return 0;
 	try{
-		Config	conf(av[1]);
+		Config	conf(ac, av);
 		signal(SIGPIPE, SIG_IGN);
 		main_loop(conf.Servers);
 	}

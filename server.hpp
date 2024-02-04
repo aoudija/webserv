@@ -119,6 +119,7 @@ class server{
 	void	setmylocation(std::map<int, std::string>::const_iterator &it, std::map<int, std::string> &server);
 	void	Myupload(std::vector<std::string> list, int line);
 	void	Mycgi(std::vector<std::string> list, int line);
+	void	doublelocationcheck();
 	//================
 	public:
 		vector<Location>	locations;

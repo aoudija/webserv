@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PHP GET</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- <link rel="stylesheet" href="style1.css"> -->
+</head>
+<body class="login">
+<nav class="navMenu">
+<a href="/CGI/">Home</a>
+<a href="phpget.html">PHP/GET</a>
+<a href="phppost.html">PHP/POST</a>
+    </nav>
+    <div class="container login">
+        <h2>PHP GET</h2>
+        <form method="get" action="./phpscript.php">
+            <label for="name">Fisrt Name:</label>
+            <input type="text" name="name" required>
+            <label for="last_name">Last Name:</label>
+            <input type="text" name="last_name" required>
+            <input type="submit" value="GET">
+        </form>
+    </div>
+</body>
+</html>

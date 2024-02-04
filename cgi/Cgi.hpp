@@ -18,9 +18,9 @@ private:
 	char		**arg;
 	std::string filename;
 	std::string filebody;
-	std::string fileerr;
 	pid_t		pid;
 	void	parseHeader(std::vector<std::string> header, size_t len);
+	std::string generateRandomFileName();
 public:
 	Cgi(server *serv, request *req);
 	// Cgi(const Cgi& other);

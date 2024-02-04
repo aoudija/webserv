@@ -1,0 +1,186 @@
+
+@import "https://fonts.googleapis.com/css?family=Press%20Start%202P";
+body {
+  font-family: 'Press Start 2P';
+    background-color: #37371c;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    width: 400px;
+    margin: 100px auto;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    line-height: 2;
+}
+
+span{
+  color: red;
+}
+h2 {
+    text-align: center;
+    color: #fff090;
+}
+
+h1 {
+  text-align: center;
+}
+
+p {
+    text-align: center;
+    color: #333;
+}
+
+p#php{
+  text-align: left;
+
+}
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    margin-bottom: 8px;
+    color: #F6EB14;
+}
+
+input {
+  padding: 15px;
+    margin-bottom: 15px;
+    border: 1px solid #221;
+    border-radius: 10px;
+    font-family: 'Press Start 2P';
+    background-color: #37371b;
+    color: white;
+    
+}
+input:focus {
+  border: 1px solid #555;
+  outline: none;
+}
+
+input[type="submit"] {
+  
+    color: #fff;
+    cursor: pointer;
+    font-family: 'Press Start 2P';
+}
+
+input[type="submit"]:hover {
+  
+    font-family: 'Press Start 2P';
+}
+
+p.error {
+    color: red;
+    margin-top: 10px;
+}
+
+/* Additional Styles for Login Page */
+
+
+.container.login {
+    line-height: 2;
+    width: 300px;
+    margin: 150px auto;
+    background-color: #221;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+p#ty {
+  font-size: 10px;
+  color: #ffffff;
+}
+
+p#ty a {
+  color: rgb(255, 240, 73);
+}
+
+input[type="submit"] {
+    background-color: #7e7800;
+    color: #fff;
+    border: none;
+}
+
+input[type="submit"]:hover {
+    background-color: #a49c00;
+}
+
+
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap");
+
+
+
+.navMenu {
+  position: absolute;
+  top: 50px;
+  left: 50%;
+  -webkit-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+}
+
+.navMenu a {
+  color: #F6EB14;
+  text-decoration: none;
+  font-size: 1.2em;
+  text-transform: uppercase;
+  font-weight: 500;
+  display: inline-block;
+  -webkit-transition: all 0.2s ease-in-out;
+  transition: all 0.2s ease-in-out;
+  padding: 15px;
+}
+
+.navMenu a:hover {
+  color: #746f0a;
+}
+
+.navMenu .dot {
+  width: 6px;
+  height: 6px;
+  background: #454545;
+  border-radius: 50%;
+  opacity: 0;
+  -webkit-transform: translateX(30px);
+  transform: translateX(30px);
+  -webkit-transition: all 0.2s ease-in-out;
+  transition: all 0.2s ease-in-out;
+}
+
+.navMenu a:nth-child(1):hover ~ .dot {
+  -webkit-transform: translateX(30px);
+  transform: translateX(30px);
+  -webkit-transition: all 0.2s ease-in-out;
+  transition: all 0.2s ease-in-out;
+  opacity: 1;
+}
+
+.navMenu a:nth-child(2):hover ~ .dot {
+  -webkit-transform: translateX(110px);
+  transform: translateX(110px);
+  -webkit-transition: all 0.2s ease-in-out;
+  transition: all 0.2s ease-in-out;
+  opacity: 1;
+}
+
+.navMenu a:nth-child(3):hover ~ .dot {
+  -webkit-transform: translateX(200px);
+  transform: translateX(200px);
+  -webkit-transition: all 0.2s ease-in-out;
+  transition: all 0.2s ease-in-out;
+  opacity: 1;
+}
+
+.navMenu a:nth-child(4):hover ~ .dot {
+  -webkit-transform: translateX(285px);
+  transform: translateX(285px);
+  -webkit-transition: all 0.2s ease-in-out;
+  transition: all 0.2s ease-in-out;
+  opacity: 1;
+}

@@ -47,6 +47,7 @@ private:
 	void	Myredirection(std::vector<std::string> list, int line);
 public:
 	int	r, i, a, am, u, cg;
+	int		line;
 	Location(){}
 	Location(std::map<int, std::string>&);
 	Location(string root, string index, bool autoindex, vector<string> allowMethods);

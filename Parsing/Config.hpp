@@ -26,7 +26,7 @@ class Config {
         void    smSoServersInit();
     public:
         std::vector<server> Servers;
-        Config(std::string av);
+        Config(int ac, char **av);
         ~Config();
 		void    display();
 };
