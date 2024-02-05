@@ -129,8 +129,9 @@ void serversInfos::SetListener(){
 				exit(EXIT_FAILURE);
 			}
 		}
-		cout << "port: " << it->portGetter();
-		cout << " listening on socket "
+		cout << "host: " << it->getIp();
+		cout << " ,port: " << it->portGetter();
+		cout << " ,listening on socket: "
 			<< it->get_slistener() << endl;
 	}
 }

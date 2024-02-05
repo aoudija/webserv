@@ -33,15 +33,12 @@ void	client::set_request(string r, server& _server){
 	errorpages = _server.getErrorPage();
 	requestObj.errorpages = _server.getErrorPage();
 	if (!requestObj.headersDone) {
-		if (!requestObj.getHeadersRequest(r)) {
-			cout <<RED<< "ERROR1" <<RESET_TEXT << endl;
-		}
+		requestObj.getHeadersRequest(r);
 	}
 	if (requestObj.headersDone == 1 || requestObj.failHeader) {
 		if (requestObj.checkRequestLine(r)) {
 			requestObj.failHeader = true;
 			tookrequest = 1;
-			cout <<RED<< "ERROR2" <<RESET_TEXT << endl;
 		}
 		else
 			requestObj.headersDone = 2;
@@ -50,7 +47,6 @@ void	client::set_request(string r, server& _server){
 		if (requestObj.checkHeaderFields(r.substr(0, r.find("\r\n\r\n")))) {
 			requestObj.failHeader = true;
 			tookrequest = 1;
-			cout <<RED<< "ERROR3" <<RESET_TEXT << endl;
 		}
 		else
 			requestObj.headersDone = 3;
@@ -116,8 +112,6 @@ int		client::set_response(int connection_socket){
 			if (requestObj.getMethod() != "DELETE" && requestObj.getredirectURL().empty()){
 				responseObj.initialize(requestObj);
 			}
-			// if (!requestObj.getredirectURL().empty())
-			// 	keepAlive = 0;
 			if (responseObj.sendHeader(connection_socket, requestObj) == 0)
 				return 0;
 			resTime = responseObj.resTime;

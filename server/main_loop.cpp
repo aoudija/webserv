@@ -63,13 +63,10 @@ void readRequest(vector<struct pollfd>&	pfds,struct pollfd &pfd, server& server)
 			cout << "removing fd now.."<<endl;
 			removefd(pfds,pfd,server);
 			return;
-			//!remove fd
 		}
 		request[r] = '\0';
 		theRequest = string(request, r);
 
-		// cout << "Received " << r << " bytes." << endl;
-		// printf("\033[1;37m%.*s\033[0m", r, request);
 		server.clients[pfd.fd].set_request(theRequest, server);
 		if (server.clients[pfd.fd].tookrequest == 1)
 			pfd.events = POLLOUT;
@@ -86,7 +83,6 @@ void	sendResponse(vector<struct pollfd>&	pfds, struct pollfd &pfd, server& serve
 		else if (server.clients[pfd.fd].getfilesent() && server.clients[pfd.fd].keepAlive){
 			server.clients[pfd.fd].reset();
 			pfd.events = POLLIN;
-			cout << "should be reset\n";
 		}
 	}
 }

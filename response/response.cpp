@@ -19,7 +19,6 @@ response::response()
 
 void	response::initialize(request& request){
 	int fd;
-		cout << RED<< "file path is: " << request.getFilePath() << RESET_TEXT << endl;
 	if (request.is_CGI)
 		fd = open(request.getCgiBody().c_str(), O_RDONLY);
 	else
@@ -34,7 +33,6 @@ void	response::initialize(request& request){
 	int c = read(fd, buffer, filesize);
 	if (c <= 0)
 		throw(std::runtime_error("read error"));
-	cout <<"read file int: " << c << endl;
 	close(fd);
 }
 
@@ -45,11 +43,9 @@ int	response::sendHeader(int connection_socket, request& request){
 		int bytes_sent = write(connection_socket, header.c_str(),    //header
 		strlen(header.c_str()));
 		if (bytes_sent <= 0){
-			perror("write");//!remove fd
+			perror("write");
 			return 0;
 		}
-		cout << header <<endl;
-		cout << bytes_sent << endl;
 		resTime = time(0);
 		return 1;
 	}
@@ -59,7 +55,7 @@ int	response::sendHeader(int connection_socket, request& request){
 		int bytes_sent = write(connection_socket, header.c_str(),    //header
 		strlen(header.c_str()));
 		if (bytes_sent <= 0){
-			perror("write");//!remove fd
+			perror("write");
 			return 0;
 		}
 		resTime = time(0);
@@ -69,11 +65,9 @@ int	response::sendHeader(int connection_socket, request& request){
 		header = request.getCgiHeader();
 	}
 	else {
-		cout << "content type is: "<< BLUE << request.getContentType() << RESET_TEXT << endl;
 		header = "HTTP/1.1 " + request.getStatusCode()+ "\r\n"
 			"Content-Length: " + std::to_string(filesize) + "\r\n"
 			"Content-Type: "+ request.getContentType() + "\r\n\r\n"+'\0';
-		cout<<RED<<"statuscode: " << request.getStatusCode() << RESET_TEXT<<endl;
 	}
 	return 1;
 }
