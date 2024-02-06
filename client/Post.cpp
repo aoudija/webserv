@@ -8,35 +8,7 @@ void	client::_post_(request& requestObj, server& _server){
 	if (_server.getUpload()) {
 		requestObj.setStatusCode("201 Created");
 		requestObj.parseRequest(requestObj.theBody, _server);
-		if (checkExistance(requestObj))
-			return ;
-		if (isDirectory(requestObj.getFilePath().c_str()))
-		{
-			if (!endsWithSlash(requestObj.getFilePath()))
-			{
-				if (!_server.getAutoindex()) {
-					codeNpath(requestObj, "403 Forbidden", errorPageTamplate("403, Forbidden."), errorpages);
-					return ;
-				}
-				else {
-					requestObj.setredirectURL(requestObj.getrequestURI() + "/");
-					cout << BLUE << requestObj.getrequestURI() + "/" << RESET_TEXT << endl;
-					return ;
-				}
-			}
-			else {
-				if (_server.getIndex().empty()) {
-					codeNpath(requestObj, "403 Forbidden", errorPageTamplate("403, Forbidden."), errorpages);
-					return ;
-				}
-				else{
-					isCGI(requestObj, requestObj.getFilePath(), _server);
-				}
-			}
-		}
-		else{
-			isCGI(requestObj, requestObj.getFilePath(), _server);
-		}
+		requestObj.setredirectURL(requestObj.getUploadPath());
 	}
 	else if (!_server.getUpload()){
 		if (checkExistance(requestObj))

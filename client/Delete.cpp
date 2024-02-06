@@ -45,7 +45,6 @@ void	client::_delete_(request& requestObj){
 			return ;
 	if (isDirectory(path.c_str())){//directory
 		if (!endsWithSlash(path)){//no slash
-			cout << "slash makaynash\n";
 			codeNpath(requestObj,"409 Conflict",
 				errorPageTamplate("409, Conflict.").c_str(), errorpages);
 			return ;

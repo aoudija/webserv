@@ -17,28 +17,54 @@ response::response()
 	buffer = NULL;
 }
 
-void	response::initialize(request& request){
-	int fd;
-	if (request.is_CGI)
-		fd = open(request.getCgiBody().c_str(), O_RDONLY);
-	else
-		fd = open(request.getFilePath().c_str(), O_RDONLY);
-	filesize = lseek(fd, 0, SEEK_END);
-	lseek(fd, 0, SEEK_SET);
-	if (buffer != NULL) {
-		delete buffer;
-		buffer = NULL;
-	}
-	buffer = new char[filesize];
-	int c = read(fd, buffer, filesize);
-	if (c <= 0)
-		throw(std::runtime_error("read error"));
-	close(fd);
+// void	response::initialize(request& request){
+// 	int fd;
+// 	if (request.is_CGI)
+// 		fd = open(request.getCgiBody().c_str(), O_RDONLY);
+// 	else
+// 		fd = open(request.getFilePath().c_str(), O_RDONLY);
+// 	filesize = lseek(fd, 0, SEEK_END);
+// 	lseek(fd, 0, SEEK_SET);
+// 	if (buffer != NULL) {
+// 		delete buffer;
+// 		buffer = NULL;
+// 	}
+// 	buffer = new char[filesize];
+// 	int c = read(fd, buffer, filesize);
+// 	if (c <= 0)
+// 		throw(std::runtime_error("read error"));
+// 	close(fd);
+// }
+
+void    response::initialize(request& request){
+    string path;
+    path = request.getFilePath();
+    if (request.is_CGI)
+        path = request.getCgiBody();
+    
+    std::ifstream is(path.c_str());
+    if (is.is_open()){
+        is.seekg (0, std::ios::end);
+        filesize = is.tellg();
+        is.seekg (0, std::ios::beg);
+
+        buffer = new char [filesize];
+        is.read (buffer,filesize);
+        is.close();
+    }
+    else {
+        std::cerr << "error oppening file"<<endl;
+        throw std::runtime_error("read error");
+    }
 }
 
 int	response::sendHeader(int connection_socket, request& request){
 	if (!request.getredirectURL().empty()){
-		header = "HTTP/1.1 301 Moved Permanently\r\n"
+		if (request.getMethod() == "POST")
+			request.setStatusCode("201 Created");
+		else
+			request.setStatusCode("301 Moved Permanently");
+		header = "HTTP/1.1 " + request.getStatusCode() + "\r\n"
 			"Location: "+ request.getredirectURL() + "\r\n\r\n"+'\0';
 		int bytes_sent = write(connection_socket, header.c_str(),    //header
 		strlen(header.c_str()));

@@ -56,6 +56,14 @@ class client
 	string responsestring;
 	int		filesent;
 	public:
+
+		enum requestStatus {
+			starting,
+			requestLineState,
+			headerFieldState,
+			headersDoneState,
+			bodyState,
+		};
 		map<int, string> errorpages;
 		bool keepAlive;
 		bool	tookrequest;

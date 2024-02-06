@@ -32,24 +32,25 @@ void	client::requestCases(request &requestObj, server& _server)
 void	client::set_request(string r, server& _server){
 	errorpages = _server.getErrorPage();
 	requestObj.errorpages = _server.getErrorPage();
-	if (!requestObj.headersDone) {
+	if (requestObj.headersDone == starting || requestObj.headersDone == headerFieldState) {
 		requestObj.getHeadersRequest(r);
 	}
-	if (requestObj.headersDone == 1 || requestObj.failHeader) {
-		if (requestObj.checkRequestLine(r)) {
+	if (requestObj.headersDone == requestLineState || requestObj.headersDone == headersDoneState) { //! || requestObj.failHeader
+		if (requestObj.checkRequestLine(requestObj.headers, requestObj.headersDone)) {
 			requestObj.failHeader = true;
 			tookrequest = 1;
 		}
-		else
-			requestObj.headersDone = 2;
 	}
-	if (requestObj.headersDone == 2 || requestObj.failHeader) {
-		if (requestObj.checkHeaderFields(r.substr(0, r.find("\r\n\r\n")))) {
+	if (requestObj.headersDone == headerFieldState || requestObj.headersDone == headersDoneState) { //! || requestObj.failHeader
+		int s = requestObj.checkHeaderFields(requestObj.headers, requestObj.headersDone);
+		if (s == 1) {
 			requestObj.failHeader = true;
 			tookrequest = 1;
 		}
-		else
-			requestObj.headersDone = 3;
+		else if (s == 2 && requestObj.headersDone == headersDoneState) {
+			requestObj.failHeader = true;
+			tookrequest = 1;
+		}
 	}
 	if (requestObj.failHeader && tookrequest) {
 		responseObj.totalSent = 0;
@@ -57,13 +58,14 @@ void	client::set_request(string r, server& _server){
 			responseObj.initialize(requestObj);
 	}
 	else {
-		if (requestObj.headersDone == 3 || requestObj.headersDone == 4) {
+		if (requestObj.headersDone == headersDoneState || requestObj.headersDone == bodyState) {
 			requestObj.setContentLength();
 			requestObj.setContentType();
 			requestObj.setConnection();
 			keepAlive = requestObj.getConnection();
-			if (requestObj.getMethod() == "POST")
+			if (requestObj.getMethod() == "POST"){
 				tookrequest = requestObj.getBodyRequest(r);
+			}
 			if (requestObj.getMethod() == "GET" || requestObj.getMethod() == "DELETE")
 				tookrequest = 1;
 				

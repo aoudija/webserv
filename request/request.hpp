@@ -39,8 +39,9 @@ class request
 	int bodyContentLength;
 
 	bool	keepAlive;
+	bool	gotRequestLine;
 
-	bool requestStatus;
+	// bool requestStatus;
 
 	std::string statusCode;
 
@@ -53,10 +54,24 @@ class request
 	int gg;
 	std::string filename;
 
+	std::string uploadPath;
+
 	//ayoub
 	string cgi_header;
 	string cgi_body;
 public:
+	enum ParsingStatus {
+	ParsingDone,
+	ParsingFailed,
+	ParsingContinue,
+	};
+	enum requestStatus {
+		starting,
+		requestLineState,
+		headerFieldState,
+		headersDoneState,
+		bodyState,
+	};
 	map<int, string> errorpages;
 	Cgi *CgiObj;
 	int	Cgisdone;
@@ -69,21 +84,6 @@ public:
 	std::map<std::string, std::string> headerFields;
 	Location loc;
 	int actualContentLength;
-	enum ParsingStatus {
-	ParsingDone,
-	ParsingFailed,
-	ParsingContinue,
-	};
-
-	enum ChunkedBodyState {
-		Initial,
-		ParsingChunkSize,
-		AfterChunkSizeSpace,
-		ChunkSizeCarriageReturn,
-		ParsingChunkData,
-		ChunkDataCarriageReturn,
-		ChunkDataCrLf,
-	};
 	request();
 	request(std::string req, server _server);
 	request(const request &other);
@@ -93,8 +93,8 @@ public:
 
 	void	reset();
 
+	void getHeadersRequest(std::string requestPart);
 	int getBodyRequest(std::string requestPart);
-	int getHeadersRequest(std::string requestPart);
 
 	void setBytesRange();
 	void setContentLength();
@@ -112,14 +112,16 @@ public:
 
 	void setStatusCode(std::string statusCode);
 
+	std::string	getUploadPath();
+	void	setUploadPath(std::string path);
 	bool	getConnection();
 	void	setConnection();
 	void	setContentType();
 	void	setContentType(std::string contentType);
 	void	addAllContentTypes();
 
-	int checkRequestLine(std::string request);
-	int checkHeaderFields(std::string headerFiles);
+	int checkRequestLine(std::string request, int state);
+	int checkHeaderFields(std::string headerFiles, int state);
 	int parseRequest(std::string request, server& _server);
 	request::ParsingStatus parseChunked(std::string body, server& _server);
 	request::ParsingStatus parseContentLength(std::string body, server& _server);
@@ -129,7 +131,7 @@ public:
 	std::string removeAndSetQueryString(const std::string& uri);
 	bool    isRequestDone();
 
-	ChunkedBodyState currentChunkedState;
+	// ChunkedBodyState currentChunkedState;
 	
 	std::string error;//unused 
 

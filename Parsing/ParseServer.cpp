@@ -239,7 +239,7 @@ void	server::init(){
 	set_my_default(-1);
 	setRoot("public");
 	setIndex("");
-	setErrorPage(404, "errorPages/err404.html");
+	setErrorPage(403, "errorPages/err403.html");
 	setIp("localhost");
 	setPort("8080");
 	setServerName("wal7amaq");

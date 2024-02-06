@@ -6,11 +6,11 @@ using std::endl;
 using std::string;
 using std::vector;
 
-request::request() : requestStatus(true) {
+request::request() {
 	this->chunkSize = 0;
 	this->bodyContentLength = 0;
 	this->bodyDone = 0;
-	this->headersDone = 0;
+	this->headersDone = starting;
 	this->flag = 0;
 	this->gg = 0;
 	this->is_CGI = 0;
@@ -19,14 +19,15 @@ request::request() : requestStatus(true) {
 	this->failHeader = false;
 	this->keepAlive = false;
 	this->Cgisdone = 0;
+	this->gotRequestLine = false;
 }
 
 void	request::reset() {
-	this->requestStatus = true;
+	// this->requestStatus = true;
 	this->chunkSize = 0;
 	this->bodyContentLength = 0;
 	this->bodyDone = 0;
-	this->headersDone = 0;
+	this->headersDone = starting;
 	this->flag = 0;
 	this->gg = 0;
 	this->is_CGI = 0;
@@ -50,6 +51,8 @@ void	request::reset() {
 	this->cgi_body = "";
 	this->headers = "";
 	this->theBody = "";
+	this->gotRequestLine = false;
+
 	allContTypes.clear();
 	headerFields.clear();
 }
@@ -94,9 +97,9 @@ void request::setFilePath(std::string filePath) {
 	this->filePath = filePath;
 }
 
-bool	request::isRequestDone() {
-	return requestStatus;
-}
+// bool	request::isRequestDone() {
+// 	return requestStatus;
+// }
 
 std::string request::getStatusCode() {
     return this->statusCode;
@@ -113,6 +116,16 @@ string request::getQueryString() {
 void request::setredirectURL(string redir)
 {
 	this->redirectURL = redir;
+}
+
+std::string	request::getUploadPath()
+{
+	return this->uploadPath;
+}
+
+void	request::setUploadPath(std::string path)
+{
+	this->uploadPath = path;
 }
 
 std::string errorPageTamplate(std::string errorMessage)
@@ -254,19 +267,69 @@ void request::setErrorPage(std::string statusCode, std::string errorMsg)
 	}
 }
 
-int request::checkRequestLine(std::string request)
+int charToHexadecimal(char ch) {
+	if (isdigit(ch))
+		return ch - '0';
+	else if (ch >= 'a' && ch <= 'f')
+		return ch - 'a' + 10;
+	else if (ch >= 'A' && ch <= 'F')
+		return ch - 'A' + 10;
+	else
+		return -1; // Invalid hex character
+}
+
+std::string	URIEncoding(std::string	&path)
 {
-	std::istringstream stream(request);
-	std::string line;
-	std::getline(stream, line);
+	std::string res;
+	for (int i = 0; i < (int)path.length(); ++i) {
+		if (path[i] == '+') {
+			res += ' ';
+			i++;
+		}
+		if (path[i] == '%') {
+			if (i + 2 < (int)path.length() && isxdigit(path[i + 1]) && isxdigit(path[i + 2])) {
+				char high = charToHexadecimal(path[i + 1]);
+				char low = charToHexadecimal(path[i + 2]);
+				if (high != -1 && low != -1) {
+					res += high * 16 + low;
+					i += 2;
+				} else {
+					res += path[i];
+				}
+			} else {
+				res += path[i];
+			}
+		} else {
+			res += path[i];
+		}
+	}
+	return res;
+}
 
-	std::istringstream stream2(line);
 
-	stream2 >> this->method >> this->requestURI >> this->httpVersion;
+int request::checkRequestLine(std::string request, int state)
+{
+	if (gotRequestLine == false) {
+		std::istringstream stream(request);
+		std::string line;
+		std::getline(stream, line);
 
-	if (this->method.empty() || this->requestURI.empty() || this->httpVersion.empty()) {
-		setErrorPage("400 Bad Request", "400, Bad Request");
-		return 1;
+		std::istringstream stream2(line);
+
+		if (!this->method.empty() || !this->requestURI.empty() || !this->httpVersion.empty()) {
+			return 0;
+		}
+		stream2 >> this->method >> this->requestURI >> this->httpVersion;
+		gotRequestLine = true;
+		// this->requestURI = URIEncoding(this->requestURI);
+	}
+
+	if (state == headerFieldState || state == headersDoneState) {
+		if (this->method.empty() || this->requestURI.empty() || this->httpVersion.empty() ) {
+			// cout << "HERE1" << endl;
+			setErrorPage("400 Bad Request", "400, Bad Request");
+			return 1;
+		}
 	}
 
 	this->requestURI = removeAndSetQueryString(this->requestURI);
@@ -275,21 +338,25 @@ int request::checkRequestLine(std::string request)
 		return 1;
 	}
 	if (this->requestURI.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%") != std::string::npos) {
+			// cout << "HERE2" << this->requestURI << endl;
+
 		setErrorPage("400 Bad Request", "400, Bad Request");
 		return 1;
 	}
 	if (this->requestURI.size() > 2048)/* mazal request body larger than lbody li fl config file !!*/ {
-		setErrorPage("414 Bad Request", "414, Bad Request");
+		// cout << RED << "HERE" << RESET_TEXT << endl;
+		setErrorPage("414 URI Too Long", "414, URI Too Long.");
 		return 1;
 	}
 	if (this->httpVersion != "HTTP/1.1") {
 		setErrorPage("505 HTTP Version Not Supported", "505, HTTP Version Not Supported");
 		return 1;
 	}
+	this->requestURI = URIEncoding(this->requestURI);
 	return 0;
 }
 
-int request::checkHeaderFields(std::string headerFiles)
+int request::checkHeaderFields(std::string headerFiles, int state)
 {
 	std::string line;
 	std::vector<std::string> lines;
@@ -316,6 +383,11 @@ int request::checkHeaderFields(std::string headerFiles)
 		setErrorPage("400 Bad Request", "400, Bad Request");
 		return 1;
 	}
+	if (headerFields.find("Host") == headerFields.end() && state == headersDoneState) {
+		setErrorPage("400 Bad Request", "400, Bad Request");
+		return 2;
+	}
+	//! host ??
 	return 0;
 }
 
@@ -357,6 +429,32 @@ std::string generateRandomFileName() {
 	return randomFileName;
 }
 
+int hexCharToInt(char hexChar) {
+	if (isdigit(hexChar))
+		return hexChar - '0';
+	else if (islower(hexChar))
+		return hexChar - 'a' + 10;
+	else if (isupper(hexChar))
+		return hexChar - 'A' + 10;
+	else
+		return -1; // Invalid hex character
+}
+
+unsigned int hexToDecimal(const std::string& hexString) {
+	unsigned int decimalValue = 0;
+	for (size_t i = 0; i < hexString.length(); ++i) {
+		int digitValue = hexCharToInt(hexString[i]);
+		if (digitValue == -1) {
+			// Invalid hex character
+			// You might want to handle this case differently depending on your requirements
+			std::cerr << "Invalid hex character: " << hexString[i] << std::endl;
+			return 0; // Return 0 in case of error
+		}
+		decimalValue = (decimalValue << 4) + digitValue;
+	}
+	return decimalValue;
+}
+
 request::ParsingStatus request::parseChunked(std::string body, server& _server)
 {
 	std::string fileName;
@@ -370,15 +468,15 @@ request::ParsingStatus request::parseChunked(std::string body, server& _server)
 		std::getline(stream, chunkSizeHex);
 
 		// Convert hex string to integer
-		std::istringstream iss(chunkSizeHex);
+		// std::istringstream iss(chunkSizeHex);
 		std::size_t chunkSize;
-		
-		iss >> std::hex >> chunkSize;
+		chunkSize = hexToDecimal(removewhites(chunkSizeHex));
+		// iss >> std::hex >> chunkSize;
 
-		if (iss.fail()) {
-			setErrorPage("500 Internal Server Error", "500, Internal Server Error.");
-			return ParsingFailed;
-		}
+		// if (iss.fail()) {
+		// 	setErrorPage("500 Internal Server Error", "500, Internal Server Error.");
+		// 	return ParsingFailed;
+		// }
 		// Check for the end of chunks
 		if (chunkSize == 0) {
 			break;
@@ -400,6 +498,7 @@ request::ParsingStatus request::parseChunked(std::string body, server& _server)
 		}
 		if(outputFile.is_open())
 		{
+			setUploadPath("upload/" + fileName);
 			outputFile << chunkData;
 			if (outputFile.fail()) {
 				outputFile.close();
@@ -433,6 +532,7 @@ request::ParsingStatus request::parseContentLength(std::string body, server& _se
 		return ParsingFailed;
 	}
 	if (outputFile.is_open()) {
+		setUploadPath("upload/" + fileName);
 		outputFile << body;
 		if (outputFile.fail()) {
 			outputFile.close();
@@ -524,20 +624,19 @@ request::ParsingStatus request::parseBoundary(std::string body, server& _server)
 			}
 			if (outputFile.is_open())
 			{
+				setUploadPath("upload/" + fileName);
 				std::string bodySent = part.substr(part.find("\r\n\r\n") + 4);
 				if (bodySent.empty() || bodySent == "\r\n") {
 					unlink(("upload/" + fileName).c_str());
 				}
 				outputFile << bodySent.substr(0, bodySent.size() - 2);
 				if (outputFile.fail()) {
-					std::cerr << RED << "uploading failed !!!!!!!!!!" << RESET_TEXT << endl;
 					outputFile.close();
 					setErrorPage("507 Insufficient Storage", "507, Insufficient Storage.");
 					return ParsingFailed;
 				}
 				outputFile.close();
 				if (outputFile.fail()) {
-					std::cerr << RED << "uploading failed !!!!!!!!!!" << RESET_TEXT << endl;
 					outputFile.close();
 					setErrorPage("507 Insufficient Storage", "507, Insufficient Storage.");
 					return ParsingFailed;
@@ -687,25 +786,23 @@ int request::parseRequest(std::string request, server& _server)
 	if (headerFields["Transfer-Encoding"].find("chunked") != std::string::npos
 		&& headerFields.find("Content-Length") == headerFields.end()
 		&& chunkSize != 0) {
-			requestStatus = false;
 			return 0;
 		}
 	else if (headerFields["Transfer-Encoding"].find("chunked") == std::string::npos
 		&& headerFields.find("Content-Length") != headerFields.end()
 		&& bodyContentLength < this->actualContentLength) {
 			if (bodyContentLength < this->actualContentLength)
-			requestStatus = false;
 			return 0;
 		}
 	else if (headerFields["Transfer-Encoding"].find("chunked") != std::string::npos
 		&& headerFields.find("Content-Length") != headerFields.end()
 		&& chunkSize != 0) {
-			requestStatus = false;
 			return 0;
 		}
 	else {
 		return 1;
 	}
+	return 1;
 }
 
 
@@ -843,27 +940,36 @@ void	request::addAllContentTypes()
 	allContTypes[".7z"] = "application/x-7z-compressed";
 }
 
-int request::getHeadersRequest(std::string requestPart) {
-	if (!headersDone && requestPart.find("\r\n\r\n") == std::string::npos) {
-		this->headers.append(requestPart.substr(0, requestPart.find("\r\n\r\n")));
-		return 0;
+void request::getHeadersRequest(std::string requestPart) {
+	if (requestPart.find("\r\n") != std::string::npos) {
+		headersDone = headerFieldState;
 	}
-	if (!headersDone && requestPart.find("\r\n\r\n") != std::string::npos) {
-		this->headers.append(requestPart.substr(0, requestPart.find("\r\n\r\n")));
-		headersDone = 1;
-		return 1;
+	if (requestPart.find("\r\n\r\n") != std::string::npos) {
+		headersDone = headersDoneState;
 	}
-	return 0;
+	if (this->headers.find("\r\n\r\n") != std::string::npos)
+	{
+		headersDone = headersDoneState;
+	}
+	if (requestPart.find("\r\n\r\n") == std::string::npos) {
+		this->headers.append(requestPart);
+		return ;
+	}
+	if (requestPart.find("\r\n\r\n") != std::string::npos) {
+		this->headers.append(requestPart.substr(0, requestPart.find("\r\n\r\n")));
+		return ;
+	}
+	return ;
 }
 
 
 int request::getBodyRequest(std::string requestPart)
 {
 	if (headersDone) {
-		if (headersDone == 3) {
+		if (headersDone == headersDoneState) {
 			bodyContentLength += requestPart.substr(requestPart.find("\r\n\r\n") + 4).size();
 			this->theBody.append(requestPart.substr(requestPart.find("\r\n\r\n") + 4));
-			headersDone = 4;
+			headersDone = bodyState;
 		}
 		else
 			this->theBody.append(requestPart);
