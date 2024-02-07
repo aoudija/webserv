@@ -343,7 +343,7 @@ int request::checkRequestLine(std::string request, int state)
 		setErrorPage("400 Bad Request", "400, Bad Request");
 		return 1;
 	}
-	if (this->requestURI.size() > 2048)/* mazal request body larger than lbody li fl config file !!*/ {
+	if (this->requestURI.size() + this->queryString.size() > 2048)/* mazal request body larger than lbody li fl config file !!*/ {
 		// cout << RED << "HERE" << RESET_TEXT << endl;
 		setErrorPage("414 URI Too Long", "414, URI Too Long.");
 		return 1;

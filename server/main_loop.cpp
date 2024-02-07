@@ -98,8 +98,18 @@ void	accept_read_write(vector<struct pollfd>&	pfds, struct pollfd &pfd,
 			{
 				if (pfd.fd == servers[i].get_slistener())
 					accept_connection(pfds, pfd, servers[i]);
-				else
-					readRequest(pfds, pfd, servers[i]);
+				else{
+					try
+					{
+						readRequest(pfds, pfd, servers[i]);
+					}
+					catch(const std::exception& e)
+					{
+						std::cerr << e.what() << '\n';
+						internalServerError(pfd.fd);
+						return ;
+					}
+				}
 			}
 			else if (pfd.revents & POLLOUT)
 			{

@@ -48,7 +48,8 @@ void    response::initialize(request& request){
         is.seekg (0, std::ios::end);
         filesize = is.tellg();
         is.seekg (0, std::ios::beg);
-
+		if (buffer)
+			delete buffer;
         buffer = new char [filesize];
         is.read (buffer,filesize);
         is.close();
