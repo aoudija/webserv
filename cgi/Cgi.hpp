@@ -18,6 +18,7 @@ private:
 	char		**arg;
 	std::string filename;
 	std::string filebody;
+	std::string filebodysend;
 	pid_t		pid;
 	void	parseHeader(std::vector<std::string> header, size_t len);
 	std::string generateRandomFileName();

@@ -39,9 +39,10 @@ response::response()
 void    response::initialize(request& request){
     string path;
     path = request.getFilePath();
-    if (request.is_CGI)
-        path = request.getCgiBody();
-    
+	if (request.is_CGI){
+		if (!(request.getMethod() == "POST" && request.loc.getUpload()))
+			path = request.getCgiBody();
+	}
     std::ifstream is(path.c_str());
     if (is.is_open()){
         is.seekg (0, std::ios::end);
@@ -65,7 +66,8 @@ int	response::sendHeader(int connection_socket, request& request){
 		else
 			request.setStatusCode("301 Moved Permanently");
 		header = "HTTP/1.1 " + request.getStatusCode() + "\r\n"
-			"Location: "+ request.getredirectURL() + "\r\n\r\n"+'\0';
+			"Content-Length: 0\r\n"
+			"Location: "+ request.getredirectURL() + "\r\n\r\n";
 		int bytes_sent = write(connection_socket, header.c_str(),    //header
 		strlen(header.c_str()));
 		if (bytes_sent <= 0){
@@ -88,7 +90,8 @@ int	response::sendHeader(int connection_socket, request& request){
 		return 1;
 	}
 	if (request.is_CGI){
-		header = request.getCgiHeader();
+		if (!(request.getMethod() == "POST" && request.loc.getUpload()))
+			header = request.getCgiHeader();
 	}
 	else {
 		header = "HTTP/1.1 " + request.getStatusCode()+ "\r\n"

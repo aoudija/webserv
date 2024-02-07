@@ -5,12 +5,12 @@ using std::string;
 using std::vector;
 
 void	client::_post_(request& requestObj, server& _server){
-	if (_server.getUpload()) {
+	if (requestObj.loc.getUpload()) {
 		requestObj.setStatusCode("201 Created");
 		requestObj.parseRequest(requestObj.theBody, _server);
 		requestObj.setredirectURL(requestObj.getUploadPath());
 	}
-	else if (!_server.getUpload()){
+	else if (!requestObj.loc.getUpload()){
 		if (checkExistance(requestObj))
 			return ;
 		if (isDirectory(requestObj.getFilePath().c_str()))

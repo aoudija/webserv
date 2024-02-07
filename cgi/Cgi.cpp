@@ -14,6 +14,7 @@ Cgi::Cgi(server *serv,  request *req): MyServer(serv),  MyRequest(req){
 	set_arg();
 	this->filename = "/tmp/file_all" + generateRandomFileName();
 	this->filebody = "/tmp/file_body" + generateRandomFileName();
+	this->filebodysend = "/tmp/file_sendbody" + generateRandomFileName();
 }
 
 Cgi::~Cgi()
@@ -177,7 +178,6 @@ void	Cgi::parseHeader(std::vector<std::string> header, size_t len){
 		head = "HTTP/1.1 200 OK\r\n" + head;
 	else
 		head = status + head;
-	std::cout << RED << head << std::endl;
 	this->header = head + "\r\n";
 }
 
@@ -225,35 +225,22 @@ int Cgi::ParseAll(){
 	body = trim(body);
 
 	parseHeader(result, body.size());
-	std::string filebodysend = "/tmp/file_sendbody";
-	int fdbodysend = open(filebodysend.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
-	if (fdbodysend == -1)
+
+	std::ofstream BodysendFile(filebodysend, std::ios::out | std::ios::trunc);
+	if (!BodysendFile.is_open())
 		return 502;
-	int	writecheck = write(fdbodysend, body.c_str(), body.length());
-	if (writecheck == -1){
-		close(fdbodysend);
-		return 502;
-	}
-	else if (writecheck >= 0){
-		close(fdbodysend);
-		this->body = filebodysend;
-	}
+	BodysendFile << body;
+	BodysendFile.close();
+	this->body = filebodysend;
 	return 1;
 }
 
-void Cgi::exe(){;
-	int fd_body = open(filebody.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
-	if (fd_body == -1){
+void Cgi::exe(){
+	std::ofstream bodyFile(filebody, std::ios::out | std::ios::trunc);
+	if (!bodyFile.is_open())
 		this->status = 502;
-		return ;
-	}
-	int	writecheck = write(fd_body, MyRequest->theBody.c_str(), MyRequest->theBody.length());
-	if (writecheck == -1){
-		close(fd_body);
-		this->status = 502;
-		return ;
-	}
-	close(fd_body);
+	bodyFile << MyRequest->theBody;
+	bodyFile.close();
 	pid = fork();
 	if (pid == -1){
 		this->status = 500;
