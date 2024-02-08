@@ -11,8 +11,9 @@ void removefd(vector<struct pollfd>& pfds, struct pollfd& pfd, server& server){
 	close(fd);
 	server.clients.erase(fd);
 	for(vector<pollfd>::iterator it = pfds.begin();it != pfds.end();it++){
-		if (!memcmp(&(*it), &pfd, sizeof(struct pollfd))){
-			cout << "removing this fd!: " << it->fd <<endl;
+		if (!memcmp(&(*it), &pfd, sizeof(struct pollfd)))
+		{
+			cout << "removing this fd: " << it->fd <<endl;
 			pfds.erase(it);
 			break;
 		}
@@ -59,14 +60,14 @@ void readRequest(vector<struct pollfd>&	pfds,struct pollfd &pfd, server& server)
 	{
 		int r = read(pfd.fd, request, 1024);
 		if (r <= 0){
-			perror("read");
 			cout << "removing fd now.."<<endl;
 			removefd(pfds,pfd,server);
 			return;
 		}
 		request[r] = '\0';
 		theRequest = string(request, r);
-		// cout << WHITE << theRequest << RESET_TEXT << endl;
+		cout << pfd.fd << endl;
+		cout << WHITE << theRequest << RESET_TEXT << endl;
 		server.clients[pfd.fd].set_request(theRequest, server);
 		if (server.clients[pfd.fd].tookrequest == 1)
 			pfd.events = POLLOUT;
@@ -156,7 +157,6 @@ void	main_loop(vector<server> Confservers){
 	_si.SetListener();
 	vector<server> servers = _si.get_servers();
 
-	//multiplexing v10.01 ~
 	vector<struct pollfd>	pfds;
 	fillpoll_listen(pfds, _si);
 	struct pollfd*			p;
@@ -171,6 +171,6 @@ void	main_loop(vector<server> Confservers){
 		else if (r == 0)
 			checkTimeout(pfds, servers);
 		for (size_t i = 0;i < pfds.size();i++)
-				accept_read_write(pfds, pfds[i], servers);
+			accept_read_write(pfds, pfds[i], servers);
 	}
 }

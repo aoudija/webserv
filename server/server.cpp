@@ -89,24 +89,23 @@ void serversInfos::SetListener(){
 	vector<server>::iterator it;
 	int reusePortOption = 1;
 	for(it = servers.begin();it < servers.end();it++){
-		struct addrinfo server_addr, *cn;
-		bzero(&server_addr, sizeof(server_addr));
-		server_addr.ai_family = AF_UNSPEC;
-		server_addr.ai_socktype = SOCK_STREAM;
+		struct addrinfo hints, *res;
+		bzero(&hints, sizeof(hints));
+		hints.ai_socktype = SOCK_STREAM;
 
 		if (getaddrinfo(it->getIp().c_str(), (it->portGetter()).c_str(),
-			&server_addr, &cn) != 0){
+			&hints, &res) != 0){
 			perror("getaddrinfo");
 			exit(EXIT_FAILURE);
 		}
 		
 		if (!it->get_isdefault()){
 			it->set_slistener(servers[it->get_my_default()].get_slistener());
-			freeaddrinfo(cn);
+			freeaddrinfo(res);
 		}
 		else {
-			it->set_slistener(socket(cn->ai_family,
-				cn->ai_socktype, cn->ai_protocol));
+			it->set_slistener(socket(res->ai_family,
+				res->ai_socktype, res->ai_protocol));
 			
 			setsockopt(it->get_slistener(), SOL_SOCKET,
 				SO_REUSEPORT, &reusePortOption, sizeof(reusePortOption));
@@ -115,13 +114,13 @@ void serversInfos::SetListener(){
 			it->mysockets.push_back(it->get_slistener());
 
 			fcntl(it->get_slistener(), F_SETFL, O_NONBLOCK, FD_CLOEXEC);
-			if (bind(it->get_slistener(), cn->ai_addr,cn->ai_addrlen) < 0){
+			if (bind(it->get_slistener(), res->ai_addr,res->ai_addrlen) < 0){
 				perror("bind");
-				freeaddrinfo(cn);
+				freeaddrinfo(res);
 				closeListeners();
 				exit(EXIT_FAILURE);
 			}
-			freeaddrinfo(cn);
+			freeaddrinfo(res);
 			if (listen(it->get_slistener(), SOMAXCONN) < 0)
 			{
 				cout << RED << "listen() failed" << RESET_TEXT << endl;

@@ -35,21 +35,23 @@ void	client::set_request(string r, server& _server){
 	if (requestObj.headersDone == starting || requestObj.headersDone == headerFieldState) {
 		requestObj.getHeadersRequest(r);
 	}
-	if (requestObj.headersDone == requestLineState || requestObj.headersDone == headersDoneState) { //! || requestObj.failHeader
+	if (requestObj.headersDone == requestLineState || requestObj.headersDone == headersDoneState) {
 		if (requestObj.checkRequestLine(requestObj.headers, requestObj.headersDone)) {
 			requestObj.failHeader = true;
 			tookrequest = 1;
 		}
 	}
-	if (requestObj.headersDone == headerFieldState || requestObj.headersDone == headersDoneState) { //! || requestObj.failHeader
-		int s = requestObj.checkHeaderFields(requestObj.headers, requestObj.headersDone);
-		if (s == 1) {
-			requestObj.failHeader = true;
-			tookrequest = 1;
-		}
-		else if (s == 2 && requestObj.headersDone == headersDoneState) {
-			requestObj.failHeader = true;
-			tookrequest = 1;
+	if (requestObj.failHeader == false) {
+		if (requestObj.headersDone == headerFieldState || requestObj.headersDone == headersDoneState) {
+			int s = requestObj.checkHeaderFields(requestObj.headers, requestObj.headersDone);
+			if (s == 1) {
+				requestObj.failHeader = true;
+				tookrequest = 1;
+			}
+			else if (s == 2 && requestObj.headersDone == headersDoneState) {
+				requestObj.failHeader = true;
+				tookrequest = 1;
+			}
 		}
 	}
 	if (requestObj.failHeader && tookrequest) {

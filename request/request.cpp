@@ -23,7 +23,6 @@ request::request() {
 }
 
 void	request::reset() {
-	// this->requestStatus = true;
 	this->chunkSize = 0;
 	this->bodyContentLength = 0;
 	this->bodyDone = 0;
@@ -96,10 +95,6 @@ std::string request::getFilePath() {
 void request::setFilePath(std::string filePath) {
 	this->filePath = filePath;
 }
-
-// bool	request::isRequestDone() {
-// 	return requestStatus;
-// }
 
 std::string request::getStatusCode() {
     return this->statusCode;
@@ -177,7 +172,7 @@ std::string errorPageTamplate(std::string errorMessage)
 	if (outputFile.fail())
 	{
 		std::cout << "error" << std::endl;
-		std::string filePath = "/Users/zbouayya/goinfre/errorpage.html";
+		std::string filePath = "/Users/aoudija/goinfre/errorpage.html";
 		if (fileExists(filePath.c_str()))
 			unlink(filePath.c_str());
 		std::ofstream outputFile(filePath, std::ios::trunc);
@@ -321,12 +316,10 @@ int request::checkRequestLine(std::string request, int state)
 		}
 		stream2 >> this->method >> this->requestURI >> this->httpVersion;
 		gotRequestLine = true;
-		// this->requestURI = URIEncoding(this->requestURI);
 	}
 
 	if (state == headerFieldState || state == headersDoneState) {
 		if (this->method.empty() || this->requestURI.empty() || this->httpVersion.empty() ) {
-			// cout << "HERE1" << endl;
 			setErrorPage("400 Bad Request", "400, Bad Request");
 			return 1;
 		}
@@ -338,13 +331,10 @@ int request::checkRequestLine(std::string request, int state)
 		return 1;
 	}
 	if (this->requestURI.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%") != std::string::npos) {
-			// cout << "HERE2" << this->requestURI << endl;
-
 		setErrorPage("400 Bad Request", "400, Bad Request");
 		return 1;
 	}
-	if (this->requestURI.size() + this->queryString.size() > 2048)/* mazal request body larger than lbody li fl config file !!*/ {
-		// cout << RED << "HERE" << RESET_TEXT << endl;
+	if (this->requestURI.size() + this->queryString.size() > 2048) {
 		setErrorPage("414 URI Too Long", "414, URI Too Long.");
 		return 1;
 	}
@@ -387,29 +377,22 @@ int request::checkHeaderFields(std::string headerFiles, int state)
 		setErrorPage("400 Bad Request", "400, Bad Request");
 		return 2;
 	}
-	//! host ??
 	return 0;
 }
 
 std::string getTheExtensionFromContentType(std::string daContentType)
 {
-	// Find the position of the '/'
 	size_t slashPos = daContentType.find('/');
 
 	if (slashPos != std::string::npos) {
-		// Extract the substring after the '/'
 		std::string fileType = daContentType.substr(slashPos + 1);
-
-		// Replace any '+' characters with '_' (e.g., image/jpeg -> jpeg)//!
 		size_t plusPos = fileType.find('+');
 		while (plusPos != std::string::npos) {
 			fileType[plusPos] = '_';
 			plusPos = fileType.find('+', plusPos + 1);
 		}
-		// Return the file extension
 		return "." + fileType;
 	} else {
-		// Return an empty string if no '/' is found
 		return "";
 	}
 }
@@ -445,8 +428,6 @@ unsigned int hexToDecimal(const std::string& hexString) {
 	for (size_t i = 0; i < hexString.length(); ++i) {
 		int digitValue = hexCharToInt(hexString[i]);
 		if (digitValue == -1) {
-			// Invalid hex character
-			// You might want to handle this case differently depending on your requirements
 			std::cerr << "Invalid hex character: " << hexString[i] << std::endl;
 			return 0; // Return 0 in case of error
 		}
@@ -468,20 +449,12 @@ request::ParsingStatus request::parseChunked(std::string body, server& _server)
 		std::getline(stream, chunkSizeHex);
 
 		// Convert hex string to integer
-		// std::istringstream iss(chunkSizeHex);
 		std::size_t chunkSize;
 		chunkSize = hexToDecimal(removewhites(chunkSizeHex));
-		// iss >> std::hex >> chunkSize;
-
-		// if (iss.fail()) {
-		// 	setErrorPage("500 Internal Server Error", "500, Internal Server Error.");
-		// 	return ParsingFailed;
-		// }
 		// Check for the end of chunks
 		if (chunkSize == 0) {
 			break;
 		}
-
 		// Read the chunk data
 		std::string chunkData(chunkSize, '\0');
 		stream.read(&chunkData[0], chunkSize);
@@ -947,16 +920,19 @@ void request::getHeadersRequest(std::string requestPart) {
 	if (requestPart.find("\r\n\r\n") != std::string::npos) {
 		headersDone = headersDoneState;
 	}
-	if (this->headers.find("\r\n\r\n") != std::string::npos)
-	{
+	if (this->headers.find("\r\n\r\n") != std::string::npos) {
 		headersDone = headersDoneState;
 	}
 	if (requestPart.find("\r\n\r\n") == std::string::npos) {
 		this->headers.append(requestPart);
+		if (this->headers.find("\r\n\r\n") != std::string::npos)
+			headersDone = headersDoneState;
 		return ;
 	}
 	if (requestPart.find("\r\n\r\n") != std::string::npos) {
 		this->headers.append(requestPart.substr(0, requestPart.find("\r\n\r\n")));
+		if (this->headers.find("\r\n\r\n") != std::string::npos)
+			headersDone = headersDoneState;
 		return ;
 	}
 	return ;

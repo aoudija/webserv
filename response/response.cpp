@@ -71,10 +71,8 @@ int	response::sendHeader(int connection_socket, request& request){
 			"Location: "+ request.getredirectURL() + "\r\n\r\n";
 		int bytes_sent = write(connection_socket, header.c_str(),    //header
 		strlen(header.c_str()));
-		if (bytes_sent <= 0){
-			perror("write");
+		if (bytes_sent <= 0)
 			return 0;
-		}
 		resTime = time(0);
 		return 1;
 	}
@@ -83,10 +81,8 @@ int	response::sendHeader(int connection_socket, request& request){
 		header = "HTTP/1.1 " + request.getStatusCode()+ "\r\n\r\n"+'\0';
 		int bytes_sent = write(connection_socket, header.c_str(),    //header
 		strlen(header.c_str()));
-		if (bytes_sent <= 0){
-			perror("write");
+		if (bytes_sent <= 0)
 			return 0;
-		}
 		resTime = time(0);
 		return 1;
 	}
@@ -107,10 +103,8 @@ int	response::sendBody(int connection_socket){
 		firstT++;
 		int bytes_sent = write(connection_socket, header.c_str(),//header
 		strlen(header.c_str()));
-		if (bytes_sent <= 0){
-			perror("write");//!remove fd
+		if (bytes_sent <= 0)
 			return -1;
-		}
 		resTime = time(0);
 		return 0;
 	}
@@ -119,10 +113,8 @@ int	response::sendBody(int connection_socket){
 	if (len > filesize - totalSent)
 		len = filesize - totalSent;
 	bytes_sent = write(connection_socket, buffer + totalSent, len);
-	if (bytes_sent <= 0){
-		perror("write");//!remove fd
+	if (bytes_sent <= 0)
 		return -1;
-	}
 	resTime = time(0);
 	totalSent += bytes_sent;
 	if (totalSent >= filesize){
